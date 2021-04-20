@@ -58,6 +58,7 @@ def on_save_post(_):
 
 
 def register():
+    globalvar.version = bl_info["version"]
     py7zr_state = install_lib.has_libs()
     globalvar.py7zr_state = py7zr_state
     log.info('Sublender@register: Starting')

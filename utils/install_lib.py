@@ -32,7 +32,8 @@ def has_libs():
     try:
         import py7zr
         import xmltodict
-        return py7zr is not None and xmltodict is not None
+        import aiohttp
+        return py7zr is not None and xmltodict is not None and aiohttp is not None
     except ImportError:
         return False
 
@@ -41,7 +42,8 @@ def ensure_libs():
     try:
         import py7zr
         import xmltodict
-        return py7zr is not None and xmltodict is not None
+        import aiohttp
+        return py7zr is not None and xmltodict is not None and aiohttp is not None
     except ImportError:
         try:
             if IS_MAC or IS_LINUX:
@@ -50,6 +52,7 @@ def ensure_libs():
             run_pip("wheel")
             run_pip("py7zr")
             run_pip("xmltodict")
+            run_pip("aiohttp")
             return True
         except subprocess.SubprocessError as e:
             print("Something went wrong, unable to install py7zr", e)

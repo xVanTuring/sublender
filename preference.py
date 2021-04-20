@@ -60,6 +60,10 @@ class SublenderPreferences(AddonPreferences):
 
     rerender_affected_texture: BoolProperty(name="Render texture affected by inputs", default=True)
 
+    latest_version: StringProperty(default="")
+    latest_changelog: StringProperty(default="")
+    show_changelog: BoolProperty(default=True, name="Show Changelog")
+
     def draw(self, _):
         layout = self.layout
         if not utils.globalvar.py7zr_state:
@@ -84,7 +88,7 @@ class SublenderPreferences(AddonPreferences):
         if self.engine_enum == utils.consts.CUSTOM:
             layout.prop(self, 'custom_engine')
         layout.prop(self, 'library_preview_engine')
-        #  toggle=1, icon='LINKED'
+
         layout.prop(self, 'rerender_affected_texture')
 
         layout.separator()
@@ -92,6 +96,18 @@ class SublenderPreferences(AddonPreferences):
         column = layout.row()
         column.prop(self, "old_version_of_template")
         column.operator("sublender.release_lib_template")
+
+        layout.separator()
+
+        layout.operator("sublender.check_version")
+        if self.latest_version != "":
+            layout.label(text="Latest Version: {}".format(self.latest_version))
+        layout.prop(self, "show_changelog", text="Changelog: ")
+        if self.latest_changelog != "" and self.show_changelog:
+            lines = self.latest_changelog.split("\n")
+            box = layout.box()
+            for line in lines:
+                box.label(text=line)
 
         layout.separator()
         layout.label(text="Special Thanks to YOU and: ")
