@@ -63,7 +63,7 @@ class SublenderPreferences(AddonPreferences):
     def draw(self, _):
         layout = self.layout
         if not utils.globalvar.py7zr_state:
-            ui.draw_install_deps(layout)
+            ui.mainpanel.draw_install_deps(layout)
             return
         layout.prop(self, 'sbs_render')
         layout.prop(self, 'library_path')
