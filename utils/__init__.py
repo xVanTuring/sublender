@@ -253,54 +253,39 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             if input_info['identifier'] == '$outputsize':
                 preferences = bpy.context.preferences
                 addon_prefs = preferences.addons["sublender"].preferences
-                _anno_obj[consts.output_size_x] = (EnumProperty, {
-                    'items': consts.output_size_one_enum,
-                    'default': addon_prefs.output_size_x,
-                    'update': output_size_x_updated,
-                })
-                _anno_obj[consts.output_size_y] = (EnumProperty, {
-                    'items': consts.output_size_one_enum,
-                    'default': addon_prefs.output_size_x,
-                })
-                _anno_obj[consts.output_size_lock] = (BoolProperty, {
-                    'default': addon_prefs.output_size_lock,
-                    'update': output_size_x_updated
-                })
-                _anno_obj[consts.update_when_sizing] = (BoolProperty, {
-                    'name': "Update texture when change size",
-                    'default': True
-                })
+                _anno_obj[consts.output_size_x] = EnumProperty(items=consts.output_size_one_enum,
+                                                               default=addon_prefs.output_size_x,
+                                                               update=output_size_x_updated)
+                _anno_obj[consts.output_size_y] = EnumProperty(items=consts.output_size_one_enum,
+                                                               default=addon_prefs.output_size_x)
+
+                _anno_obj[consts.output_size_lock] = BoolProperty(default=addon_prefs.output_size_lock,
+                                                                  update=output_size_x_updated)
+                _anno_obj[consts.update_when_sizing] = BoolProperty(name="Update texture when change size",
+                                                                    default=True)
             else:
-                _anno_obj[input_info['prop']] = (prop_type, _anno_item)
+                _anno_obj[input_info['prop']] = prop_type(**_anno_item)
 
         def parse_output(_output):
-            _anno_obj[sb_output_to_prop(_output['identifier'])] = (BoolProperty, {
-                'name':
-                _output['label'],
-                'default':
-                False,
-                'update':
-                sbsar_output_updated_name(_output['identifier'])
-            })
-            _anno_obj[sb_output_format_to_prop(_output['identifier'])] = (EnumProperty, {
-                'name': 'Format',
-                'items': format_list,
-                'default': 'png'
-            })
-            _anno_obj[sb_output_dep_to_prop(_output['identifier'])] = (EnumProperty, {
-                'name': 'Bit Depth',
-                'items': output_bit_depth,
-                'default': '0'
-            })
+            _anno_obj[sb_output_to_prop(_output['identifier'])] = BoolProperty(name=_output['label'],
+                                                                               default=False,
+                                                                               update=sbsar_output_updated_name(
+                                                                                   _output['identifier']))
+            _anno_obj[sb_output_format_to_prop(_output['identifier'])] = EnumProperty(name='Format',
+                                                                                      items=format_list,
+                                                                                      default='png')
+            _anno_obj[sb_output_dep_to_prop(_output['identifier'])] = EnumProperty(name='Bit Depth',
+                                                                                   items=output_bit_depth,
+                                                                                   default='0')
 
         output_list_dict, output_list, output_usage_dict = graph_output_parse(all_outputs, parse_output)
 
         group_tree, group_map = parser.parse_sbsar_group(sbs_graph)
         generate_sub_panel(group_map, graph_url)
-        _anno_obj[consts.SBS_CONFIGURED] = (BoolProperty, {
-            'name': "SBS Configured",
-            'default': False,
-        })
+        _anno_obj[consts.SBS_CONFIGURED] = BoolProperty(
+            name="SBS Configured",
+            default=False,
+        )
         clss = type(clss_name, (bpy.types.PropertyGroup, ), {'__annotations__': _anno_obj})
         register_class(clss)
 
