@@ -63,6 +63,8 @@ class SublenderPreferences(AddonPreferences):
     latest_version: StringProperty(default="")
     latest_changelog: StringProperty(default="")
     show_changelog: BoolProperty(default=True, name="Show Changelog")
+    auto_check_every_day: BoolProperty(default=False, name="Check update everyday")
+    last_check: IntProperty(default=0)
 
     def draw(self, _):
         layout = self.layout
@@ -98,8 +100,11 @@ class SublenderPreferences(AddonPreferences):
         column.operator("sublender.release_lib_template")
 
         layout.separator()
+        layout.label(text="Update:")
+        row = layout.row()
+        row.operator("sublender.check_version")
+        row.prop(self, "auto_check_every_day")
 
-        layout.operator("sublender.check_version")
         if self.latest_version != "":
             layout.label(text="Latest Version: {}".format(self.latest_version))
         layout.prop(self, "show_changelog", text="Changelog: ")

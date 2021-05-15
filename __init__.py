@@ -33,6 +33,7 @@ def on_load_pre(_):
 
 @persistent
 def on_load_post(_):
+    operators.sublender_update.auto_check()
     if bpy.data.filepath != "" and bpy.context.scene.sublender_settings.uuid != "":
         bpy.ops.sublender.init_async(pop_import=False)
 
