@@ -18,7 +18,7 @@ print("Writing {0}".format(package_mirror_name))
 subprocess.run(
     ["git", "archive", "--format", "zip", "--output", package_mirror_name, branch, "--prefix", "sublender/"])
 patched_path = str(pathlib.Path("/tmp/sublender/", install_lib_base_path))
-pathlib.Path("/tmp/sublender").mkdir(parents=True, exist_ok=True)
+pathlib.Path("/tmp/sublender/utils").mkdir(parents=True, exist_ok=True)
 with open(install_lib_base_path, "r") as basefile:
     content = basefile.read()
     content = content.replace('run_pip("--upgrade", "pip")','run_pip("--upgrade", "pip", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")') \
