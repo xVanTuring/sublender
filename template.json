@@ -1,0 +1,132 @@
+{
+    "name": "",
+    "nodes": [
+        {
+            "type": "ShaderNodeOutputMaterial",
+            "name": "Material Output",
+            "label": "Material Output",
+            "location": [
+                448,
+                0
+            ]
+        },
+        {
+            "type": "ShaderNodeBsdfPrincipled",
+            "name": "Principled BSDF",
+            "label": "Principled BSDF",
+            "location": [
+                28,
+                0
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "baseColor",
+            "label": "Base Color",
+            "location": [
+                -371,
+                -106
+            ],
+            "hide": true
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "metallic",
+            "label": "Metallic",
+            "location": [
+                -371,
+                -192
+            ],
+            "hide": true
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "roughness",
+            "label": "Roughness",
+            "location": [
+                -371,
+                -259
+            ],
+            "hide": true
+        },
+        {
+            "type": "ShaderNodeNormalMap",
+            "name": "Normal Map",
+            "label": "Normal Map",
+            "hide": true,
+            "location": [
+                -195,
+                -506
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "normal",
+            "label": "Normal",
+            "hide": true,
+            "location": [
+                -483,
+                -506
+            ]
+        }
+    ],
+    "links": [
+        {
+            "fromNode": "Principled BSDF",
+            "toNode": "Material Output",
+            "fromSocket": "BSDF",
+            "toSocket": "Surface"
+        },
+        {
+            "fromNode": "baseColor",
+            "toNode": "Principled BSDF",
+            "fromSocket": "Color",
+            "toSocket": "Base Color"
+        },
+        {
+            "fromNode": "metallic",
+            "fromSocket": "Color",
+            "toNode": "Principled BSDF",
+            "toSocket": "Metallic"
+        },
+        {
+            "fromNode": "roughness",
+            "fromSocket": "Color",
+            "toNode": "Principled BSDF",
+            "toSocket": "Roughness"
+        },
+        {
+            "fromNode": "normal",
+            "fromSocket": "Color",
+            "toNode": "Normal Map",
+            "toSocket": "Color"
+        },
+        {
+            "fromNode": "Normal Map",
+            "fromSocket": "Normal",
+            "toNode": "Principled BSDF",
+            "toSocket": "Normal"
+        }
+    ],
+    "texture": [
+        {
+            "type": "baseColor",
+            "node": "baseColor"
+        },
+        {
+            "type": "metallic",
+            "node": "metallic",
+            "colorspace": "Non-Color"
+        },
+        {
+            "type": "roughness",
+            "node": "roughness",
+            "colorspace": "Non-Color"
+        },
+        {
+            "type": "normal",
+            "node": "normal",
+            "colorspace": "Non-Color"
+        }
+    ]
+}

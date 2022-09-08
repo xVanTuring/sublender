@@ -1,0 +1,1 @@
+&"C:\Program Files\Allegorithmic\Substance Automation Toolkit\sbsrender.exe" render --input ./sa_aged_wood_planks.sbsar --input-graph pkg://wood_planks_aged --output-path ./output --set-value roughness_amount@0.9700000286102295
