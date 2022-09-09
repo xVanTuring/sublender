@@ -45,7 +45,8 @@ def instance_list(self, context):
 class SublenderSetting(bpy.types.PropertyGroup):
     show_preview: BoolProperty(name="Show Preview")
     active_graph: EnumProperty(
-        items=graph_list, name="Graph", update=active_graph_updated)
+        items=graph_list, name="Graph")
     active_instance: EnumProperty(
         items=instance_list, name="Instance")
     uuid: StringProperty(name="UUID of this blender file", default="")
+    live_update: BoolProperty(name="Live Update")

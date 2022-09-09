@@ -48,6 +48,7 @@ class Sublender_Import_Graph(Operator):
         clss_name, clss = dynamic_gen_clss(
             self.package_path, self.graph_url)
         inflate_template(material, self.material_template)
+        bpy.ops.sublender.render_texture(assign_texture=True)
         # generate material and texture
         return {'FINISHED'}
 

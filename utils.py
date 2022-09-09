@@ -7,7 +7,8 @@ from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 import bpy
 from . import globals, consts
 from . parser import parseSbsarInput
-
+def sbsar_input_updated(self, context):
+    print("Property Updated")
 
 def new_material_name(material_name: str) -> str:
     """Make Sure No Name Comflict"""
@@ -72,7 +73,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str,):
             if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
                 if input_info.get('mWidget') == 'color':
                     _anno_item['subtype'] = 'COLOR'
-
+            _anno_item['update'] = sbsar_input_updated
             _anno_obj[prop_name] = (prop_type, _anno_item)
 
             if input_info_dict.get(input_info['group']) is None:

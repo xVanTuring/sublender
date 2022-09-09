@@ -9,7 +9,6 @@ if "bpy" in locals():
     importer = reload(importer)
 else:
     from sublender import template, utils, settings, parser, consts, globals, importer
-
 import pprint
 import subprocess
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
@@ -39,53 +38,6 @@ bl_info = {
 }
 
 
-def sbsar_input_updated():
-    pass
-
-
-class Sublender_Render_TEXTURE(Operator):
-    bl_idname = "sublender.render_texture"
-    bl_label = "Render Texture"
-    bl_description = "Render Texture"
-
-    def execute(self, context):
-        # read all params
-        mats = bpy.data.materials
-        sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-        target_mat = mats.get(sublender_settings.active_instance)
-        if target_mat is not None:
-            m_sublender: settings.Sublender_Material_MT_Setting = target_mat.sublender
-            clss_name, clss_info = utils.dynamic_gen_clss(
-                m_sublender.package_path, m_sublender.graph_url)
-            graph_setting = getattr(target_mat, clss_name)
-            input_dict = clss_info['input']
-            param_list = []
-            param_list.append("--input")
-            param_list.append(m_sublender.package_path)
-            param_list.append("--input-graph")
-            param_list.append(m_sublender.graph_url)
-            for group_key in input_dict:
-                input_group = input_dict[group_key]
-                for input_info in input_group:
-                    value = graph_setting.get(input_info['prop'])
-                    if value is not None:
-                        param_list.append("--set-value")
-                        to_list = getattr(value, 'to_list', None)
-                        if to_list is not None:
-                            value = ','.join(map(str, to_list()))
-                        param_list.append("{0}@{1}".format(
-                            input_info['mIdentifier'], value))
-            param_list.append("--output-path")
-            target_dir = os.path.join(
-                globals.SUBLENDER_DIR, sublender_settings.uuid, clss_name)
-            pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
-            param_list.append(target_dir)
-            out = batchtools.sbsrender_render(
-                *param_list, output_handler=True)
-            print(param_list)
-        return {'FINISHED'}
-
-
 class Sublender_New_Instance(Operator):
     bl_idname = "sublender.new_instance"
     bl_label = "New Instance"
@@ -94,14 +46,14 @@ class Sublender_New_Instance(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
-def load_sbsar():
-        mats = bpy.data.materials.items()
-        for mat_name, mat in mats:
-            m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
-            if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
-                utils.dynamic_gen_clss(
-                    m_sublender.package_path, m_sublender.graph_url)
 
+def load_sbsar():
+    mats = bpy.data.materials.items()
+    for mat_name, mat in mats:
+        m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
+        if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
+            utils.dynamic_gen_clss(
+                m_sublender.package_path, m_sublender.graph_url)
 
 
 def init_system():
@@ -109,14 +61,17 @@ def init_system():
     if sublender_settings.uuid == "":
         import uuid
         sublender_settings.uuid = str(uuid.uuid4())
-    globals.current_uuid=sublender_settings.uuid
+    globals.current_uuid = sublender_settings.uuid
     pathlib.Path(globals.SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
     print("Current UUID {0}".format(globals.current_uuid))
+
+
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
     bl_label = "Init Sublender"
     bl_description = "Init Sublender"
-    def execute(self,context):
+
+    def execute(self, context):
         init_system()
         load_sbsar()
         return {'FINISHED'}
@@ -136,28 +91,30 @@ class Sublender_PT_Main(Panel):
         else:
             mats = bpy.data.materials
             self.layout.operator("sublender.import_sbsar", icon='IMPORT')
-            if sublender_settings.active_instance != "$DUMMY$" or sublender_settings.active_instance != "" :
+            if sublender_settings.active_instance != "$DUMMY$" or sublender_settings.active_instance != "":
                 target_mat = mats.get(sublender_settings.active_instance)
                 if target_mat is not None:
                     self.layout.prop(sublender_settings,
-                                    'show_preview', icon='MATERIAL')
+                                     'show_preview', icon='MATERIAL')
                     if sublender_settings.show_preview:
                         self.layout.template_preview(
                             target_mat)
                         self.layout.separator()
                     self.layout.prop(sublender_settings,
-                                            'active_graph')
+                                     'active_graph')
                     self.layout.prop(sublender_settings,
-                                        'active_instance')
+                                     'active_instance')
                     self.layout.prop(target_mat, 'use_fake_user')
                     m_sublender: settings.Sublender_Material_MT_Setting = target_mat.sublender
                     # can't really generate here it's readonly when drawing
                     self.layout.prop(m_sublender,
-                                    'material_template', text='Material Template')
+                                     'material_template', text='Material Template')
 
                     # self.layout.operator("sublender.new_instance", icon='PRESET_NEW')
-                    self.layout.operator("sublender.render_texture", icon='TEXTURE')
-
+                    self.layout.operator(
+                        "sublender.render_texture", icon='TEXTURE')
+                    self.layout.prop(
+                        sublender_settings,"live_update", icon='FILE_REFRESH')
                     self.layout.prop(m_sublender, 'show_setting')
                     if m_sublender.show_setting:
                         clss_name, clss_info = utils.dynamic_gen_clss(
@@ -173,15 +130,12 @@ class Sublender_PT_Main(Panel):
                                 if input_info['mWidget'] == 'togglebutton':
                                     toggle = 1
                                 self.layout.prop(graph_setting,
-                                                input_info['prop'], text=input_info['label'], toggle=toggle)
+                                                 input_info['prop'], text=input_info['label'], toggle=toggle)
 
 
 classes = (Sublender_PT_Main, settings.SublenderSetting,
-           importer.Sublender_Import_Sbsar, Sublender_Render_TEXTURE, Sublender_New_Instance,
+           importer.Sublender_Import_Sbsar, template.Sublender_Render_TEXTURE, Sublender_New_Instance,
            importer.Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init)
-
-
-
 
 
 def register():
@@ -192,7 +146,6 @@ def register():
         type=settings.SublenderSetting, name="Sublender")
     bpy.types.Material.sublender = bpy.props.PointerProperty(
         type=settings.Sublender_Material_MT_Setting)
-
 
 
 def unregister():
