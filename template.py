@@ -1,17 +1,10 @@
 
 import bpy
 from . import globals
-# if "bpy" in locals():
-#     from importlib import reload
-
-#     globals = reload(globals)
-# else:
-#     from sublender import globals
-
-
+import os
 def isType(val, type_str: str):
     return isinstance(val, getattr(bpy.types, type_str))
-
+import json
 
 def ensure_nodes(mat, template):
     # todo: force override position options
@@ -65,3 +58,20 @@ def inflate_template(mat, template_name: str):
     template = globals.material_templates.get(template_name)
     ensure_nodes(mat, template)
     ensure_link(mat, template)
+
+def load_material_templates():
+    template_path = os.path.join(globals.SUBLENDER_DIR, 'templates')
+    files = os.listdir(template_path)
+    for file_name_full in files:
+        full_file_path = os.path.join(template_path, file_name_full)
+        if os.path.isfile(full_file_path):
+            file_name, file_ext = os.path.splitext(file_name_full)
+            if file_ext == ".json":
+                with open(full_file_path, 'r') as f:
+                    material_temp = json.load(f)
+                    globals.material_templates[file_name_full] = material_temp
+                    globals.material_template_enum.append((
+                        file_name_full,
+                        file_name,
+                        file_name_full
+                    ))

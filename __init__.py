@@ -11,25 +11,21 @@ else:
 
 import pprint
 import subprocess
-from pysbs.sbsarchive.sbsargraph import SBSARInput
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
-from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 from pysbs.batchtools import batchtools
-from pysbs import sbsarchive, context
-import pysbs
+from pysbs import sbsarchive
 from pysbs.sbsarchive import SBSARInputGui
 from pysbs.sbsarchive import SBSARGuiComboBox
 from typing import List
 from bpy_extras.io_utils import ImportHelper
-from bpy.utils import previews, register_class
-from bpy.types import Panel, Operator, Menu, PropertyGroupItem
+from bpy.utils import register_class
+from bpy.types import Panel, Operator, Menu
 import pathlib
 import json
 import bpy
 import os
 from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
                        EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
-from pathlib import Path
 
 bl_info = {
     "name": "Sublender",
@@ -41,9 +37,6 @@ bl_info = {
     "description": "A addon for sbsar",
     "category": "Material"
 }
-
-HOME = str(Path.home())
-SUBLENDER_DIR = os.path.join(HOME, ".sublender")
 
 
 def sbsar_input_updated():
@@ -169,8 +162,8 @@ class Sublender_Render_TEXTURE(Operator):
                             input_info['mIdentifier'], value))
             param_list.append("--output-path")
             target_dir = os.path.join(
-                SUBLENDER_DIR, sublender_settings.uuid, clss_name)
-            Path(target_dir).mkdir(parents=True, exist_ok=True)
+                globals.SUBLENDER_DIR, sublender_settings.uuid, clss_name)
+            pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
             out = batchtools.sbsrender_render(
                 *param_list, output_handler=True)
@@ -195,22 +188,6 @@ def load_sbsar():
                     m_sublender.package_path, m_sublender.graph_url)
 
 
-def load_material_templates():
-    template_path = os.path.join(SUBLENDER_DIR, 'templates')
-    files = os.listdir(template_path)
-    for file_name_full in files:
-        full_file_path = os.path.join(template_path, file_name_full)
-        if os.path.isfile(full_file_path):
-            file_name, file_ext = os.path.splitext(file_name_full)
-            if file_ext == ".json":
-                with open(full_file_path, 'r') as f:
-                    material_temp = json.load(f)
-                    globals.material_templates[file_name_full] = material_temp
-                    globals.material_template_enum.append((
-                        file_name_full,
-                        file_name,
-                        file_name_full
-                    ))
 
 current_uuid=""
 def init_system():
@@ -220,7 +197,7 @@ def init_system():
         import uuid
         sublender_settings.uuid = str(uuid.uuid4())
     current_uuid=sublender_settings.uuid
-    Path(SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(globals.SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
     print("Current UUID {0}".format(current_uuid))
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
@@ -295,7 +272,7 @@ classes = (Sublender_PT_Main, settings.SublenderSetting,
 
 
 def register():
-    load_material_templates()
+    template.load_material_templates()
     for cls in classes:
         register_class(cls)
     bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(
