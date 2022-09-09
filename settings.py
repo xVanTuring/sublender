@@ -28,7 +28,7 @@ def graph_list(self, context):
     if (len(m_graph_list)) > 0:
         return list(map(lambda x: (x, x, ""), globals.instance_map.keys()))
     else:
-        return [("$DUMMY$","No Graph","Dummy")]
+        return [("$DUMMY$", "No Graph", "Dummy")]
 
 
 def active_graph_updated(self, context):
@@ -39,7 +39,7 @@ def active_graph_updated(self, context):
 
 def instance_list(self, context):
     # [(identifier, name, description, icon, number), ...]
-    return globals.instance_map.get(context.scene.sublender_settings.active_graph, [("$DUMMY$","No Instance","Dummy")])
+    return globals.instance_map.get(context.scene.sublender_settings.active_graph, [("$DUMMY$", "No Instance", "Dummy")])
 
 
 class SublenderSetting(bpy.types.PropertyGroup):

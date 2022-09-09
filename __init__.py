@@ -6,8 +6,9 @@ if "bpy" in locals():
     parser = reload(parser)
     consts = reload(consts)
     globals = reload(globals)
+    importer = reload(importer)
 else:
-    from sublender import template, utils, settings, parser, consts, globals
+    from sublender import template, utils, settings, parser, consts, globals, importer
 
 import pprint
 import subprocess
@@ -17,7 +18,6 @@ from pysbs import sbsarchive
 from pysbs.sbsarchive import SBSARInputGui
 from pysbs.sbsarchive import SBSARGuiComboBox
 from typing import List
-from bpy_extras.io_utils import ImportHelper
 from bpy.utils import register_class
 from bpy.types import Panel, Operator, Menu
 import pathlib
@@ -41,91 +41,6 @@ bl_info = {
 
 def sbsar_input_updated():
     pass
-
-
-class Sublender_Import_Graph(Operator):
-    bl_idname = "sublender.import_graph"
-    bl_label = "Import Graph"
-    graph_url: StringProperty(
-        name='Current Graph')
-    package_path: StringProperty(
-        name='Current Graph')
-    material_name: StringProperty(
-        name='Material Name')
-    use_fake_user: BoolProperty(
-        name="Fake User",
-        default=True
-    )
-    assign_to_selection: BoolProperty(
-        name='Assign to Selected',
-        default=False
-    )
-    material_template: EnumProperty(
-        items=globals.material_template_enum,
-        name='Material Template'
-    )
-
-    def execute(self, context):
-        material_name = utils.new_material_name(self.material_name)
-        material = bpy.data.materials.new(material_name)
-        material.use_nodes = True
-        material.use_fake_user = self.use_fake_user
-
-        m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
-        m_sublender.graph_url = self.graph_url
-        m_sublender.package_path = self.package_path
-        m_sublender.material_template = self.material_template
-
-        bpy.context.scene.sublender_settings.active_graph = self.graph_url
-        clss_name, clss = utils.dynamic_gen_clss(
-            self.package_path, self.graph_url)
-        template.inflate_template(material, self.material_template)
-        # generate material and texture
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.label(text="Import "+self.graph_url, icon="IMPORT")
-        col = layout.column()
-        col.alignment = 'CENTER'
-        col.prop(self, "material_name")
-        col.prop(self, "use_fake_user", icon='FAKE_USER_ON')
-        col.prop(self, "assign_to_selection")
-        col.prop(self, "material_template")
-
-
-class Sublender_Import_Sbsar(Operator, ImportHelper):
-    bl_idname = "sublender.import_sbsar"
-    bl_label = "Import Sbsar"
-    bl_description = "Import Sbsar"
-    filename_ext = ".sbsar"
-    filter_glob: StringProperty(
-        default="*.sbsar",
-        options={'HIDDEN'},
-        maxlen=255
-    )
-
-    def execute(self, context):
-        file_extension = pathlib.Path(self.filepath).suffix
-        if not file_extension == ".sbsar":
-            self.report({'WARNING'}, "File extension doesn't match")
-            return {'CANCELLED'}
-        else:
-            importing_package = sbsarchive.SBSArchive(
-                globals.aContext, self.filepath)
-            importing_package.parseDoc()
-
-            sbs_graph_list: List[SBSARGraph] = importing_package.getSBSGraphList(
-            )
-            globals.sbsar_dict[self.filepath] = importing_package
-            for graph in sbs_graph_list:
-                bpy.ops.sublender.import_graph(
-                    'INVOKE_DEFAULT', package_path=self.filepath, graph_url=graph.mPkgUrl, material_name=graph.mLabel)
-        return {'FINISHED'}
 
 
 class Sublender_Render_TEXTURE(Operator):
@@ -264,8 +179,8 @@ class Sublender_PT_Main(Panel):
 
 
 classes = (Sublender_PT_Main, settings.SublenderSetting,
-           Sublender_Import_Sbsar, Sublender_Render_TEXTURE, Sublender_New_Instance,
-           Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init)
+           importer.Sublender_Import_Sbsar, Sublender_Render_TEXTURE, Sublender_New_Instance,
+           importer.Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init)
 
 
 

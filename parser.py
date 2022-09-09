@@ -7,7 +7,6 @@ from pysbs import sbsarchive, context
 from typing import List
 
 
-
 def parseSbsarInput(graph_inputs: List[SBSARInput]):
     input_list = []
     for sbsa_graph_input in graph_inputs:

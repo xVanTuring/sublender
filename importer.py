@@ -1,11 +1,14 @@
 from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
                        EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
-from utils import new_material_name, dynamic_gen_clss
+from . utils import new_material_name, dynamic_gen_clss
+from . import globals
 import bpy
 import pathlib
-from template import inflate_template
+from . template import inflate_template
 from pysbs import sbsarchive
+from bpy_extras.io_utils import ImportHelper
+from bpy.types import Operator
 
 
 class Sublender_Import_Graph(Operator):
