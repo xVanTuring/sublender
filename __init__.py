@@ -104,16 +104,14 @@ def load_sbsar():
 
 
 
-current_uuid=""
 def init_system():
-    global current_uuid
     sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
     if sublender_settings.uuid == "":
         import uuid
         sublender_settings.uuid = str(uuid.uuid4())
-    current_uuid=sublender_settings.uuid
+    globals.current_uuid=sublender_settings.uuid
     pathlib.Path(globals.SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
-    print("Current UUID {0}".format(current_uuid))
+    print("Current UUID {0}".format(globals.current_uuid))
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
     bl_label = "Init Sublender"
@@ -133,7 +131,7 @@ class Sublender_PT_Main(Panel):
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-        if current_uuid == "" or current_uuid != sublender_settings.uuid:
+        if globals.current_uuid == "" or globals.current_uuid != sublender_settings.uuid:
             self.layout.operator("sublender.init")
         else:
             mats = bpy.data.materials
