@@ -50,9 +50,8 @@ def ensure_assets(mat, template, resource):
         if texture_path_list is not None and len(texture_path_list) > 0:
             texture_path = texture_path_list[0]
             image_name = bpy.path.basename(texture_path)
-            bpy.ops.image.open(filepath=texture_path)
             target_Node = node_list.get(texture_info['node'])
-            texture_img = bpy.data.images.get(image_name)
+            texture_img = bpy.data.images.load(texture_path, check_existing=True)
             if texture_info.get('colorspace') is not None:
                 texture_img.colorspace_settings.name = texture_info.get(
                     'colorspace')
@@ -95,12 +94,15 @@ def load_material_templates():
 def build_resource_dict(outputs):
     resource_dict = {}
     for output in outputs:
-        if output.type == "image":
-            for usage in output.usages:
+        if output['type'] == "image":
+            for usage in output['usages']:
                 if resource_dict.get(usage) is None:
                     resource_dict[usage] = []
-                resource_dict[usage].append(output.value)
+                resource_dict[usage].append(output['value'])
     return resource_dict
+
+
+import subprocess
 
 
 class RenderTextureThread(threading.Thread):
@@ -114,13 +116,14 @@ class RenderTextureThread(threading.Thread):
         self.material = material
 
     def run(self):
-        out = batchtools.sbsrender_render(
-            *self.param_list, output_handler=True)
-        resource_dict = None
-
-        graph = out.get_results()[0]
-        resource_dict = build_resource_dict(graph.outputs)
-
+        P: subprocess.Popen = batchtools.sbsrender_render(
+            *self.param_list, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, universal_newlines=True)
+        stdout_str = str(P.stdout.read())
+        outputs = json.loads(stdout_str)
+        graph = outputs[0]
+        resource_dict = build_resource_dict(graph['outputs'])
+        print(resource_dict)
         m_sublender: settings.Sublender_Material_MT_Setting = self.material.sublender
         m_template = globals.material_templates.get(
             m_sublender.material_template)
@@ -162,12 +165,18 @@ class Sublender_Render_TEXTURE(Operator):
                         param_list.append("{0}@{1}".format(
                             input_info['mIdentifier'], value))
             param_list.append("--output-path")
+            instance_name = bpy.path.clean_name(target_mat.name)
             target_dir = os.path.join(
-                consts.SUBLENDER_DIR, sublender_settings.uuid, clss_name)
+                consts.SUBLENDER_DIR, sublender_settings.uuid, clss_name, instance_name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
+            # param_list.append("--output-name")
+            # param_list.append("{0}_{{outputNodeName}}".format(instance_name))
+            # TODO Cross Platform
             param_list.append('--engine')
             param_list.append('d3d11pc')
+            # param_list.append('-v')
+            print(param_list)
             render_thread = RenderTextureThread(
                 param_list, self.assign_texture, target_mat)
             render_thread.start()
