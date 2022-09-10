@@ -4,7 +4,7 @@ from pysbs.batchtools import batchtools
 import threading
 from typing import List
 import bpy
-from . import globals, settings, utils
+from . import globals, settings, utils, consts
 import os
 import pathlib
 from bpy.types import Operator
@@ -72,7 +72,7 @@ def inflate_template(mat, template_name: str):
 
 
 def load_material_templates():
-    template_path = os.path.join(globals.SUBLENDER_DIR, 'templates')
+    template_path = consts.TEMPLATE_PATH
     files = os.listdir(template_path)
     for file_name_full in files:
         full_file_path = os.path.join(template_path, file_name_full)
@@ -84,8 +84,8 @@ def load_material_templates():
                     globals.material_templates[file_name_full] = material_temp
                     globals.material_template_enum.append((
                         file_name_full,
-                        file_name,
-                        file_name_full
+                        material_temp.get('name', file_name),
+                        material_temp.get('description', file_name_full),
                     ))
 
 
@@ -104,7 +104,7 @@ class RenderTextureThread(threading.Thread):
     param_list: List[str]
     assign_texture: bool
 
-    def __init__(self, param_list: List[str], assign_texture: bool,  material):
+    def __init__(self, param_list: List[str], assign_texture: bool, material):
         threading.Thread.__init__(self)
         self.param_list = param_list
         self.assign_texture = assign_texture
@@ -163,6 +163,8 @@ class Sublender_Render_TEXTURE(Operator):
                 globals.SUBLENDER_DIR, sublender_settings.uuid, clss_name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
+            param_list.append('--engine')
+            param_list.append('d3d11pc')
             render_thread = RenderTextureThread(
                 param_list, self.assign_texture, target_mat)
             render_thread.start()
