@@ -48,6 +48,24 @@ class Sublender_New_Instance(Operator):
         return {'FINISHED'}
 
 
+class Sublender_Reassign(Operator):
+    bl_idname = "sublender.reassign_texture"
+    bl_label = "Reassign Texture"
+    bl_description = "Reassign Texture"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+class Sublender_Reinflate_Material(Operator):
+    bl_idname = "sublender.reinflate_material"
+    bl_label = "Reinflate Material"
+    bl_description = "Reinflate Material"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
 def load_sbsar():
     mats = bpy.data.materials.items()
     for mat_name, mat in mats:
@@ -57,23 +75,22 @@ def load_sbsar():
                 m_sublender.package_path, m_sublender.graph_url)
 
 
-def init_system():
-    sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
-    if sublender_settings.uuid == "":
-        import uuid
-        sublender_settings.uuid = str(uuid.uuid4())
-    globals.current_uuid = sublender_settings.uuid
-    pathlib.Path(globals.SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
-    print("Current UUID {0}".format(globals.current_uuid))
-
-
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
     bl_label = "Init Sublender"
     bl_description = "Init Sublender"
 
     def execute(self, context):
-        init_system()
+        sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
+        if sublender_settings.uuid == "":
+            import uuid
+            sublender_settings.uuid = str(uuid.uuid4())
+        globals.current_uuid = sublender_settings.uuid
+        preferences = context.preferences
+        SUBLENDER_DIR = preferences.addons[__package__].preferences.cache_path
+        print("Default Cache Path: {0}".format(SUBLENDER_DIR))
+        pathlib.Path(SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
+        print("Current UUID {0}".format(globals.current_uuid))
         load_sbsar()
         return {'FINISHED'}
 
@@ -86,6 +103,7 @@ class Sublender_PT_Main(Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES', 'BLENDER_EEVEE'}
 # add go to texture dir
+    # show_more_control: BoolProperty(name="Show More Control")
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
@@ -94,7 +112,7 @@ class Sublender_PT_Main(Panel):
         else:
             mats = bpy.data.materials
             self.layout.operator("sublender.import_sbsar", icon='IMPORT')
-
+            # bpy.context.view_layer.objects.active
             if sublender_settings.active_instance != "$DUMMY$" or sublender_settings.active_instance != "":
                 target_mat = mats.get(sublender_settings.active_instance)
                 if target_mat is not None:
@@ -104,22 +122,33 @@ class Sublender_PT_Main(Panel):
                         self.layout.template_preview(
                             target_mat)
                         self.layout.separator()
-                    self.layout.prop(sublender_settings,
-                                     'active_graph')
-                    self.layout.prop(sublender_settings,
-                                     'active_instance')
-                    self.layout.prop(target_mat, 'use_fake_user')
+
+                    row = self.layout.row()
+                    row.prop(sublender_settings,
+                             'active_graph')
+                    row.prop(sublender_settings,
+                             'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
+                    row = self.layout.row()
+                    row.prop(sublender_settings,
+                             'active_instance')
+                    row.prop(target_mat, 'use_fake_user', icon_only=True)
                     m_sublender: settings.Sublender_Material_MT_Setting = target_mat.sublender
                     # can't really generate here it's readonly when drawing
-                    self.layout.prop(m_sublender,
-                                     'material_template', text='Material Template')
-
+                    row = self.layout.row()
+                    row.prop(m_sublender,
+                             'material_template', text='Workflow')
+                    row.operator(
+                        "sublender.reinflate_material", icon='MATERIAL', text="")
                     # self.layout.operator("sublender.new_instance", icon='PRESET_NEW')
-                    self.layout.operator(
+                    row = self.layout.row()
+                    row.operator(
                         "sublender.render_texture", icon='TEXTURE')
+                    row.operator(
+                        "sublender.reassign_texture", icon='FILE_REFRESH',)
                     # self.layout.prop(
                     #     sublender_settings,"live_update", icon='FILE_REFRESH')
-                    self.layout.prop(m_sublender, 'show_setting')
+                    self.layout.prop(
+                        m_sublender, 'show_setting', icon="OPTIONS")
                     if m_sublender.show_setting:
                         clss_name, clss_info = utils.dynamic_gen_clss(
                             m_sublender.package_path, m_sublender.graph_url)
@@ -137,7 +166,7 @@ class Sublender_PT_Main(Panel):
                                                  input_info['prop'], text=input_info['label'], toggle=toggle)
 
 
-classes = (Sublender_PT_Main, settings.SublenderSetting,
+classes = (Sublender_Reassign, Sublender_Reinflate_Material, Sublender_PT_Main, settings.SublenderSetting,
            importer.Sublender_Import_Sbsar, template.Sublender_Render_TEXTURE, Sublender_New_Instance,
            importer.Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init,
            preference.SublenderPreferences)

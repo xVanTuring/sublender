@@ -11,7 +11,7 @@ class SublenderPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __package__
 
-    cachePath: StringProperty(
+    cache_path: StringProperty(
         name="Cache Path",
         subtype='FILE_PATH',
         default=consts.SUBLENDER_DIR,
@@ -35,7 +35,7 @@ class SublenderPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "cachePath")
+        layout.prop(self, "cache_path")
         layout.prop(self, "default_output")
         if self.default_output == consts.CUSTOM:
             layout.prop(self, "custom_output")

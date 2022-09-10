@@ -163,7 +163,7 @@ class Sublender_Render_TEXTURE(Operator):
                             input_info['mIdentifier'], value))
             param_list.append("--output-path")
             target_dir = os.path.join(
-                globals.SUBLENDER_DIR, sublender_settings.uuid, clss_name)
+                consts.SUBLENDER_DIR, sublender_settings.uuid, clss_name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
             param_list.append('--engine')
