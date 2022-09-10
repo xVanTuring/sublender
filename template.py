@@ -87,6 +87,9 @@ def load_material_templates():
                         material_temp.get('name', file_name),
                         material_temp.get('description', file_name_full),
                     ))
+    globals.material_template_enum.append((
+        consts.CUSTOM, "Custom", "Custom Workflow, no material nodes will be generated"
+    ))
 
 
 def build_resource_dict(outputs):

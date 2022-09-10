@@ -7,8 +7,9 @@ if "bpy" in locals():
     consts = reload(consts)
     globals = reload(globals)
     importer = reload(importer)
+    preference = reload(preference)
 else:
-    from sublender import template, utils, settings, parser, consts, globals, importer
+    from sublender import template, utils, settings, parser, consts, globals, importer, preference
 import pprint
 import subprocess
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
@@ -76,6 +77,7 @@ class Sublender_Init(Operator):
         load_sbsar()
         return {'FINISHED'}
 
+
 class Sublender_PT_Main(Panel):
     bl_label = "Sublender"
     bl_space_type = "PROPERTIES"
@@ -83,6 +85,7 @@ class Sublender_PT_Main(Panel):
     bl_context = 'material'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES', 'BLENDER_EEVEE'}
+# add go to texture dir
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
@@ -91,6 +94,7 @@ class Sublender_PT_Main(Panel):
         else:
             mats = bpy.data.materials
             self.layout.operator("sublender.import_sbsar", icon='IMPORT')
+
             if sublender_settings.active_instance != "$DUMMY$" or sublender_settings.active_instance != "":
                 target_mat = mats.get(sublender_settings.active_instance)
                 if target_mat is not None:
@@ -113,8 +117,8 @@ class Sublender_PT_Main(Panel):
                     # self.layout.operator("sublender.new_instance", icon='PRESET_NEW')
                     self.layout.operator(
                         "sublender.render_texture", icon='TEXTURE')
-                    self.layout.prop(
-                        sublender_settings,"live_update", icon='FILE_REFRESH')
+                    # self.layout.prop(
+                    #     sublender_settings,"live_update", icon='FILE_REFRESH')
                     self.layout.prop(m_sublender, 'show_setting')
                     if m_sublender.show_setting:
                         clss_name, clss_info = utils.dynamic_gen_clss(
@@ -135,7 +139,8 @@ class Sublender_PT_Main(Panel):
 
 classes = (Sublender_PT_Main, settings.SublenderSetting,
            importer.Sublender_Import_Sbsar, template.Sublender_Render_TEXTURE, Sublender_New_Instance,
-           importer.Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init)
+           importer.Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init,
+           preference.SublenderPreferences)
 
 
 def register():

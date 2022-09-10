@@ -7,8 +7,13 @@ from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 import bpy
 from . import globals, consts
 from . parser import parseSbsarInput
+
+
 def sbsar_input_updated(self, context):
-    print("Property Updated")
+    pass
+    # print("Property Updated")
+# def real_task():
+
 
 def new_material_name(material_name: str) -> str:
     """Make Sure No Name Comflict"""

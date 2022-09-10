@@ -2,7 +2,7 @@ from bpy.props import (PointerProperty, StringProperty, BoolProperty, Collection
                        EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
 from . utils import new_material_name, dynamic_gen_clss
-from . import globals
+from . import globals, consts
 import bpy
 import pathlib
 from . template import inflate_template
@@ -47,8 +47,10 @@ class Sublender_Import_Graph(Operator):
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
         clss_name, clss = dynamic_gen_clss(
             self.package_path, self.graph_url)
-        inflate_template(material, self.material_template)
-        bpy.ops.sublender.render_texture(assign_texture=True)
+        if self.material_template != consts.CUSTOM:
+            inflate_template(material, self.material_template)
+        bpy.ops.sublender.render_texture(
+            assign_texture=self.material_template != consts.CUSTOM)
         # generate material and texture
         return {'FINISHED'}
 
@@ -58,7 +60,7 @@ class Sublender_Import_Graph(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Import "+self.graph_url, icon="IMPORT")
+        layout.label(text="Import " + self.graph_url, icon="IMPORT")
         col = layout.column()
         col.alignment = 'CENTER'
         col.prop(self, "material_name")

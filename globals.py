@@ -1,7 +1,6 @@
 import pysbs
 import pathlib
 import os
-
 instance_map = {
 }
 
