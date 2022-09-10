@@ -47,6 +47,8 @@ class Sublender_New_Instance(Operator):
     def execute(self, context):
         return {'FINISHED'}
 
+# move to importer
+
 
 class Sublender_Reassign(Operator):
     bl_idname = "sublender.reassign_texture"
@@ -92,6 +94,13 @@ class Sublender_Init(Operator):
         pathlib.Path(SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
         print("Current UUID {0}".format(globals.current_uuid))
         load_sbsar()
+        if sublender_settings.active_graph == '':
+            print("No graph founded here, reset to DUMMY")
+            bpy.context.scene['sublender_settings']['active_graph'] = 0
+            bpy.context.scene['sublender_settings']['active_instance'] = 0
+        if sublender_settings.active_instance == '':
+            print("Selected instance is missing, reset to first one")
+            bpy.context.scene['sublender_settings']['active_instance'] = 0
         return {'FINISHED'}
 
 
@@ -100,7 +109,7 @@ class Sublender_PT_Main(Panel):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = 'material'
-    bl_options = {'DEFAULT_CLOSED'}
+    # bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES', 'BLENDER_EEVEE'}
 # add go to texture dir
     # show_more_control: BoolProperty(name="Show More Control")
