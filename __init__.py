@@ -116,7 +116,9 @@ class Sublender_Init(Operator):
 def find_active_mat(context):
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     detectd_active = False
-    if sublender_settings.follow_selection and bpy.context.view_layer.objects.active is not None:
+    if sublender_settings.follow_selection:
+        if bpy.context.view_layer.objects.active is None or len(bpy.context.view_layer.objects.active.material_slots) == 0:
+            return None
         mt_index = bpy.context.object.active_material_index
         active_mt = bpy.context.view_layer.objects.active.material_slots[
             mt_index].material
@@ -177,15 +179,20 @@ def draw_workflow_item(self, context, target_mat):
         row.operator("sublender.new_instance", icon='PRESET_NEW', text="")
 
 
-def draw_texture_item(self, context):
+def draw_texture_item(self, context, target_mat):
+    if target_mat is None:
+        return
     row = self.layout.row()
-    row.operator(
+    render_texture = row.operator(
         "sublender.render_texture", icon='TEXTURE')
+    render_texture.material_name = target_mat.name
     row.operator(
         "sublender.reassign_texture", icon='FILE_REFRESH',)
 
 
 def draw_parameters_item(self, context, target_mat):
+    if target_mat is None:
+        return
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
     self.layout.prop(
         mat_setting, 'show_setting', icon="OPTIONS")
@@ -208,11 +215,14 @@ def draw_parameters_item(self, context, target_mat):
 
 class Sublender_PT_Main(Panel):
     bl_label = "Sublender"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = 'material'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = 'Sublender'
+    # bl_space_type = "PROPERTIES"
+    # bl_region_type = "WINDOW"
+    # bl_context = 'material'
     # bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'CYCLES', 'BLENDER_EEVEE'}
+
     # add go to texture dir
     # show_more_control: BoolProperty(name="Show More Control")
     # TODO add selected active operator
@@ -227,7 +237,7 @@ class Sublender_PT_Main(Panel):
                 draw_graph_item(self, context, target_mat)
                 draw_instance_item(self, context, target_mat)
                 draw_workflow_item(self, context, target_mat)
-                draw_texture_item(self, context)
+                draw_texture_item(self, context, target_mat)
                 draw_parameters_item(self, context, target_mat)
             else:
                 self.layout.operator("sublender.import_sbsar", icon='IMPORT')

@@ -34,6 +34,7 @@ class Sublender_Import_Graph(Operator):
     )
 
     def execute(self, context):
+        # TODO better custom workflow
         material_name = new_material_name(self.material_name)
         material = bpy.data.materials.new(material_name)
         material.use_nodes = True
@@ -49,9 +50,10 @@ class Sublender_Import_Graph(Operator):
             self.package_path, self.graph_url)
         if self.material_template != consts.CUSTOM:
             inflate_template(material, self.material_template)
+
         bpy.ops.sublender.render_texture(
-            assign_texture=self.material_template != consts.CUSTOM)
-        # generate material and texture
+            assign_texture=self.material_template != consts.CUSTOM,
+            material_name=material.name)
         return {'FINISHED'}
 
     def invoke(self, context, event):

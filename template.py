@@ -9,7 +9,7 @@ import os
 import pathlib
 from bpy.types import Operator
 
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, StringProperty
 
 
 def isType(val, type_str: str):
@@ -51,8 +51,16 @@ def ensure_assets(mat, template, resource):
             texture_path = texture_path_list[0]
             image_name = bpy.path.basename(texture_path)
             target_Node = node_list.get(texture_info['node'])
+            if target_Node is None:
+                print("Missing image node with name:{0}".format(
+                    texture_info['node']))
+                continue
             texture_img = bpy.data.images.load(
                 texture_path, check_existing=True)
+            target_img_name = "{0}_{1}".format(mat.name, texture_info['type'])
+            if texture_img.name != target_img_name:
+                texture_img.name = target_img_name
+            texture_img.reload()
             if texture_info.get('colorspace') is not None:
                 texture_img.colorspace_settings.name = texture_info.get(
                     'colorspace')
@@ -120,6 +128,7 @@ class RenderTextureThread(threading.Thread):
         P: subprocess.Popen = batchtools.sbsrender_render(
             *self.param_list, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, universal_newlines=True)
+        # if self.assign_texture:
         stdout_str = str(P.stdout.read())
         outputs = json.loads(stdout_str)
         graph = outputs[0]
@@ -136,12 +145,12 @@ class Sublender_Render_TEXTURE(Operator):
     bl_description = "Render Texture"
     assign_texture: BoolProperty(name="Assign Texture",
                                  default=False)
+    material_name: StringProperty(name="Target Material Name")
 
     def execute(self, context):
         # read all params
-        mats = bpy.data.materials
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-        target_mat = mats.get(sublender_settings.active_instance)
+        target_mat = bpy.data.materials.get(self.material_name)
         if target_mat is not None:
             m_sublender: settings.Sublender_Material_MT_Setting = target_mat.sublender
             clss_name, clss_info = utils.dynamic_gen_clss(
@@ -170,8 +179,9 @@ class Sublender_Render_TEXTURE(Operator):
                 consts.SUBLENDER_DIR, sublender_settings.uuid, clss_name, instance_name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
-            # param_list.append("--output-name")
-            # param_list.append("{0}_{{outputNodeName}}".format(instance_name))
+            param_list.append("--output-name")
+            # shorter name
+            param_list.append("{outputNodeName}")
             # TODO Cross Platform
             param_list.append('--engine')
             param_list.append('d3d11pc')
