@@ -51,7 +51,8 @@ def ensure_assets(mat, template, resource):
             texture_path = texture_path_list[0]
             image_name = bpy.path.basename(texture_path)
             target_Node = node_list.get(texture_info['node'])
-            texture_img = bpy.data.images.load(texture_path, check_existing=True)
+            texture_img = bpy.data.images.load(
+                texture_path, check_existing=True)
             if texture_info.get('colorspace') is not None:
                 texture_img.colorspace_settings.name = texture_info.get(
                     'colorspace')
@@ -123,7 +124,6 @@ class RenderTextureThread(threading.Thread):
         outputs = json.loads(stdout_str)
         graph = outputs[0]
         resource_dict = build_resource_dict(graph['outputs'])
-        print(resource_dict)
         m_sublender: settings.Sublender_Material_MT_Setting = self.material.sublender
         m_template = globals.material_templates.get(
             m_sublender.material_template)

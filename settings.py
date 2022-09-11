@@ -5,14 +5,6 @@ from bpy.props import (PointerProperty, StringProperty, BoolProperty, Collection
                        EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
 
-class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
-    package_path: StringProperty(name="Package Path")
-    graph_url: StringProperty(name="Graph URL")
-    show_setting: BoolProperty(name="Show Params")
-    material_template: EnumProperty(
-        name="Material Template", items=globals.material_template_enum)
-
-
 def graph_list(self, context):
     mats = bpy.data.materials.items()
     globals.instance_map.clear()
@@ -40,6 +32,15 @@ def active_graph_updated(self, context):
 def instance_list(self, context):
     # [(identifier, name, description, icon, number), ...]
     return globals.instance_map.get(context.scene.sublender_settings.active_graph, [("$DUMMY$", "No Instance", "Dummy")])
+
+
+class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
+    package_path: StringProperty(name="Package Path")
+    graph_url: StringProperty(name="Graph URL")
+    show_setting: BoolProperty(name="Show Params")
+    material_template: EnumProperty(
+        name="Material Template", items=globals.material_template_enum)
+    uuid: StringProperty(name="UUID of this material", default="")
 
 
 class SublenderSetting(bpy.types.PropertyGroup):

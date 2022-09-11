@@ -31,11 +31,18 @@ class SublenderPreferences(AddonPreferences):
         max=13,
         size=2
     )
-    # prefer_workflow:
+    follow_channels: BoolProperty(
+        name="Follow Channels Group",
+        description="Follow options in channels group to generate texture, it may cause texture not founded",
+        default=False
+    )
+# TODO log
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "cache_path")
+        # TODO
+        # layout.prop(self, "follow_channels")
         layout.prop(self, "default_output")
         if self.default_output == consts.CUSTOM:
             layout.prop(self, "custom_output")

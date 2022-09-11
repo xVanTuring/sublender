@@ -77,6 +77,15 @@ def load_sbsar():
                 m_sublender.package_path, m_sublender.graph_url)
 
 
+class Sublender_Select_Active(Operator):
+    bl_idname = "sublender.select_active"
+    bl_label = "Select Active"
+    bl_description = "Select Active"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
     bl_label = "Init Sublender"
@@ -104,6 +113,99 @@ class Sublender_Init(Operator):
         return {'FINISHED'}
 
 
+def find_active_mat(context):
+    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    detectd_active = False
+    if sublender_settings.follow_selection and bpy.context.view_layer.objects.active is not None:
+        mt_index = bpy.context.object.active_material_index
+        active_mt = bpy.context.view_layer.objects.active.material_slots[
+            mt_index].material
+        if active_mt is not None:
+            mat_setting: settings.Sublender_Material_MT_Setting = active_mt.sublender
+            if mat_setting.package_path != '' and mat_setting.graph_url != '':
+                return active_mt
+        return None
+    mats = bpy.data.materials
+    target_mat = mats.get(sublender_settings.active_instance)
+    return target_mat
+
+
+def draw_instance_item(self, context, target_mat):
+    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    if target_mat is not None:
+        row = self.layout.row()
+        instance_info_column = row.column()
+        if sublender_settings.follow_selection:
+            instance_info_column.prop(target_mat, "name", text="Instance")
+        else:
+            instance_info_column.prop(
+                sublender_settings, "active_instance", text="Instance")
+        row.prop(target_mat, 'use_fake_user',
+                 icon_only=True)
+        row.operator('sublender.select_active',
+                     icon='RESTRICT_SELECT_ON', text='')
+
+
+def draw_graph_item(self, context, target_mat):
+    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    row = self.layout.row()
+    graph_info_column = row.column()
+    if sublender_settings.follow_selection:
+        graph_info_column.enabled = False
+    if sublender_settings.follow_selection and target_mat is not None:
+        mat_setting = target_mat.sublender
+        graph_info_column.prop(mat_setting,
+                               'graph_url', text="Graph")
+    else:
+        graph_info_column.prop(sublender_settings,
+                               'active_graph')
+
+    row.prop(sublender_settings,
+             'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
+    row.operator('sublender.import_sbsar',
+                 icon='IMPORT', text='')
+
+
+def draw_workflow_item(self, context, target_mat):
+    if target_mat is not None:
+        mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
+        row = self.layout.row()
+        row.prop(mat_setting,
+                 'material_template', text='Workflow')
+        row.operator(
+            "sublender.reinflate_material", icon='MATERIAL', text="")
+        row.operator("sublender.new_instance", icon='PRESET_NEW', text="")
+
+
+def draw_texture_item(self, context):
+    row = self.layout.row()
+    row.operator(
+        "sublender.render_texture", icon='TEXTURE')
+    row.operator(
+        "sublender.reassign_texture", icon='FILE_REFRESH',)
+
+
+def draw_parameters_item(self, context, target_mat):
+    mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
+    self.layout.prop(
+        mat_setting, 'show_setting', icon="OPTIONS")
+    if mat_setting.show_setting:
+        clss_name, clss_info = utils.dynamic_gen_clss(
+            mat_setting.package_path, mat_setting.graph_url)
+        graph_setting = getattr(target_mat, clss_name)
+        input_dict = clss_info['input']
+        for group_key in input_dict:
+            if group_key != consts.UNGROUPED:
+                self.layout.label(text=group_key)
+            input_group = input_dict[group_key]
+            for input_info in input_group:
+                toggle = -1
+                if input_info['mWidget'] == 'togglebutton':
+                    toggle = 1
+                self.layout.prop(graph_setting,
+                                 input_info['prop'], text=input_info['label'], toggle=toggle)
+
+
 class Sublender_PT_Main(Panel):
     bl_label = "Sublender"
     bl_space_type = "PROPERTIES"
@@ -111,71 +213,27 @@ class Sublender_PT_Main(Panel):
     bl_context = 'material'
     # bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES', 'BLENDER_EEVEE'}
-# add go to texture dir
+    # add go to texture dir
     # show_more_control: BoolProperty(name="Show More Control")
+    # TODO add selected active operator
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
         if globals.current_uuid == "" or globals.current_uuid != sublender_settings.uuid:
             self.layout.operator("sublender.init")
         else:
-            mats = bpy.data.materials
-            self.layout.operator("sublender.import_sbsar", icon='IMPORT')
-            # bpy.context.view_layer.objects.active
-            if sublender_settings.active_instance != "$DUMMY$" or sublender_settings.active_instance != "":
-                target_mat = mats.get(sublender_settings.active_instance)
-                if target_mat is not None:
-                    self.layout.prop(sublender_settings,
-                                     'show_preview', icon='MATERIAL')
-                    if sublender_settings.show_preview:
-                        self.layout.template_preview(
-                            target_mat)
-                        self.layout.separator()
-
-                    row = self.layout.row()
-                    row.prop(sublender_settings,
-                             'active_graph')
-                    row.prop(sublender_settings,
-                             'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
-                    row = self.layout.row()
-                    row.prop(sublender_settings,
-                             'active_instance')
-                    row.prop(target_mat, 'use_fake_user', icon_only=True)
-                    m_sublender: settings.Sublender_Material_MT_Setting = target_mat.sublender
-                    # can't really generate here it's readonly when drawing
-                    row = self.layout.row()
-                    row.prop(m_sublender,
-                             'material_template', text='Workflow')
-                    row.operator(
-                        "sublender.reinflate_material", icon='MATERIAL', text="")
-                    # self.layout.operator("sublender.new_instance", icon='PRESET_NEW')
-                    row = self.layout.row()
-                    row.operator(
-                        "sublender.render_texture", icon='TEXTURE')
-                    row.operator(
-                        "sublender.reassign_texture", icon='FILE_REFRESH',)
-                    # self.layout.prop(
-                    #     sublender_settings,"live_update", icon='FILE_REFRESH')
-                    self.layout.prop(
-                        m_sublender, 'show_setting', icon="OPTIONS")
-                    if m_sublender.show_setting:
-                        clss_name, clss_info = utils.dynamic_gen_clss(
-                            m_sublender.package_path, m_sublender.graph_url)
-                        graph_setting = getattr(target_mat, clss_name)
-                        input_dict = clss_info['input']
-                        for group_key in input_dict:
-                            if group_key != consts.UNGROUPED:
-                                self.layout.label(text=group_key)
-                            input_group = input_dict[group_key]
-                            for input_info in input_group:
-                                toggle = -1
-                                if input_info['mWidget'] == 'togglebutton':
-                                    toggle = 1
-                                self.layout.prop(graph_setting,
-                                                 input_info['prop'], text=input_info['label'], toggle=toggle)
+            if sublender_settings.active_instance != "$DUMMY$":
+                target_mat = find_active_mat(context)
+                draw_graph_item(self, context, target_mat)
+                draw_instance_item(self, context, target_mat)
+                draw_workflow_item(self, context, target_mat)
+                draw_texture_item(self, context)
+                draw_parameters_item(self, context, target_mat)
+            else:
+                self.layout.operator("sublender.import_sbsar", icon='IMPORT')
 
 
-classes = (Sublender_Reassign, Sublender_Reinflate_Material, Sublender_PT_Main, settings.SublenderSetting,
+classes = (Sublender_Select_Active, Sublender_Reassign, Sublender_Reinflate_Material, Sublender_PT_Main, settings.SublenderSetting,
            importer.Sublender_Import_Sbsar, template.Sublender_Render_TEXTURE, Sublender_New_Instance,
            importer.Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init,
            preference.SublenderPreferences)

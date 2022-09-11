@@ -1,1 +1,6 @@
-&"C:\Program Files\Allegorithmic\Substance Automation Toolkit\sbsrender.exe" render --input ./sa_aged_wood_planks.sbsar --input-graph pkg://wood_planks_aged --output-path ./output --set-value roughness_amount@0.9700000286102295
+&"C:\Program Files\Allegorithmic\Substance Automation Toolkit\sbsrender.exe" render --input ./sa_aged_wood_planks.sbsar --input-graph pkg://wood_planks_aged --output-path ./output --set-value '$outputsize@10,10'
+
+
+--output-name something_{outputNodeName}
+
+&"C:\Program Files\Allegorithmic\Substance Automation Toolkit\sbsrender.exe" render --input C:\\Users\\xVan\\Desktop\\sbsar\\siena_marble_herringbone_tiles.sbsar --input-graph pkg://siena_marble_herringbone_tiles --output-path C:\\Users\\xVan\\.sublender\\c1f5e862-65f3-4b74-b0e2-1271c020258e\\sublender_pkg_siena_marble_herringbone_tiles\\Siena_Marble_Herringbone_Tiles --engine d3d11pc
