@@ -92,17 +92,23 @@ class Sublender_Init(Operator):
     bl_description = "Init Sublender"
 
     def execute(self, context):
+        preferences = context.preferences
+        SUBLENDER_DIR = preferences.addons[__package__].preferences.cache_path
+        pathlib.Path(SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
+        print("Default Cache Path: {0}".format(SUBLENDER_DIR))
+
         sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
         if sublender_settings.uuid == "":
             import uuid
             sublender_settings.uuid = str(uuid.uuid4())
+        # else:
+        #     # open file  to check uuid
+        #     pass
         globals.current_uuid = sublender_settings.uuid
-        preferences = context.preferences
-        SUBLENDER_DIR = preferences.addons[__package__].preferences.cache_path
-        print("Default Cache Path: {0}".format(SUBLENDER_DIR))
-        pathlib.Path(SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
         print("Current UUID {0}".format(globals.current_uuid))
+
         load_sbsar()
+        bpy.context.scene['sublender_settings']['active_instance_obj'] = 0
         if sublender_settings.active_graph == '':
             print("No graph founded here, reset to DUMMY")
             bpy.context.scene['sublender_settings']['active_graph'] = 0
@@ -138,6 +144,8 @@ def draw_instance_item(self, context, target_mat):
         row = self.layout.row()
         instance_info_column = row.column()
         if sublender_settings.follow_selection:
+            # instance_info_column.prop(
+            #     sublender_settings, "active_instance_obj", text="Instance")
             instance_info_column.prop(target_mat, "name", text="Instance")
         else:
             instance_info_column.prop(

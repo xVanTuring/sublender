@@ -36,11 +36,11 @@ class SublenderPreferences(AddonPreferences):
         description="Follow options in channels group to generate texture, it may cause texture not founded",
         default=False
     )
-    display_in_material_tab: BoolProperty(
-        name="Display in Material Tab",
-        description="Display in Material Tab",
-        default=False
-    )
+    # display_in_material_tab: BoolProperty(
+    #     name="Display in Material Tab",
+    #     description="Display in Material Tab",
+    #     default=False
+    # )
 # TODO log
 
     def draw(self, context):
@@ -48,7 +48,7 @@ class SublenderPreferences(AddonPreferences):
         layout.prop(self, "cache_path")
         # TODO
         # layout.prop(self, "follow_channels")
-        layout.prop(self, "display_in_material_tab")
+        # layout.prop(self, "display_in_material_tab")
         layout.prop(self, "default_output")
         if self.default_output == consts.CUSTOM:
             layout.prop(self, "custom_output")

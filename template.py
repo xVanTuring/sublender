@@ -43,29 +43,31 @@ def ensure_link(mat, template):
             from_node.outputs[link['fromSocket']], to_node.inputs[link['toSocket']])
 
 
-def ensure_assets(mat, template, resource):
-    node_list = mat.node_tree.nodes
+def ensure_assets(material, template, resource):
+    node_list = material.node_tree.nodes
     for texture_info in template['texture']:
         texture_path_list = resource.get(texture_info['type'])
         if texture_path_list is not None and len(texture_path_list) > 0:
             texture_path = texture_path_list[0]
             image_name = bpy.path.basename(texture_path)
-            target_Node = node_list.get(texture_info['node'])
-            if target_Node is None:
-                print("Missing image node with name:{0}".format(
-                    texture_info['node']))
-                continue
-            texture_img = bpy.data.images.load(
-                texture_path, check_existing=True)
-            target_img_name = "{0}_{1}".format(mat.name, texture_info['type'])
-            if texture_img.name != target_img_name:
+            target_node = node_list.get(texture_info['node'])
+            target_img_name = "{0}_{1}".format(
+                material.name, texture_info['type'])
+            texture_img = bpy.data.images.get(target_img_name)
+            if texture_img is not None:
+                texture_img.filepath = texture_path
+                texture_img.reload()
+            else:
+                texture_img = bpy.data.images.load(
+                    texture_path, check_existing=True)
                 texture_img.name = target_img_name
-            texture_img.reload()
             if texture_info.get('colorspace') is not None:
                 texture_img.colorspace_settings.name = texture_info.get(
                     'colorspace')
-            if target_Node is not None:
-                target_Node.image = texture_img
+            if target_node is not None:
+                print("Missing image node with name:{0}".format(
+                    texture_info['node']))
+                target_node.image = texture_img
             else:
                 print("Missing Node:{0}".format(texture_info['node']))
         else:
@@ -185,7 +187,6 @@ class Sublender_Render_TEXTURE(Operator):
             # TODO Cross Platform
             param_list.append('--engine')
             param_list.append('d3d11pc')
-            # param_list.append('-v')
             print(param_list)
             render_thread = RenderTextureThread(
                 param_list, self.assign_texture, target_mat)

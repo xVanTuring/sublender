@@ -34,6 +34,31 @@ def instance_list(self, context):
     return globals.instance_map.get(context.scene.sublender_settings.active_graph, [("$DUMMY$", "No Instance", "Dummy")])
 
 
+# def instance_list_obj(self, context):
+#     sublender_settings: SublenderSetting = context.scene.sublender_settings
+#     if sublender_settings.follow_selection:
+#         active_object = bpy.context.view_layer.objects.active
+#         object_graph_list = []
+#         # TODO one material can occur twice
+#         if active_object is not None:
+#             for slots in active_object.material_slots:
+#                 if slots.material is not None:
+#                     mat_setting: Sublender_Material_MT_Setting = slots.material.sublender
+#                     if mat_setting.graph_url != ""and mat_setting.package_path != "":
+#                         object_graph_list.append((
+#                             slots.material.name,
+#                             slots.material.name,
+#                             slots.material.name
+#                         ))
+#         return object_graph_list
+#     return [("$DUMMY$", "No Instance", "Dummy")]
+
+
+def active_instance_update(self, context):
+    # update active_graph here if not the same
+    pass
+
+
 class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
     package_path: StringProperty(name="Package Path")
     graph_url: StringProperty(name="Graph URL")
@@ -48,7 +73,9 @@ class SublenderSetting(bpy.types.PropertyGroup):
     active_graph: EnumProperty(
         items=graph_list, name="Graph")
     active_instance: EnumProperty(
-        items=instance_list, name="Instance")
+        items=instance_list, name="Instance", update=active_instance_update)
+    # active_instance_obj: EnumProperty(
+    #     items=instance_list_obj, name="Instance")
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(name="Live Update")
     follow_selection: BoolProperty(name="Follow Selection", default=True)
