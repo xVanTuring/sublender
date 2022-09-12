@@ -1,4 +1,5 @@
 
+import subprocess
 import json
 from pysbs.batchtools import batchtools
 import threading
@@ -49,7 +50,7 @@ def ensure_assets(material, template, resource):
         texture_path_list = resource.get(texture_info['type'])
         if texture_path_list is not None and len(texture_path_list) > 0:
             texture_path = texture_path_list[0]
-            image_name = bpy.path.basename(texture_path)
+            # image_name = bpy.path.basename(texture_path)
             target_node = node_list.get(texture_info['node'])
             target_img_name = "{0}_{1}".format(
                 material.name, texture_info['type'])
@@ -65,11 +66,10 @@ def ensure_assets(material, template, resource):
                 texture_img.colorspace_settings.name = texture_info.get(
                     'colorspace')
             if target_node is not None:
-                print("Missing image node with name:{0}".format(
-                    texture_info['node']))
                 target_node.image = texture_img
             else:
-                print("Missing Node:{0}".format(texture_info['node']))
+                print("Missing image node with name:{0}".format(
+                    texture_info['node']))
         else:
             print("Missing Texture:{0}".format(texture_info['type']))
 
@@ -111,9 +111,6 @@ def build_resource_dict(outputs):
                     resource_dict[usage] = []
                 resource_dict[usage].append(output['value'])
     return resource_dict
-
-
-import subprocess
 
 
 class RenderTextureThread(threading.Thread):
@@ -167,14 +164,28 @@ class Sublender_Render_TEXTURE(Operator):
             for group_key in input_dict:
                 input_group = input_dict[group_key]
                 for input_info in input_group:
-                    value = graph_setting.get(input_info['prop'])
-                    if value is not None:
+                    if input_info['mIdentifier'] == '$outputsize':
+                        locked = getattr(
+                            graph_setting, 'output_size_lock', True)
                         param_list.append("--set-value")
-                        to_list = getattr(value, 'to_list', None)
-                        if to_list is not None:
-                            value = ','.join(map(str, to_list()))
-                        param_list.append("{0}@{1}".format(
-                            input_info['mIdentifier'], value))
+                        width = getattr(graph_setting, 'output_size_x')
+                        if locked:
+                            param_list.append("{0}@{1},{1}".format(
+                                input_info['mIdentifier'], width))
+                        else:
+                            height = getattr(graph_setting, 'output_size_x')
+                            param_list.append("{0}@{1},{2}".format(
+                                input_info['mIdentifier'], width, height))
+                    else:
+                        # TODO use getattr
+                        value = graph_setting.get(input_info['prop'])
+                        if value is not None:
+                            param_list.append("--set-value")
+                            to_list = getattr(value, 'to_list', None)
+                            if to_list is not None:
+                                value = ','.join(map(str, to_list()))
+                            param_list.append("{0}@{1}".format(
+                                input_info['mIdentifier'], value))
             param_list.append("--output-path")
             instance_name = bpy.path.clean_name(target_mat.name)
             target_dir = os.path.join(
@@ -188,6 +199,7 @@ class Sublender_Render_TEXTURE(Operator):
             param_list.append('--engine')
             param_list.append('d3d11pc')
             print(param_list)
+            print(" ".join(param_list))
             render_thread = RenderTextureThread(
                 param_list, self.assign_texture, target_mat)
             render_thread.start()

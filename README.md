@@ -25,3 +25,6 @@ Todo:
 * ~~add quick selection for follow selection :?~~
 * open/copy texture dir operator
 * short class name
+* ab workflow
+* height workflow
+* subsurface workflow

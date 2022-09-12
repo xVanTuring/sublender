@@ -32,6 +32,11 @@ def new_material_name(material_name: str) -> str:
     return material_name
 
 
+def output_size_x_updated(self, context):
+    if self.output_size_lock and self.output_size_y != self.output_size_x:
+        self.output_size_y = self.output_size_x
+
+
 def dynamic_gen_clss(package_path: str, graph_url: str,):
     if globals.sbsar_dict.get(package_path) is None:
         sbsar_pkg = sbsarchive.SBSArchive(
@@ -68,18 +73,32 @@ def dynamic_gen_clss(package_path: str, graph_url: str,):
                 if input_info.get('mWidget') == 'togglebutton':
                     prop_type = BoolProperty
                 if input_info.get('mWidget') == 'combobox' and input_info.get('drop_down') is not None:
-                    # todo ENUM_FLAG???
                     prop_type = EnumProperty
                     _anno_item['items'] = input_info.get('drop_down')
-                    # if _anno_item.get('default') is not None:
-                        # set to string
-                        # old_index = _anno_item['default']
-                        # _anno_item['default'] = input_info['drop_down'][old_index][0]
             if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
                 if input_info.get('mWidget') == 'color':
                     _anno_item['subtype'] = 'COLOR'
             _anno_item['update'] = sbsar_input_updated
-            _anno_obj[prop_name] = (prop_type, _anno_item)
+
+            if input_info['mIdentifier'] == '$outputsize':
+                # make it to be two enum
+                # TODO update event to sync x,y
+                _anno_obj["output_size_x"] = (EnumProperty, {
+                    'items': consts.output_size_one_enum,
+                    'default': '8',
+                    'update': output_size_x_updated,
+                })
+                _anno_obj["output_size_y"] = (EnumProperty, {
+                    'items': consts.output_size_one_enum,
+                    'default': '8'
+                })
+                _anno_obj["output_size_lock"] = (BoolProperty, {
+                    'default': True,
+                    'update': output_size_x_updated
+                })
+                pass
+            else:
+                _anno_obj[prop_name] = (prop_type, _anno_item)
 
             if input_info_dict.get(input_info['group']) is None:
                 input_info_dict[input_info['group']] = []

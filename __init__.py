@@ -214,11 +214,29 @@ def draw_parameters_item(self, context, target_mat):
                 self.layout.label(text=group_key)
             input_group = input_dict[group_key]
             for input_info in input_group:
-                toggle = -1
-                if input_info['mWidget'] == 'togglebutton':
-                    toggle = 1
-                self.layout.prop(graph_setting,
-                                 input_info['prop'], text=input_info['label'], toggle=toggle)
+                if input_info['mIdentifier'] == '$outputsize':
+                    if graph_setting.output_size_lock:
+                        row = self.layout.row()
+                        row.prop(graph_setting,
+                                 'output_size_x', text='Size')
+                        row.prop(graph_setting, 'output_size_lock',
+                                 toggle=1, icon_only=True, icon="LINKED",)
+                        row.prop(graph_setting,
+                                 'output_size_x', text='')
+                    else:
+                        row = self.layout.row()
+                        row.prop(graph_setting,
+                                 'output_size_x', text='Size')
+                        row.prop(graph_setting, 'output_size_lock',
+                                 toggle=1, icon_only=True, icon="LINKED",)
+                        row.prop(graph_setting,
+                                 'output_size_y', text='')
+                else:
+                    toggle = -1
+                    if input_info['mWidget'] == 'togglebutton':
+                        toggle = 1
+                    self.layout.prop(graph_setting,
+                                     input_info['prop'], text=input_info['label'], toggle=toggle)
 
 
 class Sublender_PT_Main(Panel):
