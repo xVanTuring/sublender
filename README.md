@@ -24,3 +24,4 @@ Todo:
 * add random operator for randomseed
 * ~~add quick selection for follow selection :?~~
 * open/copy texture dir operator
+* short class name

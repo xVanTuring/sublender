@@ -40,6 +40,10 @@ def parseSbsarInput(graph_inputs: List[SBSARInput]):
                         drop_down_list.append(
                             (drop_down[key], drop_down[key], drop_down[key]))
                     input_info['drop_down'] = drop_down_list
+                    # assign default value to string here
+                    if input_info.get('default') is not None:
+                        input_info['default'] = drop_down[input_info['default']]
+
         if sbsa_graph_input.getMaxValue() is not None:
             input_info['max'] = sbsa_graph_input.getMaxValue()
         if sbsa_graph_input.getMinValue() is not None:

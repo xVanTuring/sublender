@@ -71,10 +71,10 @@ def dynamic_gen_clss(package_path: str, graph_url: str,):
                     # todo ENUM_FLAG???
                     prop_type = EnumProperty
                     _anno_item['items'] = input_info.get('drop_down')
-                    if _anno_item.get('default') is not None:
+                    # if _anno_item.get('default') is not None:
                         # set to string
-                        old_index = _anno_item['default']
-                        _anno_item['default'] = input_info['drop_down'][old_index][0]
+                        # old_index = _anno_item['default']
+                        # _anno_item['default'] = input_info['drop_down'][old_index][0]
             if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
                 if input_info.get('mWidget') == 'color':
                     _anno_item['subtype'] = 'COLOR'
