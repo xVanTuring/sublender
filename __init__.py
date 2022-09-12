@@ -215,20 +215,15 @@ def draw_parameters_item(self, context, target_mat):
             input_group = input_dict[group_key]
             for input_info in input_group:
                 if input_info['mIdentifier'] == '$outputsize':
-                    if graph_setting.output_size_lock:
-                        row = self.layout.row()
-                        row.prop(graph_setting,
+                    row = self.layout.row()
+                    row.prop(graph_setting,
                                  'output_size_x', text='Size')
-                        row.prop(graph_setting, 'output_size_lock',
+                    row.prop(graph_setting, 'output_size_lock',
                                  toggle=1, icon_only=True, icon="LINKED",)
+                    if graph_setting.output_size_lock:
                         row.prop(graph_setting,
                                  'output_size_x', text='')
                     else:
-                        row = self.layout.row()
-                        row.prop(graph_setting,
-                                 'output_size_x', text='Size')
-                        row.prop(graph_setting, 'output_size_lock',
-                                 toggle=1, icon_only=True, icon="LINKED",)
                         row.prop(graph_setting,
                                  'output_size_y', text='')
                 else:
