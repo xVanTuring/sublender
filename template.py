@@ -18,11 +18,13 @@ def isType(val, type_str: str):
 
 
 def ensure_nodes(mat, template):
-    # todo: force override position options
     node_list = mat.node_tree.nodes
     for node_info in template['nodes']:
         node_inst = node_list.get(node_info['name'])
         if (node_inst is not None) and (isType(node_inst, node_info['type'])):
+            # reset position here
+            if node_info.get('location', None) is not None:
+                node_inst.location = node_info['location']
             continue
         node_inst = node_list.new(type=node_info['type'])
         node_inst.name = node_info['name']
@@ -42,6 +44,15 @@ def ensure_link(mat, template):
         to_node = node_list.get(link['toNode'])
         node_links.new(
             from_node.outputs[link['fromSocket']], to_node.inputs[link['toSocket']])
+
+
+def ensure_options(mat, template):
+    if template.get('options') is not None:
+        for option in template.get('options'):
+            if option == "withHeight":
+                # works for both cycles and prorender
+                if getattr(mat, 'cycles', None) is not None:
+                    mat.cycles.displacement_method = 'DISPLACEMENT'
 
 
 def ensure_assets(material, template, resource):
@@ -75,10 +86,10 @@ def ensure_assets(material, template, resource):
 
 
 def inflate_template(mat, template_name: str):
-    # get template_name from material setting
     template = globals.material_templates.get(template_name)
     ensure_nodes(mat, template)
     ensure_link(mat, template)
+    ensure_options(mat, template)
 
 
 def load_material_templates():
@@ -98,7 +109,7 @@ def load_material_templates():
                         material_temp.get('description', file_name_full),
                     ))
     globals.material_template_enum.append((
-        consts.CUSTOM, "Custom", "Custom Workflow, no material nodes will be generated"
+        consts.CUSTOM, "Custom", "Custom Workflow, empty material will be generated"
     ))
 
 

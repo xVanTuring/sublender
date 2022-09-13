@@ -1,14 +1,14 @@
 {
-    "name": "PBR Metallic/Roughness",
-    "description": "PBR Metallic/Roughness workflow with BaseColor, Metallic and Roughness input",
+    "name": "PBR Metallic/Roughness/Height",
+    "description": "PBR Metallic/Roughness/Height workflow with BaseColor, Metallic and Roughness input",
     "nodes": [
         {
             "type": "ShaderNodeOutputMaterial",
             "name": "Material Output",
             "label": "Material Output",
             "location": [
-                448,
-                0
+                786,
+                300
             ]
         },
         {
@@ -69,6 +69,26 @@
                 -450,
                 -209
             ]
+        },
+        {
+            "type": "ShaderNodeDisplacement",
+            "name": "Displacement",
+            "label": "Displacement",
+            "hide": true,
+            "location": [
+                614,
+                93
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "height",
+            "label": "Height",
+            "hide": true,
+            "location": [
+                309,
+                9
+            ]
         }
     ],
     "links": [
@@ -107,6 +127,18 @@
             "fromSocket": "Normal",
             "toNode": "Principled BSDF",
             "toSocket": "Normal"
+        },
+        {
+            "fromNode": "height",
+            "fromSocket": "Color",
+            "toNode": "Displacement",
+            "toSocket": "Height"
+        },
+        {
+            "fromNode": "Displacement",
+            "fromSocket": "Displacement",
+            "toNode": "Material Output",
+            "toSocket": "Displacement"
         }
     ],
     "texture": [
@@ -128,6 +160,14 @@
             "type": "normal",
             "node": "normal",
             "colorspace": "Non-Color"
+        },
+        {
+            "type": "height",
+            "node": "height",
+            "colorspace": "Non-Color"
         }
+    ],
+    "options": [
+        "withHeight"
     ]
 }
