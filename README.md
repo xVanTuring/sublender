@@ -1,21 +1,12 @@
 Fix:
-* ~Bugs with enum~
-* ~texture render with material name~
 * fix output toggle bugs :?
 * fix undo crash: hard to catch :? can't reproduce
-* ~~strange sbsar file~~
-
-Question:
-* uuid for material :?
-
 Todo:
-* ~select to active~
-* add operator to clean cache images
-* ~change texture name pattern~
-* add panel to 3d view and options
-* register blender file uuid
+* ~add operator to clean cache images~
+* add panel to 3d view and options:?
+* add preview for instance enum:?
+* register blender file uuid:?
 * add bool property for input group
-* add preview for instance enum
 * operator render all texture
 * preset
 * preview mode
@@ -28,5 +19,5 @@ Todo:
 * ab workflow
 * height workflow
 * subsurface workflow
-* add scale to panel
-* fix material deletion problem
+* add height scale to panel
+* ~fix material deletion problem~

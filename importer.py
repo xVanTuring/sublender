@@ -6,9 +6,12 @@ from . import globals, consts
 import bpy
 import pathlib
 from . template import inflate_template
+from . settings import Sublender_Material_MT_Setting
 from pysbs import sbsarchive
 from bpy_extras.io_utils import ImportHelper
 from bpy.types import Operator
+from typing import List
+from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
 
 class Sublender_Import_Graph(Operator):
@@ -25,7 +28,7 @@ class Sublender_Import_Graph(Operator):
         default=True
     )
     assign_to_selection: BoolProperty(
-        name='Assign to Selected',
+        name='Assign to Selected(Override all texture)',
         default=False
     )
     material_template: EnumProperty(
@@ -46,7 +49,8 @@ class Sublender_Import_Graph(Operator):
         m_sublender.material_template = self.material_template
 
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
-        clss_name, clss = dynamic_gen_clss(
+        # clss_name, clss =
+        dynamic_gen_clss(
             self.package_path, self.graph_url)
         if self.material_template != consts.CUSTOM:
             inflate_template(material, self.material_template)
@@ -58,7 +62,7 @@ class Sublender_Import_Graph(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
         layout = self.layout
@@ -98,5 +102,6 @@ class Sublender_Import_Sbsar(Operator, ImportHelper):
             for graph in sbs_graph_list:
                 # INVOKE_DEFAULT
                 bpy.ops.sublender.import_graph(
-                    'INVOKE_DEFAULT', package_path=self.filepath, graph_url=graph.mPkgUrl, material_name=graph.mLabel)
+                    'INVOKE_DEFAULT', package_path=self.filepath,
+                    graph_url=graph.mPkgUrl, material_name=graph.mLabel)
         return {'FINISHED'}
