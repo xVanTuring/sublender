@@ -28,3 +28,5 @@ Todo:
 * ab workflow
 * height workflow
 * subsurface workflow
+* add scale to panel
+* fix material deletion problem
