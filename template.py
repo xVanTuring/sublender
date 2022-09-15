@@ -10,8 +10,10 @@ def isType(val, type_str: str):
     return isinstance(val, getattr(bpy.types, type_str))
 
 
-def ensure_nodes(mat, template):
+def ensure_nodes(mat: bpy.types.Material, template, clear_nodes: bool):
     node_list = mat.node_tree.nodes
+    if clear_nodes:
+        node_list.clear()
     for node_info in template['nodes']:
         node_inst = node_list.get(node_info['name'])
         if (node_inst is not None) and (isType(node_inst, node_info['type'])):
@@ -25,7 +27,7 @@ def ensure_nodes(mat, template):
             node_inst.label = node_info['label']
         if node_info.get('location', None) is not None:
             node_inst.location = node_info['location']
-        if node_info.get('hide', True):
+        if node_info.get('hide', False):
             node_inst.hide = True
 
 
@@ -77,9 +79,11 @@ def ensure_assets(material, template, resource):
             print("Missing Texture:{0}".format(texture_info['type']))
 
 
-def inflate_template(mat, template_name: str):
+def inflate_template(mat, template_name: str, clear_nodes=False):
     template = globalvar.material_templates.get(template_name)
-    ensure_nodes(mat, template)
+    if template is None:
+        raise Exception("Empty workflow")
+    ensure_nodes(mat, template, clear_nodes)
     ensure_link(mat, template)
     ensure_options(mat, template)
 

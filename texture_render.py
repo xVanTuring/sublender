@@ -48,14 +48,14 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
 
     async def async_execute(self, context):
         # read all params
-        sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-        target_mat = bpy.data.materials.get(self.material_name)
-        if target_mat is not None:
+        # sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+        material_inst = bpy.data.materials.get(self.material_name)
+        if material_inst is not None:
             start = datetime.datetime.now()
-            m_sublender: settings.Sublender_Material_MT_Setting = target_mat.sublender
+            m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
             clss_name, clss_info = utils.dynamic_gen_clss(
                 m_sublender.package_path, m_sublender.graph_url)
-            graph_setting = getattr(target_mat, clss_name)
+            graph_setting = getattr(material_inst, clss_name)
             input_dict = clss_info['input']
             param_list = ["render", "--input", m_sublender.package_path, "--input-graph", m_sublender.graph_url]
             for group_key in input_dict:
@@ -74,7 +74,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
                             param_list.append("{0}@{1},{2}".format(
                                 input_info['mIdentifier'], width, height))
                     else:
-                        # TODO use getattr
+                        # TODO use getattr:?
                         value = graph_setting.get(input_info['prop'])
                         if value is not None:
                             param_list.append("--set-value")
@@ -84,9 +84,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
                             param_list.append("{0}@{1}".format(
                                 input_info['mIdentifier'], value))
             param_list.append("--output-path")
-            instance_name = bpy.path.clean_name(target_mat.name)
-            target_dir = os.path.join(
-                consts.SUBLENDER_DIR, sublender_settings.uuid, clss_name, instance_name)
+            target_dir = utils.texture_output_dir(clss_name, material_inst.name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
             param_list.append("--output-name")
@@ -105,7 +103,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
             resource_dict = build_resource_dict(result)
             m_template = globalvar.material_templates.get(
                 m_sublender.material_template)
-            template.ensure_assets(target_mat, m_template, resource_dict)
+            template.ensure_assets(material_inst, m_template, resource_dict)
 
             self.report({"INFO"}, "Time spent: {0}s".format(
                 (end - start).total_seconds()))

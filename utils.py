@@ -3,7 +3,7 @@ from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
 from pysbs import sbsarchive
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
-
+import os
 from . import globalvar, consts, settings
 from .parser import parseSbsarInput
 
@@ -42,14 +42,17 @@ def substance_group_to_toggle_name(name: str) -> str:
     return "sb_{0}_gptl".format(bpy.path.clean_name(name))
 
 
+def gen_clss_name(graph_url: str):
+    return "sb" + graph_url.replace("pkg://", "_")
+
+
 def dynamic_gen_clss(package_path: str, graph_url: str, ):
     if globalvar.sbsar_dict.get(package_path) is None:
         sbsar_pkg = sbsarchive.SBSArchive(
             globalvar.aContext, package_path)
         sbsar_pkg.parseDoc()
         globalvar.sbsar_dict[package_path] = sbsar_pkg
-    # input_info_list = []
-    clss_name = "sublender_" + graph_url.replace("://", "_")
+    clss_name = gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
         sbs_graph = globalvar.sbsar_dict[package_path].getSBSGraphFromPkgUrl(
             graph_url)
@@ -58,9 +61,9 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
         input_list = parseSbsarInput(all_inputs)
         _anno_obj = {}
 
-        def assign(obj_from, obj_to, prop_name: str):
-            if obj_from.get(prop_name) is not None:
-                obj_to[prop_name] = obj_from.get(prop_name)
+        def assign(obj_from, obj_to, m_prop_name: str):
+            if obj_from.get(m_prop_name) is not None:
+                obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
         input_info_dict = {}
         for input_info in input_list:
@@ -147,3 +150,8 @@ def load_sbsar():
         if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
             dynamic_gen_clss(
                 m_sublender.package_path, m_sublender.graph_url)
+
+
+def texture_output_dir(clss_name: str, material_name: str):
+    return os.path.join(
+        consts.SUBLENDER_DIR, globalvar.current_uuid, clss_name, bpy.path.clean_name(material_name))

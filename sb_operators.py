@@ -1,10 +1,12 @@
 from bpy.types import Operator
 import bpy
 import pathlib
-from . import settings, utils, globalvar
+from . import settings, utils, globalvar, consts, template
 from bpy.props import (StringProperty)
+import uuid
 
 
+# TODO
 class Sublender_Reassign(Operator):
     bl_idname = "sublender.reload_texture"
     bl_label = "Reload Texture"
@@ -20,15 +22,27 @@ class Sublender_Change_UUID(Operator):
     bl_description = "Change UUID, useful if you want to duplicate the .blend file"
 
     def execute(self, context):
+        sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
+        sublender_settings.uuid = str(uuid.uuid4())
+        globalvar.current_uuid = sublender_settings.uuid
+        self.report({'INFO'}, "New UUID {0}".format(sublender_settings.uuid))
         return {'FINISHED'}
 
 
-class Sublender_Reinflate_Material(Operator):
-    bl_idname = "sublender.reinflate_material"
-    bl_label = "Reinflate Material"
-    bl_description = "Reinflate Material"
+class Sublender_Inflate_Material(Operator):
+    bl_idname = "sublender.inflate_material"
+    bl_label = "Inflate Material"
+    bl_description = "Inflate Material, this will remove all existing nodes"
+    target_material: StringProperty()
 
     def execute(self, context):
+        print("Inflate material {0}".format(self.target_material))
+        material_instance = bpy.data.materials.get(self.target_material)
+        mat_setting: settings.Sublender_Material_MT_Setting = material_instance.sublender
+        workflow_name: str = mat_setting.material_template
+        # FIX Texture Missing
+        if workflow_name != consts.CUSTOM:
+            template.inflate_template(material_instance, workflow_name, True)
         return {'FINISHED'}
 
 
@@ -45,8 +59,15 @@ class Sublender_Copy_Texture_Path(Operator):
     bl_idname = "sublender.copy_texture_path"
     bl_label = "Copy Texture Path"
     bl_description = ""
+    target_material: StringProperty()
 
     def execute(self, context):
+        material_inst = bpy.data.materials.get(self.target_material)
+        if material_inst is not None:
+            m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
+            output_dir = utils.texture_output_dir(utils.gen_clss_name(m_sublender.graph_url), self.target_material)
+            bpy.context.window_manager.clipboard = output_dir
+            self.report({"INFO"}, "Copied")
         return {'FINISHED'}
 
 
@@ -59,6 +80,7 @@ class Sublender_Render_All(Operator):
         return {'FINISHED'}
 
 
+# Pro Feature
 class Sublender_Clean_Unused_Image(Operator):
     bl_idname = "sublender.clean_unused_image"
     bl_label = "Clean Unused Texture"
@@ -84,7 +106,6 @@ class Sublender_Init(Operator):
 
         sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
         if sublender_settings.uuid == "":
-            import uuid
             sublender_settings.uuid = str(uuid.uuid4())
         globalvar.current_uuid = sublender_settings.uuid
         print("Current UUID {0}".format(globalvar.current_uuid))
@@ -105,19 +126,19 @@ class Sublender_New_Instance(Operator):
     bl_idname = "sublender.new_instance"
     bl_label = "New Instance"
     bl_description = "New Instance"
-    mat_name: StringProperty()
+    target_material: StringProperty()
 
     def execute(self, context):
-        target_mat = bpy.data.materials.get(self.mat_name)
-        if target_mat is not None:
-            target_mat.copy()
+        material_instance = bpy.data.materials.get(self.target_material)
+        if material_instance is not None:
+            material_instance.copy()
         else:
             print("Missing Material with name: {0}".format(self.mat_name))
         return {'FINISHED'}
 
 
 def register():
-    bpy.utils.register_class(Sublender_Reinflate_Material)
+    bpy.utils.register_class(Sublender_Inflate_Material)
     bpy.utils.register_class(Sublender_Reassign)
     bpy.utils.register_class(Sublender_Change_UUID)
     bpy.utils.register_class(Sublender_Select_Active)
@@ -137,4 +158,4 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Clean_Unused_Image)
     bpy.utils.unregister_class(Sublender_Init)
     bpy.utils.unregister_class(Sublender_New_Instance)
-    bpy.utils.unregister_class(Sublender_Reinflate_Material)
+    bpy.utils.unregister_class(Sublender_Inflate_Material)

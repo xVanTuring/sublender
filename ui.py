@@ -7,9 +7,11 @@ from . import settings, utils, globalvar, consts
 class Sublender_MT_context_menu(Menu):
     bl_label = "Sublender Settings"
 
-    def draw(self, _context):
+    def draw(self, context):
+        target_mat = find_active_mat(context)
         layout = self.layout
-        layout.operator("sublender.copy_texture_path", icon='COPYDOWN')
+        copy_texture_path_op = layout.operator("sublender.copy_texture_path", icon='COPYDOWN')
+        copy_texture_path_op.target_material = target_mat.name
         layout.operator("sublender.clean_unused_image", icon='BRUSH_DATA')
         layout.operator("sublender.render_all", icon='NODE_TEXTURE')
         layout.operator(
@@ -19,8 +21,8 @@ class Sublender_MT_context_menu(Menu):
 
 
 def find_active_mat(context):
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-    if sublender_settings.follow_selection:
+    scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
+    if scene_sb_settings.follow_selection:
         if bpy.context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
             return None
@@ -33,7 +35,7 @@ def find_active_mat(context):
                 return active_mt
         return None
     mats = bpy.data.materials
-    target_mat = mats.get(sublender_settings.active_instance)
+    target_mat = mats.get(scene_sb_settings.active_instance)
     return target_mat
 
 
@@ -51,8 +53,9 @@ def draw_instance_item(self, context, target_mat):
                 sublender_settings, "active_instance", text="Instance")
         row.prop(target_mat, 'use_fake_user',
                  icon_only=True)
-        row.operator('sublender.select_active',
-                     icon='RESTRICT_SELECT_ON', text='')
+        dup_op = row.operator(
+            "sublender.new_instance", icon='DUPLICATE', text="")
+        dup_op.target_material = target_mat.name
 
 
 def draw_graph_item(self, context, target_mat):
@@ -81,11 +84,12 @@ def draw_workflow_item(self, context, target_mat):
         row = self.layout.row()
         row.prop(mat_setting,
                  'material_template', text='Workflow')
-        row.operator(
-            "sublender.reinflate_material", icon='MATERIAL', text="")
-        dup_op = row.operator(
-            "sublender.new_instance", icon='DUPLICATE', text="")
-        dup_op.mat_name = target_mat.name
+        inflate_material_op = row.operator(
+            "sublender.inflate_material", icon='MATERIAL', text="")
+        inflate_material_op.target_material = target_mat.name
+        # dup_op = row.operator(
+        #     "sublender.new_instance", icon='DUPLICATE', text="")
+        # dup_op.mat_name = target_mat.name
 
 
 def draw_texture_item(self, context, target_mat):
