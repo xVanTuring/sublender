@@ -1,9 +1,7 @@
-from . consts import sbsar_name_to_label, UNGROUPED, type_dict
+from .consts import sbsar_name_to_label, UNGROUPED, type_dict
 
-from pysbs.sbsarchive.sbsargraph import SBSARInput
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
-from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
-from pysbs import sbsarchive, context
+from pysbs.sbsarchive.sbsargraph import SBSARInput, SBSARInputGui
+from pysbs.sbsarchive import SBSARGuiComboBox
 from typing import List
 
 
@@ -30,8 +28,8 @@ def parseSbsarInput(graph_inputs: List[SBSARInput]):
             if gui.mWidget in ['togglebutton', 'combobox', 'color']:
                 input_info['mWidget'] = gui.mWidget
             if gui.mWidget == 'combobox':
-                comboxBox: SBSARGuiComboBox = gui.mGuiComboBox
-                drop_down = comboxBox.getDropDownList()
+                combox_box: SBSARGuiComboBox = gui.mGuiComboBox
+                drop_down = combox_box.getDropDownList()
                 if drop_down is not None:
                     drop_down_keys = list(drop_down.keys())
                     drop_down_keys.sort()
@@ -49,6 +47,6 @@ def parseSbsarInput(graph_inputs: List[SBSARInput]):
         if sbsa_graph_input.getMinValue() is not None:
             input_info['min'] = sbsa_graph_input.getMinValue()
         if sbsa_graph_input.getStep() is not None:
-            input_info['step'] = int(sbsa_graph_input.getStep()*100)
+            input_info['step'] = int(sbsa_graph_input.getStep() * 100)
         input_list.append(input_info)
     return input_list

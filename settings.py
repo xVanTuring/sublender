@@ -1,8 +1,7 @@
-from . import globalvar
-from . import utils
 import bpy
-from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
-                       EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
+from bpy.props import (StringProperty, BoolProperty, EnumProperty)
+
+from . import globalvar
 
 
 def graph_list(self, context):
@@ -11,7 +10,7 @@ def graph_list(self, context):
     for mat_name, mat in mats:
         m_sublender: Sublender_Material_MT_Setting = mat.sublender
         if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
-            if not(m_sublender.graph_url in globalvar.instance_map):
+            if not (m_sublender.graph_url in globalvar.instance_map):
                 globalvar.instance_map[m_sublender.graph_url] = []
             globalvar.instance_map[m_sublender.graph_url].append((
                 mat_name, mat_name, mat_name,))
@@ -31,7 +30,8 @@ def active_graph_updated(self, context):
 
 def instance_list(self, context):
     # [(identifier, name, description, icon, number), ...]
-    return globalvar.instance_map.get(context.scene.sublender_settings.active_graph, [("$DUMMY$", "No Instance", "Dummy")])
+    return globalvar.instance_map.get(context.scene.sublender_settings.active_graph,
+                                      [("$DUMMY$", "No Instance", "Dummy")])
 
 
 def active_instance_update(self, context):

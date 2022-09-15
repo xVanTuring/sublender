@@ -1,7 +1,7 @@
 import bpy
+from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.types import AddonPreferences
 
-from bpy.types import Operator, AddonPreferences
-from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty, IntVectorProperty
 # from .consts import output_size_enum, SUBLENDER_DIR
 from . import consts
 
@@ -45,7 +45,8 @@ class SublenderPreferences(AddonPreferences):
              "Follow channels group info in graph parameters"),
         ]
     )
-# TODO log
+
+    # TODO log
 
     def draw(self, context):
         layout = self.layout
@@ -57,13 +58,15 @@ class SublenderPreferences(AddonPreferences):
         row.prop(self,
                  'output_size_x', text='Default Texture Size')
         row.prop(self, 'output_size_lock',
-                 toggle=1, icon_only=True, icon="LINKED",)
+                 toggle=1, icon_only=True, icon="LINKED", )
         if self.output_size_lock:
             row.prop(self,
                      'output_size_x', text='')
         else:
             row.prop(self,
                      'output_size_y', text='')
+
+
 def register():
     bpy.utils.register_class(SublenderPreferences)
 

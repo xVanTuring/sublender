@@ -1,38 +1,50 @@
-if "bpy" in locals():
-    from importlib import reload
-    template = reload(template)
-    utils = reload(utils)
-    settings = reload(settings)
-    parser = reload(parser)
-    consts = reload(consts)
-    globalvar = reload(globalvar)
-    importer = reload(importer)
-    preference = reload(preference)
-    async_loop = reload(async_loop)
-    texture_render = reload(texture_render)
-    sb_operators = reload(sb_operators)
-    ui = reload(ui)
-else:
-    from sublender import (template, utils, settings, parser, consts,
-                           globalvar, importer, preference, async_loop, texture_render,
-                           sb_operators, ui)
 import bpy
 
 bl_info = {
     "name": "Sublender",
     "author": "xVanTuring(@outlook.com)",
     "blender": (2, 80, 0),
-    "category": "Object",
     "version": (0, 0, 1),
     "location": "View3D > Properties > Sublender",
-    "description": "A addon for sbsar",
+    "description": "An add-on for sbsar",
     "category": "Material"
 }
 
 
 def register():
-    template.load_material_templates()
+    import sys
 
+    # Support reloading
+    if '%s.blender' % __name__ in sys.modules:
+        import importlib
+
+        def reload_mod(name):
+            modname = '%s.%s' % (__name__, name)
+            try:
+                old_module = sys.modules[modname]
+            except KeyError:
+                # Wasn't loaded before -- can happen after an upgrade.
+                new_module = importlib.import_module(modname)
+            else:
+                new_module = importlib.reload(old_module)
+
+            sys.modules[modname] = new_module
+            return new_module
+
+        template = reload_mod('template')
+        settings = reload_mod('settings')
+        importer = reload_mod('importer')
+        preference = reload_mod('preference')
+        async_loop = reload_mod('async_loop')
+        texture_render = reload_mod('texture_render')
+        sb_operators = reload_mod('sb_operators')
+        ui = reload_mod('ui')
+    else:
+        from . import (template, utils, settings,
+                       importer, preference, async_loop, texture_render,
+                       sb_operators, ui)
+
+    template.load_material_templates()
     preference.register()
     texture_render.register()
     async_loop.register()
@@ -42,15 +54,22 @@ def register():
     ui.register()
 
 
-
 def unregister():
+    from . import (settings,
+                   importer, preference, async_loop, texture_render,
+                   sb_operators, ui, globalvar)
+    ui.unregister()
     preference.unregister()
     async_loop.unregister()
     texture_render.unregister()
     importer.unregister()
     settings.unregister()
     sb_operators.unregister()
-    ui.unregister()
-    for clss_name in globalvar.graph_clss:
-        clss_info = globalvar.graph_clss.get(clss_name)
-        bpy.utils.unregister_class(clss_info['clss'])
+    for class_name in globalvar.graph_clss:
+        print(class_name)
+        class_info = globalvar.graph_clss.get(class_name)
+        bpy.utils.unregister_class(class_info['clss'])
+    globalvar.current_uuid = ""
+    globalvar.graph_clss.clear()
+    globalvar.sbsar_dict.clear()
+    globalvar.aContext = None

@@ -2,6 +2,7 @@ from bpy.props import (PointerProperty, StringProperty, BoolProperty, Collection
                        EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 import pathlib
 import os
+
 type_dict = ['FLOAT1',
              'FLOAT2',
              'FLOAT3',

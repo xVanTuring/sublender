@@ -18,3 +18,7 @@ Todo:
 * height workflow
 * subsurface workflow
 * add height scale to panel
+
+
+## Hack
+* pip install fake-bpy-module-2.82

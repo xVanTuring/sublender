@@ -1,18 +1,16 @@
-import subprocess
-import json
-from pysbs.batchtools import batchtools
-import threading
 import asyncio
-from typing import List
-import bpy
-from . import globalvar, settings, utils, consts, async_loop, template
-from pysbs.context import Context
+import datetime
+import json
 import os
 import pathlib
-from bpy.types import Operator
+from typing import List
 
+import bpy
 from bpy.props import BoolProperty, StringProperty
-import datetime
+from bpy.types import Operator
+from pysbs.context import Context
+
+from . import globalvar, settings, utils, consts, async_loop, template
 
 
 def build_resource_dict(result):
@@ -59,12 +57,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
                 m_sublender.package_path, m_sublender.graph_url)
             graph_setting = getattr(target_mat, clss_name)
             input_dict = clss_info['input']
-            param_list = []
-            param_list.append("render")
-            param_list.append("--input")
-            param_list.append(m_sublender.package_path)
-            param_list.append("--input-graph")
-            param_list.append(m_sublender.graph_url)
+            param_list = ["render", "--input", m_sublender.package_path, "--input-graph", m_sublender.graph_url]
             for group_key in input_dict:
                 input_group = input_dict[group_key]
                 for input_info in input_group:

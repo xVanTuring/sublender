@@ -1,6 +1,6 @@
 import pysbs
-import pathlib
-import os
+import typing
+
 instance_map = {
 }
 
@@ -10,5 +10,6 @@ graph_clss = {}
 
 material_templates = {}
 material_template_enum = []
-aContext = pysbs.context.Context()
+
+aContext: typing.Optional[pysbs.context.Context] = None
 current_uuid = ""

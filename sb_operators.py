@@ -1,4 +1,4 @@
-from bpy.types import Operator, Menu
+from bpy.types import Operator
 import bpy
 import pathlib
 from . import settings, utils, globalvar
@@ -74,10 +74,13 @@ class Sublender_Init(Operator):
     bl_description = "Init Sublender"
 
     def execute(self, context):
-        preferences = context.preferences
-        SUBLENDER_DIR = preferences.addons[__package__].preferences.cache_path
-        pathlib.Path(SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
-        print("Default Cache Path: {0}".format(SUBLENDER_DIR))
+        print("Sublender Init")
+        import pysbs
+        globalvar.aContext = pysbs.context.Context()
+        preferences = context.preferences.addons[__package__].preferences
+        sublender_dir = preferences.cache_path
+        pathlib.Path(sublender_dir).mkdir(parents=True, exist_ok=True)
+        print("Default Cache Path: {0}".format(sublender_dir))
 
         sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
         if sublender_settings.uuid == "":

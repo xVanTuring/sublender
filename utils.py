@@ -1,17 +1,18 @@
-from bpy.utils import register_class
-
-from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
-                       EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
-from pysbs import sbsarchive, context
-from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 import bpy
+from bpy.props import (BoolProperty, EnumProperty)
+from bpy.utils import register_class
+from pysbs import sbsarchive
+from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
+
 from . import globalvar, consts, settings
-from . parser import parseSbsarInput
+from .parser import parseSbsarInput
 
 
 def sbsar_input_updated(self, context):
     pass
     # print("Property Updated")
+
+
 # def real_task():
 
 
@@ -37,14 +38,14 @@ def output_size_x_updated(self, context):
         self.output_size_y = self.output_size_x
 
 
-def dynamic_gen_clss(package_path: str, graph_url: str,):
+def dynamic_gen_clss(package_path: str, graph_url: str, ):
     if globalvar.sbsar_dict.get(package_path) is None:
         sbsar_pkg = sbsarchive.SBSArchive(
             globalvar.aContext, package_path)
         sbsar_pkg.parseDoc()
         globalvar.sbsar_dict[package_path] = sbsar_pkg
     # input_info_list = []
-    clss_name = "sublender_"+graph_url.replace("://", "_")
+    clss_name = "sublender_" + graph_url.replace("://", "_")
     if globalvar.graph_clss.get(clss_name) is None:
         sbs_graph = globalvar.sbsar_dict[package_path].getSBSGraphFromPkgUrl(
             graph_url)
@@ -56,6 +57,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str,):
         def assign(obj_from, obj_to, prop_name: str):
             if obj_from.get(prop_name) is not None:
                 obj_to[prop_name] = obj_from.get(prop_name)
+
         input_info_dict = {}
         for input_info in input_list:
             prop_name = consts.sbsar_name_prop.get(
@@ -124,7 +126,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str,):
         }
         setattr(bpy.types.Material, clss_name,
                 bpy.props.PointerProperty(type=clss))
-    return (clss_name, globalvar.graph_clss.get(clss_name))
+    return clss_name, globalvar.graph_clss.get(clss_name)
 
 
 def load_sbsar():

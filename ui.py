@@ -1,18 +1,10 @@
-
-import pprint
-from typing import List
-from bpy.utils import register_class
-from bpy.types import Panel, Operator, Menu
-import pathlib
-import json
 import bpy
-import os
-from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
-                       EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
+from bpy.types import Panel, Menu
+
 from . import settings, utils, globalvar, consts
 
 
-class Sublender_context_menu(Menu):
+class Sublender_MT_context_menu(Menu):
     bl_label = "Sublender Settings"
 
     def draw(self, _context):
@@ -21,15 +13,16 @@ class Sublender_context_menu(Menu):
         layout.operator("sublender.clean_unused_image", icon='BRUSH_DATA')
         layout.operator("sublender.render_all", icon='NODE_TEXTURE')
         layout.operator(
-            "sublender.reload_texture", icon='FILE_REFRESH',)
+            "sublender.reload_texture", icon='FILE_REFRESH', )
         layout.operator(
-            "sublender.change_uuid", icon='FILE',)
+            "sublender.change_uuid", icon='FILE', )
 
 
 def find_active_mat(context):
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     if sublender_settings.follow_selection:
-        if bpy.context.view_layer.objects.active is None or len(bpy.context.view_layer.objects.active.material_slots) == 0:
+        if bpy.context.view_layer.objects.active is None or len(
+                bpy.context.view_layer.objects.active.material_slots) == 0:
             return None
         mt_index = bpy.context.object.active_material_index
         active_mt = bpy.context.view_layer.objects.active.material_slots[
@@ -105,7 +98,7 @@ def draw_texture_item(self, context, target_mat):
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     row.prop(sublender_settings,
              'live_update', icon='PLAY', icon_only=True)
-    row.menu("Sublender_context_menu", icon="DOWNARROW_HLT", text="")
+    row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")
 
 
 def draw_parameters_item(self, context, target_mat):
@@ -129,7 +122,7 @@ def draw_parameters_item(self, context, target_mat):
                     row.prop(graph_setting,
                              'output_size_x', text='Size')
                     row.prop(graph_setting, 'output_size_lock',
-                             toggle=1, icon_only=True, icon="LINKED",)
+                             toggle=1, icon_only=True, icon="LINKED", )
                     if graph_setting.output_size_lock:
                         row.prop(graph_setting,
                                  'output_size_x', text='')
@@ -149,6 +142,7 @@ class Sublender_PT_Main(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = 'Sublender'
+
     # bl_space_type = "PROPERTIES"
     # bl_region_type = "WINDOW"
     # bl_context = 'material'
@@ -176,9 +170,9 @@ class Sublender_PT_Main(Panel):
 
 def register():
     bpy.utils.register_class(Sublender_PT_Main)
-    bpy.utils.register_class(Sublender_context_menu)
+    bpy.utils.register_class(Sublender_MT_context_menu)
 
 
 def unregister():
     bpy.utils.unregister_class(Sublender_PT_Main)
-    bpy.utils.unregister_class(Sublender_context_menu)
+    bpy.utils.unregister_class(Sublender_MT_context_menu)

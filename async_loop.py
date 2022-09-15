@@ -3,7 +3,8 @@ import concurrent.futures
 import bpy
 import gc
 import typing
-# blender cloud addon
+
+# blender cloud add-on
 _loop_kicking_operator_running = False
 
 
@@ -102,7 +103,7 @@ class AsyncModalOperatorMixin:
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
         self.timer = context.window_manager.event_timer_add(
-            1/15, window=context.window)
+            1 / 15, window=context.window)
         print("Starting")
         self._new_async_task(self.async_execute(context))
         return {'RUNNING_MODAL'}

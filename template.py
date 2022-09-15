@@ -1,16 +1,9 @@
-
-import subprocess
 import json
-from pysbs.batchtools import batchtools
-import threading
-from typing import List
-import bpy
-from . import globalvar, settings, utils, consts
 import os
-import pathlib
-from bpy.types import Operator
 
-from bpy.props import BoolProperty, StringProperty
+import bpy
+
+from . import globalvar, consts
 
 
 def isType(val, type_str: str):
@@ -32,7 +25,7 @@ def ensure_nodes(mat, template):
             node_inst.label = node_info['label']
         if node_info.get('location', None) is not None:
             node_inst.location = node_info['location']
-        if node_info.get('hide') == True:
+        if node_info.get('hide', True):
             node_inst.hide = True
 
 
@@ -110,7 +103,6 @@ def load_material_templates():
     globalvar.material_template_enum.append((
         consts.CUSTOM, "Custom", "Custom Workflow, empty material will be generated"
     ))
-
 
 # def build_resource_dict(outputs):
 #     resource_dict = {}
