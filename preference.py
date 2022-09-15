@@ -36,16 +36,15 @@ class SublenderPreferences(AddonPreferences):
         default=True,
         update=output_size_x_updated
     )
-    follow_channels: BoolProperty(
-        name="Follow Channels Group",
-        description="Follow options in channels group to generate texture, it may cause texture not founded",
-        default=False
+    default_render_policy: EnumProperty(
+        name="Default Render Policy",
+        items=[
+            ("all", "Render all texture", "Render all texture"),
+            ("workflow", "Follow active workflow", "Follow active workflow"),
+            ("channels", "Follow channels group info in graph parameters",
+             "Follow channels group info in graph parameters"),
+        ]
     )
-    # display_in_material_tab: BoolProperty(
-    #     name="Display in Material Tab",
-    #     description="Display in Material Tab",
-    #     default=False
-    # )
 # TODO log
 
     def draw(self, context):
@@ -53,7 +52,7 @@ class SublenderPreferences(AddonPreferences):
         layout.prop(self, "cache_path")
         # TODO
         # layout.prop(self, "follow_channels")
-        # layout.prop(self, "display_in_material_tab")
+        layout.prop(self, "default_render_policy")
         row = self.layout.row()
         row.prop(self,
                  'output_size_x', text='Default Texture Size')
@@ -65,3 +64,9 @@ class SublenderPreferences(AddonPreferences):
         else:
             row.prop(self,
                      'output_size_y', text='')
+def register():
+    bpy.utils.register_class(SublenderPreferences)
+
+
+def unregister():
+    bpy.utils.unregister_class(SublenderPreferences)

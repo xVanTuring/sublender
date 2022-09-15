@@ -1,4 +1,4 @@
-from . import globals
+from . import globalvar
 from . import utils
 import bpy
 from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
@@ -7,18 +7,19 @@ from bpy.props import (PointerProperty, StringProperty, BoolProperty, Collection
 
 def graph_list(self, context):
     mats = bpy.data.materials.items()
-    globals.instance_map.clear()
+    globalvar.instance_map.clear()
     for mat_name, mat in mats:
         m_sublender: Sublender_Material_MT_Setting = mat.sublender
         if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
-            if not(m_sublender.graph_url in globals.instance_map):
-                globals.instance_map[m_sublender.graph_url] = []
-            globals.instance_map[m_sublender.graph_url].append((
+            if not(m_sublender.graph_url in globalvar.instance_map):
+                globalvar.instance_map[m_sublender.graph_url] = []
+            globalvar.instance_map[m_sublender.graph_url].append((
                 mat_name, mat_name, mat_name,))
     # [(identifier, name, description, icon, number), ...]
-    m_graph_list = list(map(lambda x: (x, x, ""), globals.instance_map.keys()))
+    m_graph_list = list(
+        map(lambda x: (x, x, ""), globalvar.instance_map.keys()))
     if (len(m_graph_list)) > 0:
-        return list(map(lambda x: (x, x, ""), globals.instance_map.keys()))
+        return list(map(lambda x: (x, x, ""), globalvar.instance_map.keys()))
     else:
         return [("$DUMMY$", "No Graph", "Dummy")]
 
@@ -30,7 +31,7 @@ def active_graph_updated(self, context):
 
 def instance_list(self, context):
     # [(identifier, name, description, icon, number), ...]
-    return globals.instance_map.get(context.scene.sublender_settings.active_graph, [("$DUMMY$", "No Instance", "Dummy")])
+    return globalvar.instance_map.get(context.scene.sublender_settings.active_graph, [("$DUMMY$", "No Instance", "Dummy")])
 
 
 def active_instance_update(self, context):
@@ -43,7 +44,7 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
     graph_url: StringProperty(name="Graph URL")
     show_setting: BoolProperty(name="Show Params")
     material_template: EnumProperty(
-        name="Material Template", items=globals.material_template_enum)
+        name="Material Template", items=globalvar.material_template_enum)
     uuid: StringProperty(name="UUID of this material", default="")
 
 
@@ -59,3 +60,17 @@ class SublenderSetting(bpy.types.PropertyGroup):
     live_update: BoolProperty(
         name="Live Update", description="Update the texture when the property changed, will block blender!")
     follow_selection: BoolProperty(name="Follow Selection", default=True)
+
+
+def register():
+    bpy.utils.register_class(Sublender_Material_MT_Setting)
+    bpy.utils.register_class(SublenderSetting)
+    bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(
+        type=SublenderSetting, name="Sublender")
+    bpy.types.Material.sublender = bpy.props.PointerProperty(
+        type=Sublender_Material_MT_Setting)
+
+
+def unregister():
+    bpy.utils.unregister_class(Sublender_Material_MT_Setting)
+    bpy.utils.unregister_class(SublenderSetting)

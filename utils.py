@@ -5,7 +5,7 @@ from bpy.props import (PointerProperty, StringProperty, BoolProperty, Collection
 from pysbs import sbsarchive, context
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 import bpy
-from . import globals, consts
+from . import globalvar, consts, settings
 from . parser import parseSbsarInput
 
 
@@ -38,16 +38,18 @@ def output_size_x_updated(self, context):
 
 
 def dynamic_gen_clss(package_path: str, graph_url: str,):
-    if globals.sbsar_dict.get(package_path) is None:
+    if globalvar.sbsar_dict.get(package_path) is None:
         sbsar_pkg = sbsarchive.SBSArchive(
-            globals.aContext, package_path)
+            globalvar.aContext, package_path)
         sbsar_pkg.parseDoc()
-        globals.sbsar_dict[package_path] = sbsar_pkg
+        globalvar.sbsar_dict[package_path] = sbsar_pkg
     # input_info_list = []
     clss_name = "sublender_"+graph_url.replace("://", "_")
-    if globals.graph_clss.get(clss_name) is None:
-        all_inputs = globals.sbsar_dict[package_path].getSBSGraphFromPkgUrl(
-            graph_url).getAllInputs()
+    if globalvar.graph_clss.get(clss_name) is None:
+        sbs_graph = globalvar.sbsar_dict[package_path].getSBSGraphFromPkgUrl(
+            graph_url)
+        all_inputs = sbs_graph.getAllInputs()
+        all_outputs = sbs_graph.getGraphOutputs()
         input_list = parseSbsarInput(all_inputs)
         _anno_obj = {}
 
@@ -112,11 +114,23 @@ def dynamic_gen_clss(package_path: str, graph_url: str,):
             '__annotations__': _anno_obj
         })
         register_class(clss)
-
-        globals.graph_clss[clss_name] = {
+        output_info_list = []
+        for output in all_outputs:
+            output_info_list.append(output.mIdentifier)
+        globalvar.graph_clss[clss_name] = {
             'clss': clss,
-            'input': input_info_dict
+            'input': input_info_dict,
+            'output': output_info_list
         }
         setattr(bpy.types.Material, clss_name,
                 bpy.props.PointerProperty(type=clss))
-    return (clss_name, globals.graph_clss.get(clss_name))
+    return (clss_name, globalvar.graph_clss.get(clss_name))
+
+
+def load_sbsar():
+    mats = bpy.data.materials.items()
+    for _, mat in mats:
+        m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
+        if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
+            dynamic_gen_clss(
+                m_sublender.package_path, m_sublender.graph_url)

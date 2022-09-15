@@ -5,27 +5,18 @@ if "bpy" in locals():
     settings = reload(settings)
     parser = reload(parser)
     consts = reload(consts)
-    globals = reload(globals)
+    globalvar = reload(globalvar)
     importer = reload(importer)
     preference = reload(preference)
+    async_loop = reload(async_loop)
+    texture_render = reload(texture_render)
+    sb_operators = reload(sb_operators)
+    ui = reload(ui)
 else:
-    from sublender import template, utils, settings, parser, consts, globals, importer, preference
-import pprint
-import subprocess
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
-from pysbs.batchtools import batchtools
-from pysbs import sbsarchive
-from pysbs.sbsarchive import SBSARInputGui
-from pysbs.sbsarchive import SBSARGuiComboBox
-from typing import List
-from bpy.utils import register_class
-from bpy.types import Panel, Operator, Menu
-import pathlib
-import json
+    from sublender import (template, utils, settings, parser, consts,
+                           globalvar, importer, preference, async_loop, texture_render,
+                           sb_operators, ui)
 import bpy
-import os
-from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
-                       EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
 bl_info = {
     "name": "Sublender",
@@ -39,312 +30,27 @@ bl_info = {
 }
 
 
-class Sublender_New_Instance(Operator):
-    bl_idname = "sublender.new_instance"
-    bl_label = "New Instance"
-    bl_description = "New Instance"
-    mat_name: StringProperty()
-
-    def execute(self, context):
-        target_mat = bpy.data.materials.get(self.mat_name)
-        if target_mat is not None:
-            target_mat.copy()
-        else:
-            print("Missing Material with name: {0}".format(self.mat_name))
-        return {'FINISHED'}
-
-# move to importer
-
-
-class Sublender_Reassign(Operator):
-    bl_idname = "sublender.reload_texture"
-    bl_label = "Reload Texture"
-    bl_description = "Reload Texture"
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-class Sublender_Change_UUID(Operator):
-    bl_idname = "sublender.change_uuid"
-    bl_label = "Change UUID"
-    bl_description = "Change UUID, useful if you want to duplicate the .blend file"
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-class Sublender_Reinflate_Material(Operator):
-    bl_idname = "sublender.reinflate_material"
-    bl_label = "Reinflate Material"
-    bl_description = "Reinflate Material"
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-def load_sbsar():
-    mats = bpy.data.materials.items()
-    for _, mat in mats:
-        m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
-        if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
-            utils.dynamic_gen_clss(
-                m_sublender.package_path, m_sublender.graph_url)
-
-
-class Sublender_Select_Active(Operator):
-    bl_idname = "sublender.select_active"
-    bl_label = "Select Active"
-    bl_description = "Select Active"
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-class Sublender_Copy_Texture_Path(Operator):
-    bl_idname = "sublender.copy_texture_path"
-    bl_label = "Copy Texture Path"
-    bl_description = ""
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-class Sublender_Render_All(Operator):
-    bl_idname = "sublender.render_all"
-    bl_label = "Render All Texture"
-    bl_description = ""
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-class Sublender_Clean_Unused_Image(Operator):
-    bl_idname = "sublender.clean_unused_image"
-    bl_label = "Clean Unused Texture"
-    bl_description = "Remove Unused Image in this Blender Project"
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-class Sublender_context_menu(Menu):
-    bl_label = "Sublender Settings"
-
-    def draw(self, _context):
-        layout = self.layout
-        layout.operator("sublender.copy_texture_path", icon='COPYDOWN')
-        layout.operator("sublender.clean_unused_image", icon='BRUSH_DATA')
-        layout.operator("sublender.render_all", icon='NODE_TEXTURE')
-        layout.operator(
-            "sublender.reload_texture", icon='FILE_REFRESH',)
-        layout.operator(
-            "sublender.change_uuid", icon='FILE',)
-
-
-class Sublender_Init(Operator):
-    bl_idname = "sublender.init"
-    bl_label = "Init Sublender"
-    bl_description = "Init Sublender"
-
-    def execute(self, context):
-        preferences = context.preferences
-        SUBLENDER_DIR = preferences.addons[__package__].preferences.cache_path
-        pathlib.Path(SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
-        print("Default Cache Path: {0}".format(SUBLENDER_DIR))
-
-        sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
-        if sublender_settings.uuid == "":
-            import uuid
-            sublender_settings.uuid = str(uuid.uuid4())
-        globals.current_uuid = sublender_settings.uuid
-        print("Current UUID {0}".format(globals.current_uuid))
-
-        load_sbsar()
-        bpy.context.scene['sublender_settings']['active_instance_obj'] = 0
-        bpy.context.scene['sublender_settings']['active_graph'] = 0
-        bpy.context.scene['sublender_settings']['active_instance'] = 0
-        # if sublender_settings.active_graph == '':
-        #     print("No graph founded here, reset to DUMMY")
-        # if sublender_settings.active_instance == '':
-        #     print("Selected instance is missing, reset to first one")
-        #     bpy.context.scene['sublender_settings']['active_instance'] = 0
-        return {'FINISHED'}
-
-
-def find_active_mat(context):
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-    if sublender_settings.follow_selection:
-        if bpy.context.view_layer.objects.active is None or len(bpy.context.view_layer.objects.active.material_slots) == 0:
-            return None
-        mt_index = bpy.context.object.active_material_index
-        active_mt = bpy.context.view_layer.objects.active.material_slots[
-            mt_index].material
-        if active_mt is not None:
-            mat_setting: settings.Sublender_Material_MT_Setting = active_mt.sublender
-            if mat_setting.package_path != '' and mat_setting.graph_url != '':
-                return active_mt
-        return None
-    mats = bpy.data.materials
-    target_mat = mats.get(sublender_settings.active_instance)
-    return target_mat
-
-
-def draw_instance_item(self, context, target_mat):
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-    if target_mat is not None:
-        row = self.layout.row()
-        instance_info_column = row.column()
-        if sublender_settings.follow_selection:
-            # instance_info_column.prop(
-            #     sublender_settings, "active_instance_obj", text="Instance")
-            instance_info_column.prop(target_mat, "name", text="Instance")
-        else:
-            instance_info_column.prop(
-                sublender_settings, "active_instance", text="Instance")
-        row.prop(target_mat, 'use_fake_user',
-                 icon_only=True)
-        row.operator('sublender.select_active',
-                     icon='RESTRICT_SELECT_ON', text='')
-
-
-def draw_graph_item(self, context, target_mat):
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-    row = self.layout.row()
-    graph_info_column = row.column()
-    if sublender_settings.follow_selection:
-        graph_info_column.enabled = False
-    if sublender_settings.follow_selection and target_mat is not None:
-        mat_setting = target_mat.sublender
-        graph_info_column.prop(mat_setting,
-                               'graph_url', text="Graph")
-    else:
-        graph_info_column.prop(sublender_settings,
-                               'active_graph')
-
-    row.prop(sublender_settings,
-             'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
-    row.operator('sublender.import_sbsar',
-                 icon='IMPORT', text='')
-
-
-def draw_workflow_item(self, context, target_mat):
-    if target_mat is not None:
-        mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
-        row = self.layout.row()
-        row.prop(mat_setting,
-                 'material_template', text='Workflow')
-        row.operator(
-            "sublender.reinflate_material", icon='MATERIAL', text="")
-        duplic_op = row.operator(
-            "sublender.new_instance", icon='DUPLICATE', text="")
-        duplic_op.mat_name = target_mat.name
-
-
-def draw_texture_item(self, context, target_mat):
-    if target_mat is None:
-        return
-    row = self.layout.row()
-    render_texture = row.operator(
-        "sublender.render_texture", icon='TEXTURE')
-    render_texture.material_name = target_mat.name
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-    row.prop(sublender_settings,
-             'live_update', icon='PLAY', icon_only=True)
-    row.menu("Sublender_context_menu", icon="DOWNARROW_HLT", text="")
-
-
-def draw_parameters_item(self, context, target_mat):
-    if target_mat is None:
-        return
-    mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
-    self.layout.prop(
-        mat_setting, 'show_setting', icon="OPTIONS")
-    if mat_setting.show_setting:
-        clss_name, clss_info = utils.dynamic_gen_clss(
-            mat_setting.package_path, mat_setting.graph_url)
-        graph_setting = getattr(target_mat, clss_name)
-        input_dict = clss_info['input']
-        for group_key in input_dict:
-            if group_key != consts.UNGROUPED:
-                self.layout.label(text=group_key)
-            input_group = input_dict[group_key]
-            for input_info in input_group:
-                if input_info['mIdentifier'] == '$outputsize':
-                    row = self.layout.row()
-                    row.prop(graph_setting,
-                             'output_size_x', text='Size')
-                    row.prop(graph_setting, 'output_size_lock',
-                             toggle=1, icon_only=True, icon="LINKED",)
-                    if graph_setting.output_size_lock:
-                        row.prop(graph_setting,
-                                 'output_size_x', text='')
-                    else:
-                        row.prop(graph_setting,
-                                 'output_size_y', text='')
-                else:
-                    toggle = -1
-                    if input_info['mWidget'] == 'togglebutton':
-                        toggle = 1
-                    self.layout.prop(graph_setting,
-                                     input_info['prop'], text=input_info['label'], toggle=toggle)
-
-
-class Sublender_PT_Main(Panel):
-    bl_label = "Sublender"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = 'Sublender'
-    # bl_space_type = "PROPERTIES"
-    # bl_region_type = "WINDOW"
-    # bl_context = 'material'
-    # bl_options = {'DEFAULT_CLOSED'}
-
-    # add go to texture dir
-    # show_more_control: BoolProperty(name="Show More Control")
-    # TODO add selected active operator
-
-    def draw(self, context):
-        sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-        if globals.current_uuid == "" or globals.current_uuid != sublender_settings.uuid:
-            self.layout.operator("sublender.init")
-        else:
-            if sublender_settings.active_instance != "$DUMMY$":
-                target_mat = find_active_mat(context)
-                draw_graph_item(self, context, target_mat)
-                draw_instance_item(self, context, target_mat)
-                draw_workflow_item(self, context, target_mat)
-                draw_texture_item(self, context, target_mat)
-                draw_parameters_item(self, context, target_mat)
-            else:
-                self.layout.operator("sublender.import_sbsar", icon='IMPORT')
-
-
-classes = (Sublender_Copy_Texture_Path, Sublender_context_menu, Sublender_Select_Active, Sublender_Reassign, Sublender_Reinflate_Material, Sublender_PT_Main, settings.SublenderSetting,
-           importer.Sublender_Import_Sbsar, template.Sublender_Render_TEXTURE, Sublender_New_Instance,
-           importer.Sublender_Import_Graph, settings.Sublender_Material_MT_Setting, Sublender_Init,
-           preference.SublenderPreferences, Sublender_Clean_Unused_Image, Sublender_Render_All, Sublender_Change_UUID)
-
-
 def register():
     template.load_material_templates()
-    for cls in classes:
-        register_class(cls)
-    bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(
-        type=settings.SublenderSetting, name="Sublender")
-    bpy.types.Material.sublender = bpy.props.PointerProperty(
-        type=settings.Sublender_Material_MT_Setting)
+
+    preference.register()
+    texture_render.register()
+    async_loop.register()
+    importer.register()
+    settings.register()
+    sb_operators.register()
+    ui.register()
+
 
 
 def unregister():
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        unregister_class(cls)
-    for clss_name in globals.graph_clss:
-        clss_info = globals.graph_clss.get(clss_name)
-        unregister_class(clss_info['clss'])
-
-
-# if __name__ == "__main__":
-#     # unregister()
-#     register()
+    preference.unregister()
+    async_loop.unregister()
+    texture_render.unregister()
+    importer.unregister()
+    settings.unregister()
+    sb_operators.unregister()
+    ui.unregister()
+    for clss_name in globalvar.graph_clss:
+        clss_info = globalvar.graph_clss.get(clss_name)
+        bpy.utils.unregister_class(clss_info['clss'])

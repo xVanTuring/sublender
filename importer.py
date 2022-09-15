@@ -2,7 +2,7 @@ from bpy.props import (PointerProperty, StringProperty, BoolProperty, Collection
                        EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
 from . utils import new_material_name, dynamic_gen_clss
-from . import globals, consts
+from . import globalvar, consts
 import bpy
 import pathlib
 from . template import inflate_template
@@ -32,7 +32,7 @@ class Sublender_Import_Graph(Operator):
         default=False
     )
     material_template: EnumProperty(
-        items=globals.material_template_enum,
+        items=globalvar.material_template_enum,
         name='Material Template'
     )
 
@@ -49,13 +49,12 @@ class Sublender_Import_Graph(Operator):
         m_sublender.material_template = self.material_template
 
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
-        # clss_name, clss =
         dynamic_gen_clss(
             self.package_path, self.graph_url)
         if self.material_template != consts.CUSTOM:
             inflate_template(material, self.material_template)
 
-        bpy.ops.sublender.render_texture(
+        bpy.ops.sublender.render_texture_async(
             assign_texture=self.material_template != consts.CUSTOM,
             material_name=material.name)
         return {'FINISHED'}
@@ -93,15 +92,25 @@ class Sublender_Import_Sbsar(Operator, ImportHelper):
             return {'CANCELLED'}
         else:
             importing_package = sbsarchive.SBSArchive(
-                globals.aContext, self.filepath)
+                globalvar.aContext, self.filepath)
             importing_package.parseDoc()
 
             sbs_graph_list: List[SBSARGraph] = importing_package.getSBSGraphList(
             )
-            globals.sbsar_dict[self.filepath] = importing_package
+            globalvar.sbsar_dict[self.filepath] = importing_package
             for graph in sbs_graph_list:
                 # INVOKE_DEFAULT
                 bpy.ops.sublender.import_graph(
                     'INVOKE_DEFAULT', package_path=self.filepath,
                     graph_url=graph.mPkgUrl, material_name=graph.mLabel)
         return {'FINISHED'}
+
+
+def register():
+    bpy.utils.register_class(Sublender_Import_Graph)
+    bpy.utils.register_class(Sublender_Import_Sbsar)
+
+
+def unregister():
+    bpy.utils.unregister_class(Sublender_Import_Graph)
+    bpy.utils.unregister_class(Sublender_Import_Sbsar)
