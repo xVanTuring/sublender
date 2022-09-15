@@ -3,6 +3,7 @@ import concurrent.futures
 import bpy
 import gc
 import typing
+from . import globalvar
 
 # blender cloud add-on
 _loop_kicking_operator_running = False
@@ -96,16 +97,19 @@ class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
 class AsyncModalOperatorMixin:
     async_task = None  # asyncio task for fetching thumbnails
     # asyncio future for signalling that we want to cancel everything.
-    signalling_future = None
     _state = 'INITIALIZING'
     stop_upon_exception = False
+    timer = None
+
+    # id = -1
 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
         self.timer = context.window_manager.event_timer_add(
             1 / 15, window=context.window)
-        print("Starting")
+        # print("Starting")
         self._new_async_task(self.async_execute(context))
+        # self.id = globalvar.get_id()
         return {'RUNNING_MODAL'}
 
     async def async_execute(self, context):
@@ -124,62 +128,51 @@ class AsyncModalOperatorMixin:
 
     def modal(self, context, event):
         task = self.async_task
-
-        if self._state != 'EXCEPTION' and task and task.done() and not task.cancelled():
-            ex = task.exception()
-            if ex is not None:
-                self._state = 'EXCEPTION'
-                print('Exception while running task: {0}'.format(ex))
-                if self.stop_upon_exception:
-                    self.quit()
-                    self._finish(context)
-                    return {'FINISHED'}
-
-                return {'RUNNING_MODAL'}
-
-        if self._state == 'QUIT':
+        # print("MODEL: {0}".format(self.id))
+        if task and (task.done() or task.cancelled()):
+            print("Task Done {0}".format(task.done()))
+            print("Task Cancelled {0}".format(task.cancelled()))
             self._finish(context)
             return {'FINISHED'}
 
         return {'PASS_THROUGH'}
 
     def _finish(self, context):
-        self._stop_async_task()
+        self._stop_async_task(False)
         context.window_manager.event_timer_remove(self.timer)
 
-    def _new_async_task(self, async_task: typing.Coroutine, future: asyncio.Future = None):
+    def _new_async_task(self, async_task: typing.Coroutine):
         """Stops the currently running async task, and starts another one."""
         print('Setting up a new task {0}, so any existing task must be stopped'.format(
             async_task))
         self._stop_async_task()
 
-        # Download the previews asynchronously.
-        self.signalling_future = future or asyncio.Future()
         self.async_task = asyncio.ensure_future(async_task)
-        print('Created new task {0}'.format(self.async_task))
+        globalvar.async_task = self.async_task
+        print('Created new task {0}'.format(globalvar.async_task))
 
         # Start the async manager so everything happens.
         ensure_async_loop()
 
-    def _stop_async_task(self):
+    def _stop_async_task(self, is_global=True):
         print('Stopping async task')
-        if self.async_task is None:
+        if is_global:
+            async_task = globalvar.async_task
+        else:
+            async_task = self.async_task
+        if async_task is None:
             print('No async task, trivially stopped')
             return
 
         # Signal that we want to stop.
-        self.async_task.cancel()
-        if not self.signalling_future.done():
-            print(
-                "Signalling that we want to cancel anything that's running.")
-            self.signalling_future.cancel()
+        async_task.cancel()
 
         # Wait until the asynchronous task is done.
-        if not self.async_task.done():
+        if not async_task.done():
             print("blocking until async task is done.")
             loop = asyncio.get_event_loop()
             try:
-                loop.run_until_complete(self.async_task)
+                loop.run_until_complete(async_task)
             except asyncio.CancelledError:
                 print('Asynchronous task was cancelled')
                 return
@@ -187,7 +180,7 @@ class AsyncModalOperatorMixin:
         # noinspection PyBroadException
         try:
             # This re-raises any exception of the task.
-            self.async_task.result()
+            async_task.result()
         except asyncio.CancelledError:
             print('Asynchronous task was cancelled')
         except Exception:

@@ -5,12 +5,12 @@ from pysbs import sbsarchive
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 import os
 from . import globalvar, consts, settings
-from .parser import parseSbsarInput
+from .parser import parse_sbsar_input
 
 
 def sbsar_input_updated(self, context):
-    pass
-    # print("Property Updated")
+    if globalvar.active_material_name is not None:
+        bpy.ops.sublender.render_texture_async(material_name=globalvar.active_material_name)
 
 
 # def real_task():
@@ -58,7 +58,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             graph_url)
         all_inputs = sbs_graph.getAllInputs()
         all_outputs = sbs_graph.getGraphOutputs()
-        input_list = parseSbsarInput(all_inputs)
+        input_list = parse_sbsar_input(all_inputs)
         _anno_obj = {}
 
         def assign(obj_from, obj_to, m_prop_name: str):
@@ -67,8 +67,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
 
         input_info_dict = {}
         for input_info in input_list:
-            prop_name = consts.sbsar_name_prop.get(
-                input_info['mIdentifier'], input_info['mIdentifier'])
             (prop_type,
              prop_size) = consts.sbsar_type_to_property[input_info['mType']]
             _anno_item = {
@@ -83,9 +81,9 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             if input_info['mType'] == SBSARTypeEnum.INTEGER1:
                 if input_info.get('mWidget') == 'togglebutton':
                     prop_type = BoolProperty
-                if input_info.get('mWidget') == 'combobox' and input_info.get('drop_down') is not None:
+                if input_info.get('mWidget') == 'combobox' and input_info.get('enum_items') is not None:
                     prop_type = EnumProperty
-                    _anno_item['items'] = input_info.get('drop_down')
+                    _anno_item['items'] = input_info.get('enum_items')
             if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
                 if input_info.get('mWidget') == 'color':
                     _anno_item['subtype'] = 'COLOR'
@@ -109,16 +107,11 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
                 })
                 pass
             else:
-                _anno_obj[prop_name] = (prop_type, _anno_item)
+                _anno_obj[input_info['prop']] = (prop_type, _anno_item)
 
             if input_info_dict.get(input_info['group']) is None:
                 input_info_dict[input_info['group']] = []
-            input_info_dict[input_info['group']].append({
-                'prop': prop_name,
-                'mIdentifier': input_info['mIdentifier'],
-                'label': input_info['label'],
-                'mWidget': input_info.get('mWidget'),
-            })
+            input_info_dict[input_info['group']].append(input_info)
         for group_key in input_info_dict.keys():
             if group_key != consts.UNGROUPED:
                 group_toggle_prop_name = substance_group_to_toggle_name(group_key)

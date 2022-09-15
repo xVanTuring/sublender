@@ -1,52 +1,56 @@
-from .consts import sbsar_name_to_label, UNGROUPED, type_dict
-
-from pysbs.sbsarchive.sbsargraph import SBSARInput, SBSARInputGui
-from pysbs.sbsarchive import SBSARGuiComboBox
 from typing import List
 
+from pysbs.sbsarchive import SBSARGuiComboBox
+from pysbs.sbsarchive.sbsargraph import SBSARInput, SBSARInputGui
 
-def parseSbsarInput(graph_inputs: List[SBSARInput]):
+from .consts import sbsar_name_to_label, UNGROUPED, sbsar_name_prop
+
+
+def parse_sbsar_input(graph_inputs: List[SBSARInput]):
     input_list = []
-    for sbsa_graph_input in graph_inputs:
-        group = sbsa_graph_input.getGroup()
-        gui: SBSARInputGui = sbsa_graph_input.getInputGui()
+    for sbsar_graph_input in graph_inputs:
+        group = sbsar_graph_input.getGroup()
+        gui: SBSARInputGui = sbsar_graph_input.getInputGui()
         label = sbsar_name_to_label.get(
-            sbsa_graph_input.mIdentifier, sbsa_graph_input.mIdentifier)
+            sbsar_graph_input.mIdentifier, sbsar_graph_input.mIdentifier)
         if gui is not None:
             label = gui.mLabel
         if group is None:
             group = UNGROUPED
         input_info = {
             'group': group,
-            'mIdentifier': sbsa_graph_input.mIdentifier,
-            'mType': sbsa_graph_input.mType,
-            'mTypeStr': type_dict[sbsa_graph_input.mType],
-            'default': sbsa_graph_input.getDefaultValue(),
-            'label': label
+            'mIdentifier': sbsar_graph_input.mIdentifier,
+            'mType': sbsar_graph_input.mType,
+            'default': sbsar_graph_input.getDefaultValue(),
+            'label': label,
+            'prop': sbsar_name_prop.get(
+                sbsar_graph_input.mIdentifier, sbsar_graph_input.mIdentifier)
         }
         if gui is not None:
             if gui.mWidget in ['togglebutton', 'combobox', 'color']:
                 input_info['mWidget'] = gui.mWidget
             if gui.mWidget == 'combobox':
-                combox_box: SBSARGuiComboBox = gui.mGuiComboBox
-                drop_down = combox_box.getDropDownList()
-                if drop_down is not None:
-                    drop_down_keys = list(drop_down.keys())
+                combobox_box: SBSARGuiComboBox = gui.mGuiComboBox
+                drop_down_list = combobox_box.getDropDownList()
+                if drop_down_list is not None:
+                    drop_down_keys = list(drop_down_list.keys())
                     drop_down_keys.sort()
-                    drop_down_list = []
+                    enum_items = []
                     for key in drop_down_keys:
-                        drop_down_list.append(
-                            (drop_down[key], drop_down[key], drop_down[key]))
-                    input_info['drop_down'] = drop_down_list
+                        print(type(key))
+                        enum_items.append(
+                            (str(key), drop_down_list[key], drop_down_list[key]))
+                    input_info['enum_items'] = enum_items
+                    input_info['drop_down_list'] = enum_items
                     # assign default value to string here
                     if input_info.get('default') is not None:
-                        input_info['default'] = drop_down[input_info['default']]
+                        input_info['default'] = str(input_info['default'])  # drop_down_list[input_info['default']]
 
-        if sbsa_graph_input.getMaxValue() is not None:
-            input_info['max'] = sbsa_graph_input.getMaxValue()
-        if sbsa_graph_input.getMinValue() is not None:
-            input_info['min'] = sbsa_graph_input.getMinValue()
-        if sbsa_graph_input.getStep() is not None:
-            input_info['step'] = int(sbsa_graph_input.getStep() * 100)
+        if sbsar_graph_input.getMaxValue() is not None:
+            input_info['max'] = sbsar_graph_input.getMaxValue()
+        if sbsar_graph_input.getMinValue() is not None:
+            input_info['min'] = sbsar_graph_input.getMinValue()
+        if sbsar_graph_input.getStep() is not None:
+            input_info['step'] = int(sbsar_graph_input.getStep() * 100)
         input_list.append(input_info)
     return input_list

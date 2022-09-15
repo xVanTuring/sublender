@@ -31,10 +31,12 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
     assign_texture: BoolProperty(name="Assign Texture",
                                  default=False)
     material_name: StringProperty(name="Target Material Name")
+    task_id = -1
 
     def invoke(self, context, event):
         # TODO check parameters in invoke
-        print("Sublender_Render_Texture_Async ... invoke")
+        # print("Sublender_Render_Texture_Async ... invoke")
+        self.task_id = globalvar.get_id()
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str], output_id: str):
@@ -51,6 +53,8 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
         # sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
         material_inst = bpy.data.materials.get(self.material_name)
         if material_inst is not None:
+            await asyncio.sleep(0.5)
+            print("Rendering Texture!")
             start = datetime.datetime.now()
             m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
             clss_name, clss_info = utils.dynamic_gen_clss(
@@ -74,8 +78,10 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
                             param_list.append("{0}@{1},{2}".format(
                                 input_info['mIdentifier'], width, height))
                     else:
-                        # TODO use getattr:?
                         value = graph_setting.get(input_info['prop'])
+                        if input_info.get('enum_items') is not None:
+                            # get identifier
+                            value = input_info.get('enum_items')[value][0]
                         if value is not None:
                             param_list.append("--set-value")
                             to_list = getattr(value, 'to_list', None)

@@ -128,7 +128,7 @@ def draw_parameters_item(self, context, target_mat):
             if draw_sub_layout:
                 input_group = input_dict[group_key]
                 for input_info in input_group:
-                    if input_info['mIdentifier'] == '$outputsize':
+                    if input_info.get('mIdentifier') == '$outputsize':
                         row = layout.row()
                         row.prop(graph_setting,
                                  'output_size_x', text='Size')
@@ -142,7 +142,7 @@ def draw_parameters_item(self, context, target_mat):
                                      'output_size_y', text='')
                     else:
                         toggle = -1
-                        if input_info['mWidget'] == 'togglebutton':
+                        if input_info.get('mWidget') == 'togglebutton':
                             toggle = 1
                         layout.prop(graph_setting,
                                     input_info['prop'], text=input_info['label'], toggle=toggle)
@@ -170,6 +170,7 @@ class Sublender_PT_Main(Panel):
         else:
             if sublender_settings.active_instance != "$DUMMY$":
                 target_mat = find_active_mat(context)
+                globalvar.active_material_name = target_mat.name
                 draw_graph_item(self, context, target_mat)
                 draw_instance_item(self, context, target_mat)
                 draw_workflow_item(self, context, target_mat)
