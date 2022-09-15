@@ -20,7 +20,7 @@ def new_material_name(material_name: str) -> str:
     """Make Sure No Name Comflict"""
     for mat in bpy.data.materials:
         name: str = mat.name
-        if (name == material_name):
+        if name == material_name:
             try:
                 base, suffix = name.rsplit('.', 1)
 
@@ -36,6 +36,10 @@ def new_material_name(material_name: str) -> str:
 def output_size_x_updated(self, context):
     if self.output_size_lock and self.output_size_y != self.output_size_x:
         self.output_size_y = self.output_size_x
+
+
+def substance_group_to_toggle_name(name: str) -> str:
+    return "sb_{0}_gptl".format(bpy.path.clean_name(name))
 
 
 def dynamic_gen_clss(package_path: str, graph_url: str, ):
@@ -110,8 +114,15 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
                 'prop': prop_name,
                 'mIdentifier': input_info['mIdentifier'],
                 'label': input_info['label'],
-                'mWidget': input_info.get('mWidget')
+                'mWidget': input_info.get('mWidget'),
             })
+        for group_key in input_info_dict.keys():
+            if group_key != consts.UNGROUPED:
+                group_toggle_prop_name = substance_group_to_toggle_name(group_key)
+                _anno_obj[group_toggle_prop_name] = (BoolProperty, {
+                    'default': False,
+                    'name': "Show {0}".format(group_key)
+                })
         clss = type(clss_name, (bpy.types.PropertyGroup,), {
             '__annotations__': _anno_obj
         })

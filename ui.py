@@ -83,9 +83,9 @@ def draw_workflow_item(self, context, target_mat):
                  'material_template', text='Workflow')
         row.operator(
             "sublender.reinflate_material", icon='MATERIAL', text="")
-        duplic_op = row.operator(
+        dup_op = row.operator(
             "sublender.new_instance", icon='DUPLICATE', text="")
-        duplic_op.mat_name = target_mat.name
+        dup_op.mat_name = target_mat.name
 
 
 def draw_texture_item(self, context, target_mat):
@@ -113,28 +113,35 @@ def draw_parameters_item(self, context, target_mat):
         graph_setting = getattr(target_mat, clss_name)
         input_dict = clss_info['input']
         for group_key in input_dict:
+            draw_sub_layout = True
+            layout = self.layout
             if group_key != consts.UNGROUPED:
-                self.layout.label(text=group_key)
-            input_group = input_dict[group_key]
-            for input_info in input_group:
-                if input_info['mIdentifier'] == '$outputsize':
-                    row = self.layout.row()
-                    row.prop(graph_setting,
-                             'output_size_x', text='Size')
-                    row.prop(graph_setting, 'output_size_lock',
-                             toggle=1, icon_only=True, icon="LINKED", )
-                    if graph_setting.output_size_lock:
+                gp_toggle_name = utils.substance_group_to_toggle_name(group_key)
+                self.layout.prop(graph_setting, gp_toggle_name, toggle=1)
+                draw_sub_layout = getattr(graph_setting, gp_toggle_name)
+                if draw_sub_layout:
+                    layout = self.layout.box()
+            if draw_sub_layout:
+                input_group = input_dict[group_key]
+                for input_info in input_group:
+                    if input_info['mIdentifier'] == '$outputsize':
+                        row = layout.row()
                         row.prop(graph_setting,
-                                 'output_size_x', text='')
+                                 'output_size_x', text='Size')
+                        row.prop(graph_setting, 'output_size_lock',
+                                 toggle=1, icon_only=True, icon="LINKED", )
+                        if graph_setting.output_size_lock:
+                            row.prop(graph_setting,
+                                     'output_size_x', text='')
+                        else:
+                            row.prop(graph_setting,
+                                     'output_size_y', text='')
                     else:
-                        row.prop(graph_setting,
-                                 'output_size_y', text='')
-                else:
-                    toggle = -1
-                    if input_info['mWidget'] == 'togglebutton':
-                        toggle = 1
-                    self.layout.prop(graph_setting,
-                                     input_info['prop'], text=input_info['label'], toggle=toggle)
+                        toggle = -1
+                        if input_info['mWidget'] == 'togglebutton':
+                            toggle = 1
+                        layout.prop(graph_setting,
+                                    input_info['prop'], text=input_info['label'], toggle=toggle)
 
 
 class Sublender_PT_Main(Panel):
