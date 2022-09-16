@@ -68,7 +68,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             if obj_from.get(m_prop_name) is not None:
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
-        input_info_dict = {}
+        # input_info_dict = {}
         for input_info in input_list:
             (prop_type,
              prop_size) = consts.sbsar_type_to_property[input_info['mType']]
@@ -112,10 +112,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             else:
                 _anno_obj[input_info['prop']] = (prop_type, _anno_item)
 
-            if input_info_dict.get(input_info['group']) is None:
-                input_info_dict[input_info['group']] = []
-            input_info_dict[input_info['group']].append(input_info)
-
         graph_tree, group_keys = parse_sbsar_group(sbs_graph)
         for group_key in group_keys:
             displace_name = group_key.split('/')[-1]
@@ -134,7 +130,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             output_info_list.append(output.mIdentifier)
         globalvar.graph_clss[clss_name] = {
             'clss': clss,
-            'input': input_info_dict,
+            'input': input_list,
             'group_tree': graph_tree,
             'output': output_info_list
         }

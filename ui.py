@@ -112,8 +112,8 @@ def group_walker(group_tree: typing.List,
                  graph_setting):
     for group_info in group_tree:
         if group_info['mIdentifier'] == consts.UNGROUPED:
-            for sb_input in group_info['inputs']:
-                if sb_input.get('mIdentifier') == '$outputsize':
+            for input_info in group_info['inputs']:
+                if input_info.get('mIdentifier') == '$outputsize':
                     row = layout.row()
                     row.prop(graph_setting,
                              'output_size_x', text='Size')
@@ -126,7 +126,7 @@ def group_walker(group_tree: typing.List,
                         row.prop(graph_setting,
                                  'output_size_y', text='')
                 else:
-                    layout.prop(graph_setting, sb_input['prop'], text=sb_input['label'])
+                    layout.prop(graph_setting, input_info['prop'], text=input_info['label'])
             continue
 
         group_prop = utils.substance_group_to_toggle_name(group_info['mIdentifier'])
@@ -139,11 +139,11 @@ def group_walker(group_tree: typing.List,
         row.label(text=group_info['nameInShort'])
         if display_group:
             box = layout.box()
-            for sb_input in group_info['inputs']:
+            for input_info in group_info['inputs']:
                 toggle = -1
-                if sb_input.get('mWidget') == 'togglebutton':
+                if input_info.get('togglebutton', False):
                     toggle = 1
-                box.prop(graph_setting, sb_input['prop'], text=sb_input['label'], toggle=toggle)
+                box.prop(graph_setting, input_info['prop'], text=input_info['label'], toggle=toggle)
             group_walker(group_info['sub_group'], box, graph_setting)
 
 
@@ -161,41 +161,6 @@ def draw_parameters_item(self: bpy.types.Operator, context, target_mat):
         graph_setting = getattr(target_mat, clss_name)
         group_tree = clss_info['group_tree']
         group_walker(group_tree, self.layout, graph_setting)
-        # for group_key in input_dict:
-        #     draw_sub_layout = True
-        #     layout = self.layout
-        #     if group_key != consts.UNGROUPED:
-        #         gp_toggle_name = utils.substance_group_to_toggle_name(group_key)
-        #         row = layout.row()
-        #         icon = "RIGHTARROW_THIN"
-        #         if getattr(graph_setting, gp_toggle_name):
-        #             icon = "DOWNARROW_HLT"
-        #         row.prop(graph_setting, gp_toggle_name, icon=icon, icon_only=True)
-        #         row.label(text=group_key.split('/')[-1])
-        #         draw_sub_layout = getattr(graph_setting, gp_toggle_name)
-        #         if draw_sub_layout:
-        #             layout = self.layout.box()
-        #     if draw_sub_layout:
-        #         input_group = input_dict[group_key]
-        #         for input_info in input_group:
-        #             if input_info.get('mIdentifier') == '$outputsize':
-        #                 row = layout.row()
-        #                 row.prop(graph_setting,
-        #                          'output_size_x', text='Size')
-        #                 row.prop(graph_setting, 'output_size_lock',
-        #                          toggle=1, icon_only=True, icon="LINKED", )
-        #                 if graph_setting.output_size_lock:
-        #                     row.prop(graph_setting,
-        #                              'output_size_x', text='')
-        #                 else:
-        #                     row.prop(graph_setting,
-        #                              'output_size_y', text='')
-        #             else:
-        #                 toggle = -1
-        #                 if input_info.get('mWidget') == 'togglebutton':
-        #                     toggle = 1
-        #                 layout.prop(graph_setting,
-        #                             input_info['prop'], text=input_info['label'], toggle=toggle)
 
 
 class Sublender_PT_Main(Panel):

@@ -62,35 +62,33 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
             graph_setting = getattr(material_inst, clss_name)
             input_dict = clss_info['input']
             param_list = ["render", "--input", m_sublender.package_path, "--input-graph", m_sublender.graph_url]
-            for group_key in input_dict:
-                input_group = input_dict[group_key]
-                for input_info in input_group:
-                    if input_info['mIdentifier'] == '$outputsize':
-                        locked = getattr(
-                            graph_setting, 'output_size_lock', True)
-                        param_list.append("--set-value")
-                        width = getattr(graph_setting, 'output_size_x')
-                        if locked:
-                            param_list.append("{0}@{1},{1}".format(
-                                input_info['mIdentifier'], width))
-                        else:
-                            height = getattr(graph_setting, 'output_size_x')
-                            param_list.append("{0}@{1},{2}".format(
-                                input_info['mIdentifier'], width, height))
+            for input_info in input_dict:
+                if input_info['mIdentifier'] == '$outputsize':
+                    locked = getattr(
+                        graph_setting, 'output_size_lock', True)
+                    param_list.append("--set-value")
+                    width = getattr(graph_setting, 'output_size_x')
+                    if locked:
+                        param_list.append("{0}@{1},{1}".format(
+                            input_info['mIdentifier'], width))
                     else:
-                        # print("Current identifier: {0}, current prop: {1}".format(input_info['mIdentifier'],
-                        #                                                           input_info['prop']))
-                        value = graph_setting.get(input_info['prop'])
-                        if value is not None:
-                            if input_info.get('enum_items') is not None:
-                                print(input_info.get('enum_items'))
-                                value = input_info.get('enum_items')[value][0]
-                            param_list.append("--set-value")
-                            to_list = getattr(value, 'to_list', None)
-                            if to_list is not None:
-                                value = ','.join(map(str, to_list()))
-                            param_list.append("{0}@{1}".format(
-                                input_info['mIdentifier'], value))
+                        height = getattr(graph_setting, 'output_size_x')
+                        param_list.append("{0}@{1},{2}".format(
+                            input_info['mIdentifier'], width, height))
+                else:
+                    # print("Current identifier: {0}, current prop: {1}".format(input_info['mIdentifier'],
+                    #                                                           input_info['prop']))
+                    value = graph_setting.get(input_info['prop'])
+                    if value is not None:
+                        if input_info.get('enum_items') is not None:
+                            print(input_info.get('enum_items'))
+                            value = input_info.get('enum_items')[value][0]
+                        param_list.append("--set-value")
+                        to_list = getattr(value, 'to_list', None)
+                        if to_list is not None:
+                            value = ','.join(map(str, to_list()))
+                        param_list.append("{0}@{1}".format(
+                            input_info['mIdentifier'], value))
             param_list.append("--output-path")
             target_dir = utils.texture_output_dir(clss_name, material_inst.name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
