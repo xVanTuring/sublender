@@ -78,11 +78,13 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
                             param_list.append("{0}@{1},{2}".format(
                                 input_info['mIdentifier'], width, height))
                     else:
+                        # print("Current identifier: {0}, current prop: {1}".format(input_info['mIdentifier'],
+                        #                                                           input_info['prop']))
                         value = graph_setting.get(input_info['prop'])
-                        if input_info.get('enum_items') is not None:
-                            # get identifier
-                            value = input_info.get('enum_items')[value][0]
                         if value is not None:
+                            if input_info.get('enum_items') is not None:
+                                print(input_info.get('enum_items'))
+                                value = input_info.get('enum_items')[value][0]
                             param_list.append("--set-value")
                             to_list = getattr(value, 'to_list', None)
                             if to_list is not None:
@@ -97,6 +99,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
             param_list.append("{outputNodeName}")
             param_list.append('--engine')
             param_list.append('d3d11pc')
+            # print(param_list)
             worker_list = []
             for output in clss_info['output']:
                 per_output = param_list[:]

@@ -19,3 +19,9 @@ Todo:
 
 ## Hack
 * pip install fake-bpy-module-2.82
+
+
+
+## Draw steps
+1. list all inputs
+2. draw linearly and draw other input in the same group

@@ -4,13 +4,13 @@ import bpy
 import gc
 import typing
 from . import globalvar
+import sys
 
 # blender cloud add-on
 _loop_kicking_operator_running = False
 
 
 def setup_asyncio_executor():
-    import sys
 
     if sys.platform == 'win32':
         asyncio.get_event_loop().close()
@@ -45,8 +45,9 @@ def kick_async_loop(*args) -> bool:
                 res = task.result()
             except asyncio.CancelledError:
                 print("asyncio.CancelledError")
-            except Exception:
+            except Exception as e:
                 print("Exception")
+                print(e)
     loop.stop()
     loop.run_forever()
     return stop_after_this_kick
@@ -183,8 +184,10 @@ class AsyncModalOperatorMixin:
             async_task.result()
         except asyncio.CancelledError:
             print('Asynchronous task was cancelled')
-        except Exception:
+        except Exception as e:
+
             print("Exception from asynchronous task")
+            print(e)
 
 
 def register():

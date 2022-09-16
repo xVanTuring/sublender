@@ -5,12 +5,15 @@ from pysbs import sbsarchive
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 import os
 from . import globalvar, consts, settings
-from .parser import parse_sbsar_input
+from .parser import parse_sbsar_input, parse_sbsar_group
+from pysbs.sbsarchive.sbsarchive import SBSARGraph
+import typing
 
 
 def sbsar_input_updated(self, context):
-    if globalvar.active_material_name is not None:
-        bpy.ops.sublender.render_texture_async(material_name=globalvar.active_material_name)
+    pass
+    # if globalvar.active_material_name is not None:
+    #     bpy.ops.sublender.render_texture_async(material_name=globalvar.active_material_name)
 
 
 # def real_task():
@@ -39,7 +42,7 @@ def output_size_x_updated(self, context):
 
 
 def substance_group_to_toggle_name(name: str) -> str:
-    return "sb_{0}_gptl".format(bpy.path.clean_name(name))
+    return "sb_{0}_gptl".format(hash(name))
 
 
 def gen_clss_name(graph_url: str):
@@ -54,7 +57,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
         globalvar.sbsar_dict[package_path] = sbsar_pkg
     clss_name = gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
-        sbs_graph = globalvar.sbsar_dict[package_path].getSBSGraphFromPkgUrl(
+        sbs_graph: SBSARGraph = globalvar.sbsar_dict[package_path].getSBSGraphFromPkgUrl(
             graph_url)
         all_inputs = sbs_graph.getAllInputs()
         all_outputs = sbs_graph.getGraphOutputs()
@@ -112,13 +115,16 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             if input_info_dict.get(input_info['group']) is None:
                 input_info_dict[input_info['group']] = []
             input_info_dict[input_info['group']].append(input_info)
-        for group_key in input_info_dict.keys():
-            if group_key != consts.UNGROUPED:
-                group_toggle_prop_name = substance_group_to_toggle_name(group_key)
-                _anno_obj[group_toggle_prop_name] = (BoolProperty, {
-                    'default': False,
-                    'name': "Show {0}".format(group_key)
-                })
+
+        graph_tree, group_keys = parse_sbsar_group(sbs_graph)
+        for group_key in group_keys:
+            displace_name = group_key.split('/')[-1]
+            group_toggle_prop_name = substance_group_to_toggle_name(group_key)
+            print("Group: {0}, toggle name: {1}".format(group_key, group_toggle_prop_name))
+            _anno_obj[group_toggle_prop_name] = (BoolProperty, {
+                'default': False,
+                'name': displace_name
+            })
         clss = type(clss_name, (bpy.types.PropertyGroup,), {
             '__annotations__': _anno_obj
         })
@@ -129,10 +135,12 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
         globalvar.graph_clss[clss_name] = {
             'clss': clss,
             'input': input_info_dict,
+            'group_tree': graph_tree,
             'output': output_info_list
         }
         setattr(bpy.types.Material, clss_name,
                 bpy.props.PointerProperty(type=clss))
+
     return clss_name, globalvar.graph_clss.get(clss_name)
 
 
