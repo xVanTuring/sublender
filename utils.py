@@ -7,7 +7,6 @@ import os
 from . import globalvar, consts, settings
 from .parser import parse_sbsar_input, parse_sbsar_group
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
-import typing
 
 
 def sbsar_input_updated(self, context):
@@ -20,7 +19,7 @@ def sbsar_input_updated(self, context):
 
 
 def new_material_name(material_name: str) -> str:
-    """Make Sure No Name Comflict"""
+    """Make Sure No Name Conflict"""
     for mat in bpy.data.materials:
         name: str = mat.name
         if name == material_name:
@@ -37,8 +36,10 @@ def new_material_name(material_name: str) -> str:
 
 
 def output_size_x_updated(self, context):
-    if self.output_size_lock and self.output_size_y != self.output_size_x:
-        self.output_size_y = self.output_size_x
+    if getattr(self, consts.output_size_lock) and \
+            getattr(self, consts.output_size_y) != getattr(self,
+                                                           consts.output_size_x):
+        setattr(self, consts.output_size_y, getattr(self, consts.output_size_x))
 
 
 def substance_group_to_toggle_name(name: str) -> str:
@@ -66,6 +67,9 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
 
         def assign(obj_from, obj_to, m_prop_name: str):
             if obj_from.get(m_prop_name) is not None:
+                # if isinstance(obj_from.get(m_prop_name), list):
+                #     obj_to[m_prop_name] = tuple(obj_from.get(m_prop_name))
+                # else:
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
         # input_info_dict = {}
@@ -79,7 +83,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             assign(input_info, _anno_item, 'default')
             assign(input_info, _anno_item, 'min')
             assign(input_info, _anno_item, 'max')
-            assign(input_info, _anno_item, 'max')
             assign(input_info, _anno_item, 'step')
             if input_info['mType'] == SBSARTypeEnum.INTEGER1:
                 if input_info.get('mWidget') == 'togglebutton':
@@ -89,22 +92,25 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
                     _anno_item['items'] = input_info.get('enum_items')
             if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
                 if input_info.get('mWidget') == 'color':
+                    _anno_item['min'] = 0
+                    _anno_item['max'] = 1
                     _anno_item['subtype'] = 'COLOR'
+
             _anno_item['update'] = sbsar_input_updated
 
             if input_info['mIdentifier'] == '$outputsize':
                 # make it to be two enum
                 # TODO update event to sync x,y
-                _anno_obj["output_size_x"] = (EnumProperty, {
+                _anno_obj[consts.output_size_x] = (EnumProperty, {
                     'items': consts.output_size_one_enum,
                     'default': '8',
                     'update': output_size_x_updated,
                 })
-                _anno_obj["output_size_y"] = (EnumProperty, {
+                _anno_obj[consts.output_size_y] = (EnumProperty, {
                     'items': consts.output_size_one_enum,
                     'default': '8'
                 })
-                _anno_obj["output_size_lock"] = (BoolProperty, {
+                _anno_obj[consts.output_size_lock] = (BoolProperty, {
                     'default': True,
                     'update': output_size_x_updated
                 })
@@ -116,7 +122,7 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
         for group_key in group_keys:
             displace_name = group_key.split('/')[-1]
             group_toggle_prop_name = substance_group_to_toggle_name(group_key)
-            print("Group: {0}, toggle name: {1}".format(group_key, group_toggle_prop_name))
+            # print("Group: {0}, toggle name: {1}".format(group_key, group_toggle_prop_name))
             _anno_obj[group_toggle_prop_name] = (BoolProperty, {
                 'default': False,
                 'name': displace_name
@@ -132,7 +138,8 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             'clss': clss,
             'input': input_list,
             'group_tree': graph_tree,
-            'output': output_info_list
+            'output': output_info_list,
+            'graph': sbs_graph
         }
         setattr(bpy.types.Material, clss_name,
                 bpy.props.PointerProperty(type=clss))

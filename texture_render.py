@@ -65,14 +65,14 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
             for input_info in input_dict:
                 if input_info['mIdentifier'] == '$outputsize':
                     locked = getattr(
-                        graph_setting, 'output_size_lock', True)
+                        graph_setting, consts.output_size_lock, True)
                     param_list.append("--set-value")
-                    width = getattr(graph_setting, 'output_size_x')
+                    width = getattr(graph_setting, consts.output_size_x)
                     if locked:
                         param_list.append("{0}@{1},{1}".format(
                             input_info['mIdentifier'], width))
                     else:
-                        height = getattr(graph_setting, 'output_size_x')
+                        height = getattr(graph_setting, consts.output_size_x)
                         param_list.append("{0}@{1},{2}".format(
                             input_info['mIdentifier'], width, height))
                 else:
@@ -86,7 +86,15 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
                         param_list.append("--set-value")
                         to_list = getattr(value, 'to_list', None)
                         if to_list is not None:
-                            value = ','.join(map(str, to_list()))
+                            if isinstance(value[0], float):
+                                # print("This is float vector, from: {0}".format(to_list()))
+                                value = ','.join(map(lambda x: ("%0.3f" % x), to_list()))
+                                # print("This is float vector, to: {0}".format(value))
+                            else:
+                                value = ','.join(map(str, to_list()))
+                        if isinstance(value, float):
+                            # print("Format float value from {0} to {1} ".format(value, ("%.3f" % value)))
+                            value = ("%.3f" % value)
                         param_list.append("{0}@{1}".format(
                             input_info['mIdentifier'], value))
             param_list.append("--output-path")

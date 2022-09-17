@@ -15,19 +15,6 @@ def uid_prop(uid: str):
     return "sbp_{0}".format(bpy.path.clean_name(uid))
 
 
-class SBInputInfo(object):
-    mIdentifier: str
-    prop: str
-    label: str
-    mVisibleIf: typing.Optional[str]
-
-
-class SBGroupInfo(object):
-    mIdentifier: str
-    sub_group: typing.List
-    inputs: typing.List[SBInputInfo]
-
-
 def combine_group(parent: str, group: str):
     if parent == "":
         return group
@@ -72,7 +59,6 @@ def parse_sbsar_group(graph: SBSARGraph):
             'mIdentifier': sb_input.mIdentifier,
             'prop': uid_prop(sb_input.mUID),
             'label': sb_input.mIdentifier,
-            'mVisibleIf': None
         }
         gui_input: SBSARInputGui = sb_input.getInputGui()
         if gui_input is not None:
@@ -103,6 +89,7 @@ def parse_sbsar_input(graph_inputs: List[SBSARInput]):
             'mType': sbsar_graph_input.mType,
             'default': sbsar_graph_input.getDefaultValue(),
             'label': label,
+            # TODO use mIdentifier instead?
             'prop': uid_prop(sbsar_graph_input.mUID)
         }
         if gui is not None:

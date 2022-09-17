@@ -77,3 +77,6 @@ SUBLENDER_DIR = os.path.join(HOME, ".sublender")
 ADDON_DIR = os.path.dirname(__file__)
 
 TEMPLATE_PATH = os.path.join(ADDON_DIR, 'workflows')
+output_size_x = "$sb_output_size_x"
+output_size_y = "$sb_output_size_y"
+output_size_lock = "$sb_output_size_lock"

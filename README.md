@@ -11,6 +11,8 @@ Todo:
 * short class name :?
 * full cache dir setting
 
+*~ fix rgba min max~
+
 * ab workflow
 * height workflow
 * subsurface workflow

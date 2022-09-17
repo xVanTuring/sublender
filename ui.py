@@ -3,7 +3,7 @@ import typing
 import bpy
 from bpy.types import Panel, Menu
 
-from . import settings, utils, globalvar, consts
+from . import settings, utils, globalvar, consts, parser
 
 
 class Sublender_MT_context_menu(Menu):
@@ -107,26 +107,64 @@ def draw_texture_item(self, context, target_mat):
     row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")
 
 
+def calc_prop_visibility(input_info: dict):
+    global eval_delegate
+    if input_info.get('mVisibleIf') is None:
+        return True
+    eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
+    # print("eval_str: {0}".format(eval_str))
+    eval_result = eval(eval_str, {
+        'input': eval_delegate,
+        'true': True,
+        'false': False
+    })
+    if eval_result:
+        return True
+    return False
+
+
+def calc_group_visibility(group_info: dict):
+    global eval_delegate
+    for input_info in group_info['inputs']:
+        input_visibility = calc_prop_visibility(input_info)
+        if input_visibility:
+            return True
+
+    for group_info in group_info['sub_group']:
+        if calc_group_visibility(group_info):
+            return True
+    return False
+
+
 def group_walker(group_tree: typing.List,
                  layout: bpy.types.UILayout,
                  graph_setting):
+    global eval_delegate
     for group_info in group_tree:
         if group_info['mIdentifier'] == consts.UNGROUPED:
             for input_info in group_info['inputs']:
                 if input_info.get('mIdentifier') == '$outputsize':
                     row = layout.row()
                     row.prop(graph_setting,
-                             'output_size_x', text='Size')
-                    row.prop(graph_setting, 'output_size_lock',
+                             consts.output_size_x, text='Size')
+                    row.prop(graph_setting, consts.output_size_lock,
                              toggle=1, icon_only=True, icon="LINKED", )
-                    if graph_setting.output_size_lock:
+                    if getattr(graph_setting, consts.output_size_lock):
                         row.prop(graph_setting,
-                                 'output_size_x', text='')
+                                 consts.output_size_x, text='')
                     else:
                         row.prop(graph_setting,
-                                 'output_size_y', text='')
+                                 consts.output_size_y, text='')
                 else:
+                    prop_visibility = calc_prop_visibility(input_info)
+                    # print("prop_visibility:{0}".format(input_info))
+                    if not prop_visibility:
+                        continue
                     layout.prop(graph_setting, input_info['prop'], text=input_info['label'])
+            continue
+        # TODO detect child group: generate visible map
+        visible_control = calc_group_visibility(group_info)
+        if not visible_control:
             continue
 
         group_prop = utils.substance_group_to_toggle_name(group_info['mIdentifier'])
@@ -140,14 +178,70 @@ def group_walker(group_tree: typing.List,
         if display_group:
             box = layout.box()
             for input_info in group_info['inputs']:
+                prop_visibility = calc_prop_visibility(input_info)
+                # print("prop_visibility:{0}".format(input_info))
+                if not prop_visibility:
+                    continue
                 toggle = -1
                 if input_info.get('togglebutton', False):
                     toggle = 1
                 box.prop(graph_setting, input_info['prop'], text=input_info['label'], toggle=toggle)
+
             group_walker(group_info['sub_group'], box, graph_setting)
 
 
-# def group_drawer(sb_input):
+from pysbs.sbsarchive.sbsarchive import SBSARGraph
+
+
+class VectorWrapper(object):
+    def __init__(self, vec):
+        self.vec = vec
+
+    @property
+    def x(self):
+        return self.vec[0]
+
+    @property
+    def y(self):
+        return self.vec[1]
+
+    @property
+    def z(self):
+        return self.vec[2]
+
+    @property
+    def w(self):
+        return self.vec[3]
+
+
+import mathutils
+
+
+class EvalDelegate(object):
+    identity: str
+
+    def __init__(self, identity: str, graph_setting, sbs_graph: SBSARGraph):
+        self.graph_setting = graph_setting
+        self.sbs_graph = sbs_graph
+        self.identity = identity
+
+    def __getitem__(self, identifier: str):
+        if identifier == "$outputsize":
+            if getattr(self.graph_setting, consts.output_size_lock):
+                return VectorWrapper([int(getattr(self.graph_setting, consts.output_size_x)),
+                                      int(getattr(self.graph_setting, consts.output_size_x))])
+            else:
+                return VectorWrapper([int(getattr(self.graph_setting, consts.output_size_x)),
+                                      int(getattr(self.graph_setting, consts.output_size_y))])
+        prop_name = parser.uid_prop(self.sbs_graph.getInput(identifier).mUID)
+        value = getattr(self.graph_setting, prop_name, None)
+        if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
+            return VectorWrapper(value)
+        return value
+
+
+eval_delegate = None
+
 
 def draw_parameters_item(self: bpy.types.Operator, context, target_mat):
     if target_mat is None:
@@ -160,6 +254,14 @@ def draw_parameters_item(self: bpy.types.Operator, context, target_mat):
             mat_setting.package_path, mat_setting.graph_url)
         graph_setting = getattr(target_mat, clss_name)
         group_tree = clss_info['group_tree']
+        global eval_delegate
+        if eval_delegate is None:
+            eval_delegate = EvalDelegate(clss_name, graph_setting, clss_info['graph'])
+        else:
+            if eval_delegate.identity != clss_name:
+                eval_delegate.graph_setting = graph_setting
+                eval_delegate.sbs_graph = clss_info['graph']
+
         group_walker(group_tree, self.layout, graph_setting)
 
 
