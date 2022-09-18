@@ -72,8 +72,6 @@ output_size_enum = [
     (CUSTOM, "Custom", "Custom"),
 ]
 
-HOME = str(pathlib.Path.home())
-SUBLENDER_DIR = os.path.join(HOME, ".sublender")
 ADDON_DIR = os.path.dirname(__file__)
 
 TEMPLATE_PATH = os.path.join(ADDON_DIR, 'workflows')

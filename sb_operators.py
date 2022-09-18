@@ -101,8 +101,9 @@ class Sublender_Init(Operator):
         globalvar.aContext = pysbs.context.Context()
         preferences = context.preferences.addons[__package__].preferences
         sublender_dir = preferences.cache_path
-        pathlib.Path(sublender_dir).mkdir(parents=True, exist_ok=True)
-        print("Default Cache Path: {0}".format(sublender_dir))
+        globalvar.SUBLENDER_DIR = sublender_dir
+        pathlib.Path(globalvar.SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
+        print("Default Cache Path: {0}".format(globalvar.SUBLENDER_DIR))
 
         sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
         if sublender_settings.uuid == "":
@@ -114,7 +115,7 @@ class Sublender_Init(Operator):
         bpy.context.scene['sublender_settings']['active_instance_obj'] = 0
         bpy.context.scene['sublender_settings']['active_graph'] = 0
         bpy.context.scene['sublender_settings']['active_instance'] = 0
-        # bpy.ops.sublender.watch_material()
+        # TODO better state saving
         # if sublender_settings.active_graph == '':
         #     print("No graph founded here, reset to DUMMY")
         # if sublender_settings.active_instance == '':

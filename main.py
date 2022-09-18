@@ -16,12 +16,18 @@ import pprint
 
 aContext = context.Context()
 aSbsar = sbsarchive.SBSArchive(
-    aContext, os.path.abspath(r"C:\Users\xVan\Documents\Allegorithmic\Substance Designer\AdvancedParameters.sbsar"))
+    aContext, os.path.abspath(r"C:\Program Files\Allegorithmic\Substance Player\data\plastic_stripes.sbsar"))
+# r"C:\Users\xVan\Documents\Allegorithmic\Substance Designer\AdvancedParameters.sbsar"
 aSbsar.parseDoc()
 first_graph: SBSARGraph = aSbsar.getSBSGraphList()[0]
-
-prs = sbspreset.SBSPRSPresets(aContext, r"C:\Users\xVan\Documents\Allegorithmic\Substance Player\aaa.sbsprs")
-prs.parseDoc()
-for idx in range(prs.getPresetCount()):
-    pr: sbspreset.SBSPRSPreset = prs.getPresetByIndex(idx)
-    print(pr.getLabel())
+inputs: List[SBSARInput] = first_graph.getAllInputsInGroup("Channels")
+for item in inputs:
+    print(item)
+outputs: List[SBSAROutput] = first_graph.getGraphOutputs()
+for output in outputs:
+    print(output.getUsages()[0].mName)
+# prs = sbspreset.SBSPRSPresets(aContext, r"C:\Users\xVan\Documents\Allegorithmic\Substance Player\aaa.sbsprs")
+# prs.parseDoc()
+# for idx in range(prs.getPresetCount()):
+#     pr: sbspreset.SBSPRSPreset = prs.getPresetByIndex(idx)
+#     print(pr.getLabel())

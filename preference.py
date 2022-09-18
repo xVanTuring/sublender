@@ -3,7 +3,7 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import AddonPreferences
 
 # from .consts import output_size_enum, SUBLENDER_DIR
-from . import consts
+from . import consts, globalvar
 
 
 def output_size_x_updated(self, context):
@@ -18,9 +18,9 @@ class SublenderPreferences(AddonPreferences):
     bl_idname = __package__
 
     cache_path: StringProperty(
-        name="Cache Path",
+        name="Sublender Path(Restart needed)",
         subtype='FILE_PATH',
-        default=consts.SUBLENDER_DIR,
+        default=globalvar.SUBLENDER_DIR,
         description="Path to store texture cache"
     )
     compatible_mode: BoolProperty(
@@ -49,12 +49,11 @@ class SublenderPreferences(AddonPreferences):
         items=[
             ("all", "Render all texture", "Render all texture to disk"),
             ("workflow", "Follow active workflow", "Follow active workflow"),
-            ("channels", "Follow Channels group",
-             "Follow channels group info in graph parameters"),
         ]
     )
 
-    # TODO log
+    # ("channels", "Follow Channels group",
+    #  "Follow channels group info in graph parameters"),
 
     def draw(self, context):
         layout = self.layout

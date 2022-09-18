@@ -39,6 +39,7 @@ def output_size_x_updated(self, context):
             getattr(self, consts.output_size_y) != getattr(self,
                                                            consts.output_size_x):
         setattr(self, consts.output_size_y, getattr(self, consts.output_size_x))
+    sbsar_input_updated(self, context)
 
 
 def substance_group_to_toggle_name(name: str) -> str:
@@ -49,7 +50,7 @@ def gen_clss_name(graph_url: str):
     return "sb" + graph_url.replace("pkg://", "_")
 
 
-def dynamic_gen_clss(package_path: str, graph_url: str, ):
+def dynamic_gen_clss(package_path: str, graph_url: str):
     if globalvar.sbsar_dict.get(package_path) is None:
         sbsar_pkg = sbsarchive.SBSArchive(
             globalvar.aContext, package_path)
@@ -68,7 +69,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             if obj_from.get(m_prop_name) is not None:
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
-        # input_info_dict = {}
         for input_info in input_list:
             (prop_type,
              prop_size) = consts.sbsar_type_to_property[input_info['mType']]
@@ -95,17 +95,20 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             _anno_item['update'] = sbsar_input_updated
 
             if input_info['mIdentifier'] == '$outputsize':
+                preferences = bpy.context.preferences
+                addon_prefs = preferences.addons[__package__].preferences
                 _anno_obj[consts.output_size_x] = (EnumProperty, {
                     'items': consts.output_size_one_enum,
-                    'default': '8',
+                    'default': addon_prefs.output_size_x,
                     'update': output_size_x_updated,
                 })
                 _anno_obj[consts.output_size_y] = (EnumProperty, {
                     'items': consts.output_size_one_enum,
-                    'default': '8'
+                    'default': addon_prefs.output_size_x,
+                    'update': output_size_x_updated,
                 })
                 _anno_obj[consts.output_size_lock] = (BoolProperty, {
-                    'default': True,
+                    'default': addon_prefs.output_size_lock,
                     'update': output_size_x_updated
                 })
                 pass
@@ -125,14 +128,21 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             '__annotations__': _anno_obj
         })
         register_class(clss)
+
         output_info_list = []
+        output_usage_dict = {}
         for output in all_outputs:
             output_info_list.append(output.mIdentifier)
+            for usage in output.getUsages():
+                if output_usage_dict.get(usage.mName) is None:
+                    output_usage_dict[usage.mName] = []
+                output_usage_dict[usage.mName].append(output.mIdentifier)
         globalvar.graph_clss[clss_name] = {
             'clss': clss,
             'input': input_list,
             'group_tree': graph_tree,
             'output': output_info_list,
+            'output_usage_dict': output_usage_dict,
             'graph': sbs_graph
         }
         setattr(bpy.types.Material, clss_name,
@@ -152,4 +162,4 @@ def load_sbsar():
 
 def texture_output_dir(clss_name: str, material_name: str):
     return os.path.join(
-        consts.SUBLENDER_DIR, globalvar.current_uuid, clss_name, bpy.path.clean_name(material_name))
+        globalvar.SUBLENDER_DIR, globalvar.current_uuid, clss_name, bpy.path.clean_name(material_name))

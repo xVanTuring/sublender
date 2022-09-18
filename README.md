@@ -8,7 +8,6 @@ Todo:
 * register blender file uuid -> user preference 
 * add random operator for randomseed
 * short class name -> to uid or hash(identitifier)
-* full cache dir setting
 
 
 * ab workflow
@@ -26,7 +25,7 @@ Todo:
 * generate workflow from material
 * animation
 * preview mode
-
+* output visible if
 ## Draw steps
 1. list all inputs
 2. draw linearly and draw other input in the same group

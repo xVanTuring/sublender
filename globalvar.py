@@ -1,6 +1,8 @@
 import pysbs
 import typing
 import asyncio
+import pathlib
+import os
 
 instance_map = {
 }
@@ -25,3 +27,6 @@ def get_id():
 
 
 async_task: typing.Optional[asyncio.Future] = None
+
+HOME = str(pathlib.Path.home())
+SUBLENDER_DIR = os.path.join(HOME, ".sublender")
