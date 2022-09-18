@@ -13,7 +13,7 @@ graph_clss = {}
 
 material_templates = {}
 material_template_enum = []
-
+material_output_dict = {}
 aContext: typing.Optional[pysbs.context.Context] = None
 current_uuid = ""
 task_id = 0

@@ -43,6 +43,10 @@ class Sublender_Inflate_Material(Operator):
         # FIX Texture Missing
         if workflow_name != consts.CUSTOM:
             template.inflate_template(material_instance, workflow_name, True)
+            resource_dict = globalvar.material_output_dict.get(material_instance.name)
+            if resource_dict is not None:
+                workflow = globalvar.material_templates.get(workflow_name)
+                template.ensure_assets(context, material_instance, workflow, resource_dict)
         return {'FINISHED'}
 
 

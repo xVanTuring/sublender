@@ -40,7 +40,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
             *cmd_list,
             stdout=asyncio.subprocess.PIPE)
         await proc.wait()
-        self.report({"INFO"}, "Texture {0} Render: Done".format(output_id))
+        self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
         return await proc.stdout.read()
 
     async def async_execute(self, context):
@@ -103,14 +103,14 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
                         if output_usage_dict.get(item['type']) is not None:
                             output_list.append(output_usage_dict.get(item['type'])[0])
                         else:
-                            print("Missing texture with Usage: {0}".format(item['type']))
+                            self.report({"WARNING"}, "Missing texture with Usage: {0}".format(item['type']))
+            self.report({"INFO"}, "Rendering texture: {0}".format(",".join(output_list)))
             # elif addon_prefs.default_render_policy == "channels":
             #     sbsar_graph: SBSARGraph = clss_info['graph']
             #     channels_options = sbsar_graph.getAllInputsInGroup("Channels")
             #     if len(channels_options) != 0:
             #         # do have this group
             #         pass
-            print(output_list)
             for output in output_list:
                 per_output = param_list[:]
                 per_output.append("--input-graph-output")
@@ -119,8 +119,9 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
             result = await asyncio.gather(*worker_list)
             end = datetime.datetime.now()
             resource_dict = build_resource_dict(result)
+            globalvar.material_output_dict[material_inst.name] = resource_dict
             template.ensure_assets(context, material_inst, m_workflow, resource_dict)
-            self.report({"INFO"}, "Time spent: {0}s".format(
+            self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
                 (end - start).total_seconds()))
 
 
