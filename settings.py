@@ -46,6 +46,15 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
     material_template: EnumProperty(
         name="Material Template", items=globalvar.material_template_enum)
     uuid: StringProperty(name="UUID of this material", default="")
+    # noinspection PyTypeChecker
+    render_policy: EnumProperty(
+        name="Default Render Policy",
+        items=[
+            ("all", "Render all texture", "Render all texture to disk"),
+            ("workflow", "Follow active workflow", "Follow active workflow"),
+        ],
+        default="all"
+    )
 
 
 class SublenderSetting(bpy.types.PropertyGroup):

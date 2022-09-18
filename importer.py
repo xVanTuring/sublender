@@ -47,6 +47,8 @@ class Sublender_Import_Graph(Operator):
         m_sublender.graph_url = self.graph_url
         m_sublender.package_path = self.package_path
         m_sublender.material_template = self.material_template
+        preferences = bpy.context.preferences.addons[__package__].preferences
+        m_sublender.render_policy = preferences.default_render_policy
 
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
         dynamic_gen_clss(

@@ -102,6 +102,9 @@ def draw_texture_item(self, context, target_mat):
         "sublender.render_texture_async", icon='TEXTURE')
     render_texture.material_name = target_mat.name
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
+    row.prop(mat_setting,
+             'render_policy', text='')
     row.prop(sublender_settings,
              'live_update', icon='FILE_REFRESH', icon_only=True)
     row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")

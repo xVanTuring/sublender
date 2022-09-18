@@ -92,13 +92,10 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Operato
             param_list.append('--engine')
             param_list.append('d3d11pc')
             worker_list = []
-            # read material setting
-            preferences = context.preferences
-            addon_prefs = preferences.addons[__package__].preferences
             m_workflow = globalvar.material_templates.get(
                 m_sublender.material_template)
             output_list = clss_info['output']
-            if addon_prefs.default_render_policy == "workflow":
+            if m_sublender.render_policy == "workflow":
                 if m_sublender.material_template != consts.CUSTOM:
                     output_usage_dict = clss_info['output_usage_dict']
                     output_list = []
