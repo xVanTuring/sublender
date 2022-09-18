@@ -11,6 +11,7 @@ def output_size_x_updated(self, context):
         self.output_size_y = self.output_size_x
 
 
+# noinspection PyTypeChecker
 class SublenderPreferences(AddonPreferences):
     # this must match the add-on name, use '__package__'
     # when defining this in a submodule of a python package.
@@ -21,6 +22,13 @@ class SublenderPreferences(AddonPreferences):
         subtype='FILE_PATH',
         default=consts.SUBLENDER_DIR,
         description="Path to store texture cache"
+    )
+    compatible_mode: BoolProperty(
+        name="Compatible Undo Mode",
+        description="Enable Compatible Undo Mode for blender 2.82a, with this option on, "
+                    "sublender will increase the texture suffix to prevent blender"
+                    " from crash when undo in Material Mode.",
+        default=True
     )
     output_size_x: EnumProperty(
         name='Width',
@@ -39,9 +47,9 @@ class SublenderPreferences(AddonPreferences):
     default_render_policy: EnumProperty(
         name="Default Render Policy",
         items=[
-            ("all", "Render all texture", "Render all texture"),
+            ("all", "Render all texture", "Render all texture to disk"),
             ("workflow", "Follow active workflow", "Follow active workflow"),
-            ("channels", "Follow channels group info in graph parameters",
+            ("channels", "Follow Channels group",
              "Follow channels group info in graph parameters"),
         ]
     )
@@ -51,8 +59,6 @@ class SublenderPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "cache_path")
-        # TODO
-        # layout.prop(self, "follow_channels")
         layout.prop(self, "default_render_policy")
         row = self.layout.row()
         row.prop(self,
@@ -65,6 +71,8 @@ class SublenderPreferences(AddonPreferences):
         else:
             row.prop(self,
                      'output_size_y', text='')
+        layout.prop(self, 'compatible_mode',
+                    toggle=1, icon="GHOST_ENABLED")
 
 
 def register():

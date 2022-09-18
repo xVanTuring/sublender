@@ -52,6 +52,7 @@ def register():
     settings.register()
     sb_operators.register()
     ui.register()
+    # bpy.app.handlers.undo_post.append(my_handle)
 
 
 def unregister():

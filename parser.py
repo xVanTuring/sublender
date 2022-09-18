@@ -58,7 +58,8 @@ def parse_sbsar_group(graph: SBSARGraph):
         input_info = {
             'mIdentifier': sb_input.mIdentifier,
             'prop': uid_prop(sb_input.mUID),
-            'label': sb_input.mIdentifier,
+            'label': sbsar_name_to_label.get(
+                sb_input.mIdentifier, sb_input.mIdentifier),
         }
         gui_input: SBSARInputGui = sb_input.getInputGui()
         if gui_input is not None:
@@ -75,21 +76,12 @@ def parse_sbsar_group(graph: SBSARGraph):
 def parse_sbsar_input(graph_inputs: List[SBSARInput]):
     input_list = []
     for sbsar_graph_input in graph_inputs:
-        group = sbsar_graph_input.getGroup()
         gui: SBSARInputGui = sbsar_graph_input.getInputGui()
-        label = sbsar_name_to_label.get(
-            sbsar_graph_input.mIdentifier, sbsar_graph_input.mIdentifier)
-        if gui is not None:
-            label = gui.mLabel
-        if group is None:
-            group = UNGROUPED
         input_info = {
-            'group': group,
             'mIdentifier': sbsar_graph_input.mIdentifier,
             'mType': sbsar_graph_input.mType,
             'default': sbsar_graph_input.getDefaultValue(),
-            'label': label,
-            # TODO use mIdentifier instead?
+            # TODO use hash(mIdentifier) instead?
             'prop': uid_prop(sbsar_graph_input.mUID)
         }
         if gui is not None:
@@ -107,9 +99,9 @@ def parse_sbsar_input(graph_inputs: List[SBSARInput]):
                             (str(key), drop_down_list[key], drop_down_list[key]))
                     input_info['enum_items'] = enum_items
                     input_info['drop_down_list'] = enum_items
-                    # assign default value to string here
+                    # assign default value to string here,
                     if input_info.get('default') is not None:
-                        input_info['default'] = str(input_info['default'])  # drop_down_list[input_info['default']]
+                        input_info['default'] = str(input_info['default'])
 
         if sbsar_graph_input.getMaxValue() is not None:
             input_info['max'] = sbsar_graph_input.getMaxValue()

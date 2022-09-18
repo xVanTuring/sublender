@@ -10,12 +10,11 @@ from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
 
 def sbsar_input_updated(self, context):
-    pass
-    # if globalvar.active_material_name is not None:
-    #     bpy.ops.sublender.render_texture_async(material_name=globalvar.active_material_name)
-
-
-# def real_task():
+    scene_settings = context.scene.sublender_settings
+    if scene_settings.live_update and globalvar.active_material_name is not None:
+        # globalvar.reload_texture_status = 0
+        # bpy.ops.sublender.watch_material(target_material=globalvar.active_material_name)
+        bpy.ops.sublender.render_texture_async(material_name=globalvar.active_material_name)
 
 
 def new_material_name(material_name: str) -> str:
@@ -43,7 +42,7 @@ def output_size_x_updated(self, context):
 
 
 def substance_group_to_toggle_name(name: str) -> str:
-    return "sb_{0}_gptl".format(hash(name))
+    return "sb_{0}_gptl".format(bpy.path.clean_name(str(hash(name))))
 
 
 def gen_clss_name(graph_url: str):
@@ -67,9 +66,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
 
         def assign(obj_from, obj_to, m_prop_name: str):
             if obj_from.get(m_prop_name) is not None:
-                # if isinstance(obj_from.get(m_prop_name), list):
-                #     obj_to[m_prop_name] = tuple(obj_from.get(m_prop_name))
-                # else:
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
         # input_info_dict = {}
@@ -99,8 +95,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
             _anno_item['update'] = sbsar_input_updated
 
             if input_info['mIdentifier'] == '$outputsize':
-                # make it to be two enum
-                # TODO update event to sync x,y
                 _anno_obj[consts.output_size_x] = (EnumProperty, {
                     'items': consts.output_size_one_enum,
                     'default': '8',
@@ -122,10 +116,10 @@ def dynamic_gen_clss(package_path: str, graph_url: str, ):
         for group_key in group_keys:
             displace_name = group_key.split('/')[-1]
             group_toggle_prop_name = substance_group_to_toggle_name(group_key)
-            # print("Group: {0}, toggle name: {1}".format(group_key, group_toggle_prop_name))
             _anno_obj[group_toggle_prop_name] = (BoolProperty, {
                 'default': False,
-                'name': displace_name
+                'name': displace_name,
+                'description': "Toggle Display group"
             })
         clss = type(clss_name, (bpy.types.PropertyGroup,), {
             '__annotations__': _anno_obj

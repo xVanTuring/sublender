@@ -50,7 +50,10 @@ def ensure_options(mat, template):
                     mat.cycles.displacement_method = 'DISPLACEMENT'
 
 
-def ensure_assets(material, template, resource):
+def ensure_assets(context, material: bpy.types.Material, template, resource):
+    preferences = context.preferences
+    addon_prefs = preferences.addons[__package__].preferences
+    compatible_undo = addon_prefs.compatible_mode
     node_list = material.node_tree.nodes
     for texture_info in template['texture']:
         texture_path_list = resource.get(texture_info['type'])
@@ -59,14 +62,19 @@ def ensure_assets(material, template, resource):
             target_node = node_list.get(texture_info['node'])
             target_img_name = "{0}_{1}".format(
                 material.name, texture_info['type'])
-            texture_img = bpy.data.images.get(target_img_name)
-            if texture_img is not None:
-                texture_img.filepath = texture_path
-                texture_img.reload()
-            else:
+            if compatible_undo:
                 texture_img = bpy.data.images.load(
-                    texture_path, check_existing=True)
+                    texture_path, check_existing=False)
                 texture_img.name = target_img_name
+            else:
+                texture_img = bpy.data.images.get(target_img_name)
+                if texture_img is not None:
+                    texture_img.filepath = texture_path
+                    texture_img.reload()
+                else:
+                    texture_img = bpy.data.images.load(
+                        texture_path, check_existing=True)
+                    texture_img.name = target_img_name
             if texture_info.get('colorspace') is not None:
                 texture_img.colorspace_settings.name = texture_info.get(
                     'colorspace')

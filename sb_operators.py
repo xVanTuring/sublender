@@ -114,6 +114,7 @@ class Sublender_Init(Operator):
         bpy.context.scene['sublender_settings']['active_instance_obj'] = 0
         bpy.context.scene['sublender_settings']['active_graph'] = 0
         bpy.context.scene['sublender_settings']['active_instance'] = 0
+        # bpy.ops.sublender.watch_material()
         # if sublender_settings.active_graph == '':
         #     print("No graph founded here, reset to DUMMY")
         # if sublender_settings.active_instance == '':
@@ -137,6 +138,57 @@ class Sublender_New_Instance(Operator):
         return {'FINISHED'}
 
 
+class Sublender_Reload_Texture(Operator):
+    bl_idname = "sublender.reload_texture"
+    bl_label = "Clean reload_texture"
+    image_name: StringProperty()
+
+    def execute(self, context):
+        print("Sublender_Reload_Texture")
+        texture_img: bpy.types.Image = bpy.data.images.get(self.image_name)
+        texture_img.reload()
+        return {'FINISHED'}
+
+
+# class ModalTimerOperator(bpy.types.Operator):
+#     """Operator which runs its self from a timer"""
+#     bl_idname = "sublender.watch_material"
+#     bl_label = "Modal Timer Operator"
+#     _timer = None
+#
+#     def modal(self, context, event):
+#         if event.type in {'RIGHTMOUSE', 'ESC'}:
+#             self.cancel(context)
+#             return {'CANCELLED'}
+#         if globalvar.reload_texture_status == -1:
+#             self.cancel(context)
+#             return {'CANCELLED'}
+#
+#         if event.type == 'TIMER':
+#             if globalvar.reload_texture_status == 1:
+#                 material_inst: bpy.types.Material = bpy.data.materials.get(globalvar.active_material_name)
+#                 m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
+#                 m_template = globalvar.material_templates.get(
+#                     m_sublender.material_template)
+#                 template.ensure_assets(material_inst, m_template,
+#                                        globalvar.material_output_dict.get(material_inst.name))
+#                 globalvar.reload_texture_status = 0
+#                 print("Updating texture for {0}".format(globalvar.active_material_name))
+#             else:
+#                 print("Empty Loop")
+#         return {'PASS_THROUGH'}
+#
+#     def execute(self, context):
+#         wm = context.window_manager
+#         self._timer = wm.event_timer_add(0.1, window=context.window)
+#         wm.modal_handler_add(self)
+#         return {'RUNNING_MODAL'}
+#
+#     def cancel(self, context):
+#         wm = context.window_manager
+#         wm.event_timer_remove(self._timer)
+
+
 def register():
     bpy.utils.register_class(Sublender_Inflate_Material)
     bpy.utils.register_class(Sublender_Reassign)
@@ -147,6 +199,8 @@ def register():
     bpy.utils.register_class(Sublender_Clean_Unused_Image)
     bpy.utils.register_class(Sublender_Init)
     bpy.utils.register_class(Sublender_New_Instance)
+    bpy.utils.register_class(Sublender_Reload_Texture)
+    # bpy.utils.register_class(ModalTimerOperator)
 
 
 def unregister():
@@ -159,3 +213,5 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Init)
     bpy.utils.unregister_class(Sublender_New_Instance)
     bpy.utils.unregister_class(Sublender_Inflate_Material)
+    bpy.utils.unregister_class(Sublender_Reload_Texture)
+    # bpy.utils.unregister_class(ModalTimerOperator)

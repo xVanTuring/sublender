@@ -58,7 +58,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
     #     items=instance_list_obj, name="Instance")
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(
-        name="Live Update", description="Update the texture when the property changed, will block blender!")
+        name="Live Update", description="Live Update")
     follow_selection: BoolProperty(name="Follow Selection", default=True)
 
 

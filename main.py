@@ -22,7 +22,6 @@ first_graph: SBSARGraph = aSbsar.getSBSGraphList()[0]
 
 prs = sbspreset.SBSPRSPresets(aContext, r"C:\Users\xVan\Documents\Allegorithmic\Substance Player\aaa.sbsprs")
 prs.parseDoc()
-# print(prs.getPresetCount())
 for idx in range(prs.getPresetCount()):
     pr: sbspreset.SBSPRSPreset = prs.getPresetByIndex(idx)
     print(pr.getLabel())

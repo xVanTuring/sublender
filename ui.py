@@ -103,7 +103,7 @@ def draw_texture_item(self, context, target_mat):
     render_texture.material_name = target_mat.name
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     row.prop(sublender_settings,
-             'live_update', icon='PLAY', icon_only=True)
+             'live_update', icon='FILE_REFRESH', icon_only=True)
     row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")
 
 
@@ -112,7 +112,6 @@ def calc_prop_visibility(input_info: dict):
     if input_info.get('mVisibleIf') is None:
         return True
     eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
-    # print("eval_str: {0}".format(eval_str))
     eval_result = eval(eval_str, {
         'input': eval_delegate,
         'true': True,
@@ -139,7 +138,7 @@ def calc_group_visibility(group_info: dict):
 def group_walker(group_tree: typing.List,
                  layout: bpy.types.UILayout,
                  graph_setting):
-    global eval_delegate
+    # global eval_delegate
     for group_info in group_tree:
         if group_info['mIdentifier'] == consts.UNGROUPED:
             for input_info in group_info['inputs']:
@@ -162,7 +161,6 @@ def group_walker(group_tree: typing.List,
                         continue
                     layout.prop(graph_setting, input_info['prop'], text=input_info['label'])
             continue
-        # TODO detect child group: generate visible map
         visible_control = calc_group_visibility(group_info)
         if not visible_control:
             continue
@@ -179,7 +177,6 @@ def group_walker(group_tree: typing.List,
             box = layout.box()
             for input_info in group_info['inputs']:
                 prop_visibility = calc_prop_visibility(input_info)
-                # print("prop_visibility:{0}".format(input_info))
                 if not prop_visibility:
                     continue
                 toggle = -1
@@ -235,6 +232,7 @@ class EvalDelegate(object):
                                       int(getattr(self.graph_setting, consts.output_size_y))])
         prop_name = parser.uid_prop(self.sbs_graph.getInput(identifier).mUID)
         value = getattr(self.graph_setting, prop_name, None)
+        # print("EvalDelegate identifier: {0}, prop_name: {1}, value: {2}".format(identifier, prop_name, value))
         if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
             return VectorWrapper(value)
         return value
@@ -258,9 +256,9 @@ def draw_parameters_item(self: bpy.types.Operator, context, target_mat):
         if eval_delegate is None:
             eval_delegate = EvalDelegate(clss_name, graph_setting, clss_info['graph'])
         else:
-            if eval_delegate.identity != clss_name:
-                eval_delegate.graph_setting = graph_setting
-                eval_delegate.sbs_graph = clss_info['graph']
+            eval_delegate.graph_setting = graph_setting
+            eval_delegate.sbs_graph = clss_info['graph']
+            eval_delegate.identity = clss_name
 
         group_walker(group_tree, self.layout, graph_setting)
 

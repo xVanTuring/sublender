@@ -11,7 +11,6 @@ _loop_kicking_operator_running = False
 
 
 def setup_asyncio_executor():
-
     if sys.platform == 'win32':
         asyncio.get_event_loop().close()
         # On Windows, the default event loop is SelectorEventLoop, which does
@@ -30,7 +29,6 @@ def kick_async_loop(*args) -> bool:
     loop = asyncio.get_event_loop()
     stop_after_this_kick = False
     if loop.is_closed():
-        print('loop closed, stopping immediately.')
         return True
     all_tasks = asyncio.Task.all_tasks()
     if not len(all_tasks):
@@ -44,10 +42,12 @@ def kick_async_loop(*args) -> bool:
             try:
                 res = task.result()
             except asyncio.CancelledError:
-                print("asyncio.CancelledError")
+                pass
+                # print("asyncio.CancelledError")
             except Exception as e:
-                print("Exception")
-                print(e)
+                pass
+                # print("Exception")
+                # print(e)
     loop.stop()
     loop.run_forever()
     return stop_after_this_kick
@@ -55,8 +55,8 @@ def kick_async_loop(*args) -> bool:
 
 def ensure_async_loop():
     result = bpy.ops.sublender.asyncio_loop()
-    print("asyncio_loop")
-    print(result)
+    # print("asyncio_loop")
+    # print(result)
 
 
 class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
@@ -131,8 +131,8 @@ class AsyncModalOperatorMixin:
         task = self.async_task
         # print("MODEL: {0}".format(self.id))
         if task and (task.done() or task.cancelled()):
-            print("Task Done {0}".format(task.done()))
-            print("Task Cancelled {0}".format(task.cancelled()))
+            # print("Task Done {0}".format(task.done()))
+            # print("Task Cancelled {0}".format(task.cancelled()))
             self._finish(context)
             return {'FINISHED'}
 
@@ -144,25 +144,25 @@ class AsyncModalOperatorMixin:
 
     def _new_async_task(self, async_task: typing.Coroutine):
         """Stops the currently running async task, and starts another one."""
-        print('Setting up a new task {0}, so any existing task must be stopped'.format(
-            async_task))
+        # print('Setting up a new task {0}, so any existing task must be stopped'.format(
+        #     async_task))
         self._stop_async_task()
 
         self.async_task = asyncio.ensure_future(async_task)
         globalvar.async_task = self.async_task
-        print('Created new task {0}'.format(globalvar.async_task))
+        # print('Created new task {0}'.format(globalvar.async_task))
 
         # Start the async manager so everything happens.
         ensure_async_loop()
 
     def _stop_async_task(self, is_global=True):
-        print('Stopping async task')
+        # print('Stopping async task')
         if is_global:
             async_task = globalvar.async_task
         else:
             async_task = self.async_task
         if async_task is None:
-            print('No async task, trivially stopped')
+            # print('No async task, trivially stopped')
             return
 
         # Signal that we want to stop.
@@ -170,12 +170,12 @@ class AsyncModalOperatorMixin:
 
         # Wait until the asynchronous task is done.
         if not async_task.done():
-            print("blocking until async task is done.")
+            # print("blocking until async task is done.")
             loop = asyncio.get_event_loop()
             try:
                 loop.run_until_complete(async_task)
             except asyncio.CancelledError:
-                print('Asynchronous task was cancelled')
+                # print('Asynchronous task was cancelled')
                 return
 
         # noinspection PyBroadException
@@ -183,11 +183,12 @@ class AsyncModalOperatorMixin:
             # This re-raises any exception of the task.
             async_task.result()
         except asyncio.CancelledError:
-            print('Asynchronous task was cancelled')
+            pass
+            # print('Asynchronous task was cancelled')
         except Exception as e:
-
-            print("Exception from asynchronous task")
-            print(e)
+            pass
+            # print("Exception from asynchronous task")
+            # print(e)
 
 
 def register():

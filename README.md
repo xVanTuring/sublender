@@ -1,17 +1,15 @@
 Fix:
-* fix output toggle bugs :?
-* fix undo crash: hard to catch :? can't reproduce
+* fix output toggle bugs -> output policy
+* fix undo crash: hard to catch :? cause by texture reload -> better image reload process
+
 Todo:
 * add panel to 3d view and options:?
 * add preview for instance enum:?
-* register blender file uuid:?
-* preset
-* preview mode
+* register blender file uuid -> user preference 
 * add random operator for randomseed
-* short class name :?
+* short class name -> to uid or hash(identitifier)
 * full cache dir setting
 
-*~ fix rgba min max~
 
 * ab workflow
 * height workflow
@@ -23,6 +21,11 @@ Todo:
 * pip install fake-bpy-module-2.82
 
 
+## Pro
+* preset
+* generate workflow from material
+* animation
+* preview mode
 
 ## Draw steps
 1. list all inputs
