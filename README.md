@@ -6,12 +6,12 @@ Todo:
 * add panel to 3d view and options:?
 * register blender file uuid -> user preference 
 * short class name -> to uid or hash(identifier)
+* Use nodes group instead ... 
 
 Workflow:
 * ab workflow
 * height workflow
 * subsurface workflow
-
 
 
 ## Hack

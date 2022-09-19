@@ -174,13 +174,14 @@ def find_active_mat(context):
         if bpy.context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
             return None
-        mt_index = bpy.context.object.active_material_index
-        active_mt = bpy.context.view_layer.objects.active.material_slots[
-            mt_index].material
-        if active_mt is not None:
-            mat_setting: settings.Sublender_Material_MT_Setting = active_mt.sublender
+        # mt_index = bpy.context.object.active_material_index
+        active_mat = bpy.context.view_layer.objects.active.active_material
+        # bpy.context.view_layer.objects.active.material_slots[
+        # mt_index].material
+        if active_mat is not None:
+            mat_setting: settings.Sublender_Material_MT_Setting = active_mat.sublender
             if mat_setting.package_path != '' and mat_setting.graph_url != '':
-                return active_mt
+                return active_mat
         return None
 
     mats = bpy.data.materials

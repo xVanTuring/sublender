@@ -46,7 +46,7 @@ def package_path_updated(self, context):
 class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
     package_path: StringProperty(name="Package Path", subtype="FILE_PATH", update=package_path_updated)
     graph_url: StringProperty(name="Graph URL")
-    show_setting: BoolProperty(name="Show Params")
+    show_setting: BoolProperty(name="Show Params", default=True)
     material_template: EnumProperty(
         name="Material Template", items=globalvar.material_template_enum)
     uuid: StringProperty(name="UUID of this material", default="")

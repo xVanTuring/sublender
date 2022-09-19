@@ -28,7 +28,7 @@ class Sublender_Import_Graph(Operator):
         default=True
     )
     assign_to_selection: BoolProperty(
-        name='Assign to Selected(Override all texture)',
+        name='Assign to Selected(append)',
         default=False
     )
     material_template: EnumProperty(
@@ -42,6 +42,8 @@ class Sublender_Import_Graph(Operator):
         material = bpy.data.materials.new(material_name)
         material.use_nodes = True
         material.use_fake_user = self.use_fake_user
+        if self.assign_to_selection and bpy.context.view_layer.objects.active is not None:
+            bpy.context.view_layer.objects.active.data.materials.append(material)
 
         m_sublender: Sublender_Material_MT_Setting = material.sublender
         m_sublender.graph_url = self.graph_url

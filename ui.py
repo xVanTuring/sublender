@@ -23,6 +23,7 @@ class Sublender_MT_context_menu(Menu):
 
 
 def draw_instance_item(self, context, target_mat):
+    # TODO follow selection instance list
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     row = self.layout.row()
     instance_info_column = row.column()
@@ -251,8 +252,6 @@ class Sublender_PT_Main(Panel):
     # bl_region_type = "WINDOW"
     # bl_context = 'material'
     # bl_options = {'DEFAULT_CLOSED'}
-
-    # show_more_control: BoolProperty(name="Show More Control")
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
