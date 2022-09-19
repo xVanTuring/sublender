@@ -61,6 +61,8 @@ def parse_sbsar_group(graph: SBSARGraph):
             'label': sbsar_name_to_label.get(
                 sb_input.mIdentifier, sb_input.mIdentifier),
         }
+        if input_info['mIdentifier'] == "$randomseed":
+            input_info['prop'] = "$randomseed"
         gui_input: SBSARInputGui = sb_input.getInputGui()
         if gui_input is not None:
             if gui_input.mLabel is not None:
@@ -84,6 +86,8 @@ def parse_sbsar_input(graph_inputs: List[SBSARInput]):
             # TODO use hash(mIdentifier) instead?
             'prop': uid_prop(sbsar_graph_input.mUID)
         }
+        if sbsar_graph_input.mIdentifier == "$randomseed":
+            input_info['prop'] = "$randomseed"
         if gui is not None:
             if gui.mWidget in ['togglebutton', 'combobox', 'color']:
                 input_info['mWidget'] = gui.mWidget

@@ -1,6 +1,6 @@
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
-
+import typing
 from . import globalvar
 
 
@@ -13,7 +13,8 @@ def graph_list(self, context):
             if not (m_sublender.graph_url in globalvar.instance_map):
                 globalvar.instance_map[m_sublender.graph_url] = []
             globalvar.instance_map[m_sublender.graph_url].append((
-                mat_name, mat_name, mat_name,))
+                mat_name, mat_name, mat_name, mat.preview.icon_id, len(globalvar.instance_map[m_sublender.graph_url])))
+
     # [(identifier, name, description, icon, number), ...]
     m_graph_list = list(
         map(lambda x: (x, x, ""), globalvar.instance_map.keys()))

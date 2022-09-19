@@ -4,16 +4,14 @@ Fix:
 
 Todo:
 * add panel to 3d view and options:?
-* add preview for instance enum:?
 * register blender file uuid -> user preference 
-* add random operator for randomseed
-* short class name -> to uid or hash(identitifier)
+* short class name -> to uid or hash(identifier)
 
-
+Workflow:
 * ab workflow
 * height workflow
 * subsurface workflow
-* add height scale to panel
+
 
 
 ## Hack
@@ -26,6 +24,7 @@ Todo:
 * animation
 * preview mode
 * output visible if
+* add height scale to panel
 ## Draw steps
 1. list all inputs
 2. draw linearly and draw other input in the same group

@@ -54,10 +54,8 @@ class Sublender_Import_Graph(Operator):
         dynamic_gen_clss(
             self.package_path, self.graph_url)
         if self.material_template != consts.CUSTOM:
-            inflate_template(material, self.material_template)
-
+            inflate_template(material, self.material_template, True)
         bpy.ops.sublender.render_texture_async(
-            assign_texture=self.material_template != consts.CUSTOM,
             material_name=material.name)
         return {'FINISHED'}
 

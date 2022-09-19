@@ -4,60 +4,38 @@ import bpy
 from bpy.types import Panel, Menu
 
 from . import settings, utils, globalvar, consts, parser
+from pysbs.sbsarchive.sbsarchive import SBSARGraph
+import mathutils
 
 
 class Sublender_MT_context_menu(Menu):
     bl_label = "Sublender Settings"
 
     def draw(self, context):
-        target_mat = find_active_mat(context)
         layout = self.layout
-        copy_texture_path_op = layout.operator("sublender.copy_texture_path", icon='COPYDOWN')
-        copy_texture_path_op.target_material = target_mat.name
+        layout.operator("sublender.copy_texture_path", icon='COPYDOWN')
         layout.operator("sublender.clean_unused_image", icon='BRUSH_DATA')
         layout.operator("sublender.render_all", icon='NODE_TEXTURE')
-        layout.operator(
-            "sublender.reload_texture", icon='FILE_REFRESH', )
+        # layout.operator(
+        #     "sublender.reload_texture", icon='FILE_REFRESH', )
         layout.operator(
             "sublender.change_uuid", icon='FILE', )
 
 
-def find_active_mat(context):
-    scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
-    if scene_sb_settings.follow_selection:
-        if bpy.context.view_layer.objects.active is None or len(
-                bpy.context.view_layer.objects.active.material_slots) == 0:
-            return None
-        mt_index = bpy.context.object.active_material_index
-        active_mt = bpy.context.view_layer.objects.active.material_slots[
-            mt_index].material
-        if active_mt is not None:
-            mat_setting: settings.Sublender_Material_MT_Setting = active_mt.sublender
-            if mat_setting.package_path != '' and mat_setting.graph_url != '':
-                return active_mt
-        return None
-    mats = bpy.data.materials
-    target_mat = mats.get(scene_sb_settings.active_instance)
-    return target_mat
-
-
 def draw_instance_item(self, context, target_mat):
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-    if target_mat is not None:
-        row = self.layout.row()
-        instance_info_column = row.column()
-        if sublender_settings.follow_selection:
-            # instance_info_column.prop(
-            #     sublender_settings, "active_instance_obj", text="Instance")
-            instance_info_column.prop(target_mat, "name", text="Instance")
-        else:
-            instance_info_column.prop(
-                sublender_settings, "active_instance", text="Instance")
-        row.prop(target_mat, 'use_fake_user',
-                 icon_only=True)
-        dup_op = row.operator(
-            "sublender.new_instance", icon='DUPLICATE', text="")
-        dup_op.target_material = target_mat.name
+    row = self.layout.row()
+    instance_info_column = row.column()
+    if sublender_settings.follow_selection:
+        instance_info_column.prop(target_mat, "name", text="Instance")
+    else:
+        instance_info_column.prop(
+            sublender_settings, "active_instance", text="Instance")
+    row.prop(target_mat, 'use_fake_user',
+             icon_only=True)
+    dup_op = row.operator(
+        "sublender.new_instance", icon='DUPLICATE', text="")
+    dup_op.target_material = target_mat.name
 
 
 def draw_graph_item(self, context, target_mat):
@@ -81,26 +59,18 @@ def draw_graph_item(self, context, target_mat):
 
 
 def draw_workflow_item(self, context, target_mat):
-    if target_mat is not None:
-        mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
-        row = self.layout.row()
-        row.prop(mat_setting,
-                 'material_template', text='Workflow')
-        inflate_material_op = row.operator(
-            "sublender.inflate_material", icon='MATERIAL', text="")
-        inflate_material_op.target_material = target_mat.name
-        # dup_op = row.operator(
-        #     "sublender.new_instance", icon='DUPLICATE', text="")
-        # dup_op.mat_name = target_mat.name
+    mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
+    row = self.layout.row()
+    row.prop(mat_setting,
+             'material_template', text='Workflow')
+    row.operator(
+        "sublender.apply_workflow", icon='MATERIAL', text="")
 
 
 def draw_texture_item(self, context, target_mat):
-    if target_mat is None:
-        return
     row = self.layout.row()
-    render_texture = row.operator(
+    row.operator(
         "sublender.render_texture_async", icon='TEXTURE')
-    render_texture.material_name = target_mat.name
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
     row.prop(mat_setting,
@@ -141,7 +111,6 @@ def calc_group_visibility(group_info: dict):
 def group_walker(group_tree: typing.List,
                  layout: bpy.types.UILayout,
                  graph_setting):
-    # global eval_delegate
     for group_info in group_tree:
         if group_info['mIdentifier'] == consts.UNGROUPED:
             for input_info in group_info['inputs']:
@@ -157,9 +126,12 @@ def group_walker(group_tree: typing.List,
                     else:
                         row.prop(graph_setting,
                                  consts.output_size_y, text='')
+                elif input_info.get('mIdentifier') == "$randomseed":
+                    row = layout.row()
+                    row.prop(graph_setting, input_info['prop'], text=input_info['label'])
+                    row.operator('sublender.randomseed', icon="LIGHT_DATA", text="")
                 else:
                     prop_visibility = calc_prop_visibility(input_info)
-                    # print("prop_visibility:{0}".format(input_info))
                     if not prop_visibility:
                         continue
                     layout.prop(graph_setting, input_info['prop'], text=input_info['label'])
@@ -190,9 +162,6 @@ def group_walker(group_tree: typing.List,
             group_walker(group_info['sub_group'], box, graph_setting)
 
 
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
-
-
 class VectorWrapper(object):
     def __init__(self, vec):
         self.vec = vec
@@ -214,9 +183,6 @@ class VectorWrapper(object):
         return self.vec[3]
 
 
-import mathutils
-
-
 class EvalDelegate(object):
     identity: str
 
@@ -235,7 +201,6 @@ class EvalDelegate(object):
                                       int(getattr(self.graph_setting, consts.output_size_y))])
         prop_name = parser.uid_prop(self.sbs_graph.getInput(identifier).mUID)
         value = getattr(self.graph_setting, prop_name, None)
-        # print("EvalDelegate identifier: {0}, prop_name: {1}, value: {2}".format(identifier, prop_name, value))
         if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
             return VectorWrapper(value)
         return value
@@ -244,10 +209,8 @@ class EvalDelegate(object):
 eval_delegate = None
 
 
-def draw_parameters_item(self: bpy.types.Operator, context, target_mat):
-    if target_mat is None:
-        return
-    mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
+def draw_parameters_item(self, context, target_mat):
+    mat_setting = target_mat.sublender
     self.layout.prop(
         mat_setting, 'show_setting', icon="OPTIONS")
     if mat_setting.show_setting:
@@ -277,9 +240,7 @@ class Sublender_PT_Main(Panel):
     # bl_context = 'material'
     # bl_options = {'DEFAULT_CLOSED'}
 
-    # add go to texture dir
     # show_more_control: BoolProperty(name="Show More Control")
-    # TODO add selected active operator
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
@@ -287,14 +248,14 @@ class Sublender_PT_Main(Panel):
             self.layout.operator("sublender.init")
         else:
             if sublender_settings.active_instance != "$DUMMY$":
-                target_mat = find_active_mat(context)
-                globalvar.active_material_name = getattr(target_mat, 'name', None)
-
+                target_mat = utils.find_active_mat(context)
                 draw_graph_item(self, context, target_mat)
-                draw_instance_item(self, context, target_mat)
-                draw_workflow_item(self, context, target_mat)
-                draw_texture_item(self, context, target_mat)
-                draw_parameters_item(self, context, target_mat)
+                if target_mat is not None:
+                    globalvar.active_material_name = target_mat.name
+                    draw_instance_item(self, context, target_mat)
+                    draw_workflow_item(self, context, target_mat)
+                    draw_texture_item(self, context, target_mat)
+                    draw_parameters_item(self, context, target_mat)
             else:
                 self.layout.operator("sublender.import_sbsar", icon='IMPORT')
 

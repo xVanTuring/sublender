@@ -10,11 +10,8 @@ from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
 
 def sbsar_input_updated(self, context):
-    scene_settings = context.scene.sublender_settings
-    if scene_settings.live_update and globalvar.active_material_name is not None:
-        # globalvar.reload_texture_status = 0
-        # bpy.ops.sublender.watch_material(target_material=globalvar.active_material_name)
-        bpy.ops.sublender.render_texture_async(material_name=globalvar.active_material_name)
+    if context.scene.sublender_settings.live_update:
+        bpy.ops.sublender.render_texture_async()
 
 
 def new_material_name(material_name: str) -> str:
@@ -93,7 +90,9 @@ def dynamic_gen_clss(package_path: str, graph_url: str):
                     _anno_item['subtype'] = 'COLOR'
 
             _anno_item['update'] = sbsar_input_updated
-
+            if input_info['mIdentifier'] == '$randomseed':
+                print(input_info['prop'])
+            #     _anno_obj['$randomseed'] = (prop_type, _anno_item)
             if input_info['mIdentifier'] == '$outputsize':
                 preferences = bpy.context.preferences
                 addon_prefs = preferences.addons[__package__].preferences
@@ -111,7 +110,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str):
                     'default': addon_prefs.output_size_lock,
                     'update': output_size_x_updated
                 })
-                pass
             else:
                 _anno_obj[input_info['prop']] = (prop_type, _anno_item)
 
@@ -163,3 +161,23 @@ def load_sbsar():
 def texture_output_dir(clss_name: str, material_name: str):
     return os.path.join(
         globalvar.SUBLENDER_DIR, globalvar.current_uuid, clss_name, bpy.path.clean_name(material_name))
+
+
+def find_active_mat(context):
+    scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
+    if scene_sb_settings.follow_selection:
+        if bpy.context.view_layer.objects.active is None or len(
+                bpy.context.view_layer.objects.active.material_slots) == 0:
+            return None
+        mt_index = bpy.context.object.active_material_index
+        active_mt = bpy.context.view_layer.objects.active.material_slots[
+            mt_index].material
+        if active_mt is not None:
+            mat_setting: settings.Sublender_Material_MT_Setting = active_mt.sublender
+            if mat_setting.package_path != '' and mat_setting.graph_url != '':
+                return active_mt
+        return None
+
+    mats = bpy.data.materials
+    target_mat = mats.get(scene_sb_settings.active_instance)
+    return target_mat
