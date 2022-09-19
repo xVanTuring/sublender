@@ -5,6 +5,7 @@ from . import settings, utils, globalvar, consts, template
 from bpy.props import (StringProperty)
 import uuid
 import random
+from bpy_extras.io_utils import ImportHelper
 
 
 # TODO
@@ -137,7 +138,7 @@ class Sublender_Init(Operator):
         globalvar.current_uuid = sublender_settings.uuid
         print("Current UUID {0}".format(globalvar.current_uuid))
 
-        utils.load_sbsar()
+        utils.load_sbsars()
         if sublender_settings.active_graph == '':
             print(
                 "No graph with given index {0} founded here, reset to 0".format(sublender_settings['active_graph']))
@@ -173,6 +174,17 @@ class Sublender_Reload_Texture(Operator):
         return {'FINISHED'}
 
 
+# class Sublender_Reporter(Operator):
+#     bl_idname = "sublender.report"
+#     bl_label = "Report msg"
+#     msg: StringProperty()
+#     msg_type: StringProperty(default="INFO")
+#
+#     def execute(self, context):
+#         self.report({"INFO"}, self.msg)
+#         return {'FINISHED'}
+
+
 def register():
     bpy.utils.register_class(Sublender_Inflate_Material)
     bpy.utils.register_class(Sublender_Reassign)
@@ -185,6 +197,7 @@ def register():
     bpy.utils.register_class(Sublender_New_Instance)
     bpy.utils.register_class(Sublender_Reload_Texture)
     bpy.utils.register_class(Sublender_Random_Seed)
+    # bpy.utils.register_class(Sublender_Reporter)
 
 
 def unregister():
@@ -199,3 +212,4 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Inflate_Material)
     bpy.utils.unregister_class(Sublender_Reload_Texture)
     bpy.utils.unregister_class(Sublender_Random_Seed)
+    # bpy.utils.unregister_class(Sublender_Reporter)

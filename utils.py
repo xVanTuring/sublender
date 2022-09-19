@@ -49,6 +49,8 @@ def gen_clss_name(graph_url: str):
 
 def dynamic_gen_clss(package_path: str, graph_url: str):
     if globalvar.sbsar_dict.get(package_path) is None:
+        if not os.path.exists(package_path):
+            raise FileNotFoundError("File {0} does not exist".format(package_path))
         sbsar_pkg = sbsarchive.SBSArchive(
             globalvar.aContext, package_path)
         sbsar_pkg.parseDoc()
@@ -90,9 +92,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str):
                     _anno_item['subtype'] = 'COLOR'
 
             _anno_item['update'] = sbsar_input_updated
-            if input_info['mIdentifier'] == '$randomseed':
-                print(input_info['prop'])
-            #     _anno_obj['$randomseed'] = (prop_type, _anno_item)
             if input_info['mIdentifier'] == '$outputsize':
                 preferences = bpy.context.preferences
                 addon_prefs = preferences.addons[__package__].preferences
@@ -149,13 +148,19 @@ def dynamic_gen_clss(package_path: str, graph_url: str):
     return clss_name, globalvar.graph_clss.get(clss_name)
 
 
-def load_sbsar():
+def load_sbsars():
     mats = bpy.data.materials.items()
     for _, mat in mats:
         m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
         if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
-            dynamic_gen_clss(
-                m_sublender.package_path, m_sublender.graph_url)
+            try:
+                dynamic_gen_clss(
+                    m_sublender.package_path, m_sublender.graph_url)
+                m_sublender.package_missing = False
+            except FileNotFoundError as e:
+                print(e)
+                print("Set Sbsar missing")
+                m_sublender.package_missing = True
 
 
 def texture_output_dir(clss_name: str, material_name: str):

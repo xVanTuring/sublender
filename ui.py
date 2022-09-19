@@ -65,6 +65,8 @@ def draw_workflow_item(self, context, target_mat):
              'material_template', text='Workflow')
     row.operator(
         "sublender.apply_workflow", icon='MATERIAL', text="")
+    if mat_setting.package_missing:
+        row.enabled = False
 
 
 def draw_texture_item(self, context, target_mat):
@@ -78,6 +80,8 @@ def draw_texture_item(self, context, target_mat):
     row.prop(sublender_settings,
              'live_update', icon='FILE_REFRESH', icon_only=True)
     row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")
+    if mat_setting.package_missing:
+        row.enabled = False
 
 
 def calc_prop_visibility(input_info: dict):
@@ -211,22 +215,30 @@ eval_delegate = None
 
 def draw_parameters_item(self, context, target_mat):
     mat_setting = target_mat.sublender
-    self.layout.prop(
-        mat_setting, 'show_setting', icon="OPTIONS")
-    if mat_setting.show_setting:
+    if mat_setting.package_missing:
+        self.layout.label(text="Sbsar file is missing, Please reselect it")
+        self.layout.prop(mat_setting, "package_path")
+        return
+    try:
         clss_name, clss_info = utils.dynamic_gen_clss(
             mat_setting.package_path, mat_setting.graph_url)
-        graph_setting = getattr(target_mat, clss_name)
-        group_tree = clss_info['group_tree']
-        global eval_delegate
-        if eval_delegate is None:
-            eval_delegate = EvalDelegate(clss_name, graph_setting, clss_info['graph'])
-        else:
-            eval_delegate.graph_setting = graph_setting
-            eval_delegate.sbs_graph = clss_info['graph']
-            eval_delegate.identity = clss_name
+        self.layout.prop(
+            mat_setting, 'show_setting', icon="OPTIONS")
+        if mat_setting.show_setting:
+            graph_setting = getattr(target_mat, clss_name)
+            group_tree = clss_info['group_tree']
+            global eval_delegate
+            if eval_delegate is None:
+                eval_delegate = EvalDelegate(clss_name, graph_setting, clss_info['graph'])
+            else:
+                eval_delegate.graph_setting = graph_setting
+                eval_delegate.sbs_graph = clss_info['graph']
+                eval_delegate.identity = clss_name
 
-        group_walker(group_tree, self.layout, graph_setting)
+            group_walker(group_tree, self.layout, graph_setting)
+    except FileNotFoundError as e:
+        mat_setting.package_missing = True
+        print(e)
 
 
 class Sublender_PT_Main(Panel):

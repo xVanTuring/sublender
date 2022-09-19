@@ -1,7 +1,6 @@
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
-import typing
-from . import globalvar
+from . import globalvar, utils
 
 
 def graph_list(self, context):
@@ -40,8 +39,12 @@ def active_instance_update(self, context):
     pass
 
 
+def package_path_updated(self, context):
+    utils.load_sbsars()
+
+
 class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
-    package_path: StringProperty(name="Package Path")
+    package_path: StringProperty(name="Package Path", subtype="FILE_PATH", update=package_path_updated)
     graph_url: StringProperty(name="Graph URL")
     show_setting: BoolProperty(name="Show Params")
     material_template: EnumProperty(
@@ -56,6 +59,7 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
         ],
         default="all"
     )
+    package_missing: BoolProperty()
 
 
 class SublenderSetting(bpy.types.PropertyGroup):
