@@ -102,10 +102,10 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             # TODO: don't assign texture in custom workflow
             m_workflow = globalvar.material_templates.get(
                 m_sublender.material_template)
-            output_list = clss_info['output']
+            output_list = clss_info['output_info']['list']
             if m_sublender.render_policy == "workflow":
                 if m_sublender.material_template != consts.CUSTOM:
-                    output_usage_dict = clss_info['output_usage_dict']
+                    output_usage_dict = clss_info['output_info']['usage']
                     output_list = []
                     for item in m_workflow['texture']:
                         if output_usage_dict.get(item['type']) is not None:

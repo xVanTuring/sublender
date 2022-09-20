@@ -72,7 +72,7 @@ def parse_sbsar_group(graph: SBSARGraph):
             if gui_input.mWidget == 'togglebutton':
                 input_info['togglebutton'] = True
         group_obj['inputs'].append(input_info)
-    return group_tree, group_map.keys()
+    return group_tree, group_map
 
 
 def parse_sbsar_input(graph_inputs: List[SBSARInput]):

@@ -86,12 +86,11 @@ def draw_texture_item(self, context, target_mat):
 
 
 def calc_prop_visibility(input_info: dict):
-    global eval_delegate
     if input_info.get('mVisibleIf') is None:
         return True
     eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
     eval_result = eval(eval_str, {
-        'input': eval_delegate,
+        'input': globalvar.eval_delegate,
         'true': True,
         'false': False
     })
@@ -101,7 +100,6 @@ def calc_prop_visibility(input_info: dict):
 
 
 def calc_group_visibility(group_info: dict):
-    global eval_delegate
     for input_info in group_info['inputs']:
         input_visibility = calc_prop_visibility(input_info)
         if input_visibility:
@@ -113,133 +111,84 @@ def calc_group_visibility(group_info: dict):
     return False
 
 
-def group_walker(group_tree: typing.List,
-                 layout: bpy.types.UILayout,
-                 graph_setting):
-    for group_info in group_tree:
-        if group_info['mIdentifier'] == consts.UNGROUPED:
-            for input_info in group_info['inputs']:
-                if input_info.get('mIdentifier') == '$outputsize':
-                    row = layout.row()
-                    row.prop(graph_setting,
-                             consts.output_size_x, text='Size')
-                    row.prop(graph_setting, consts.output_size_lock,
-                             toggle=1, icon_only=True, icon="LINKED", )
-                    if getattr(graph_setting, consts.output_size_lock):
-                        row.prop(graph_setting,
-                                 consts.output_size_x, text='')
-                    else:
-                        row.prop(graph_setting,
-                                 consts.output_size_y, text='')
-                elif input_info.get('mIdentifier') == "$randomseed":
-                    row = layout.row()
-                    row.prop(graph_setting, input_info['prop'], text=input_info['label'])
-                    row.operator('sublender.randomseed', icon="LIGHT_DATA", text="")
-                else:
-                    prop_visibility = calc_prop_visibility(input_info)
-                    if not prop_visibility:
-                        continue
-                    layout.prop(graph_setting, input_info['prop'], text=input_info['label'])
-            continue
-        visible_control = calc_group_visibility(group_info)
-        if not visible_control:
-            continue
-
-        group_prop = utils.substance_group_to_toggle_name(group_info['mIdentifier'])
-        row = layout.row()
-        icon = "RIGHTARROW_THIN"
-        display_group = getattr(graph_setting, group_prop)
-        if display_group:
-            icon = "DOWNARROW_HLT"
-        row.prop(graph_setting, group_prop, icon=icon, icon_only=True)
-        row.label(text=group_info['nameInShort'])
-        if display_group:
-            box = layout.box()
-            for input_info in group_info['inputs']:
-                prop_visibility = calc_prop_visibility(input_info)
-                if not prop_visibility:
-                    continue
-                toggle = -1
-                if input_info.get('togglebutton', False):
-                    toggle = 1
-                box.prop(graph_setting, input_info['prop'], text=input_info['label'], toggle=toggle)
-
-            group_walker(group_info['sub_group'], box, graph_setting)
-
-
-class VectorWrapper(object):
-    def __init__(self, vec):
-        self.vec = vec
-
-    @property
-    def x(self):
-        return self.vec[0]
-
-    @property
-    def y(self):
-        return self.vec[1]
-
-    @property
-    def z(self):
-        return self.vec[2]
-
-    @property
-    def w(self):
-        return self.vec[3]
-
-
-class EvalDelegate(object):
-    identity: str
-
-    def __init__(self, identity: str, graph_setting, sbs_graph: SBSARGraph):
-        self.graph_setting = graph_setting
-        self.sbs_graph = sbs_graph
-        self.identity = identity
-
-    def __getitem__(self, identifier: str):
-        if identifier == "$outputsize":
-            if getattr(self.graph_setting, consts.output_size_lock):
-                return VectorWrapper([int(getattr(self.graph_setting, consts.output_size_x)),
-                                      int(getattr(self.graph_setting, consts.output_size_x))])
-            else:
-                return VectorWrapper([int(getattr(self.graph_setting, consts.output_size_x)),
-                                      int(getattr(self.graph_setting, consts.output_size_y))])
-        prop_name = parser.uid_prop(self.sbs_graph.getInput(identifier).mUID)
-        value = getattr(self.graph_setting, prop_name, None)
-        if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
-            return VectorWrapper(value)
-        return value
-
-
-eval_delegate = None
-
-
-def draw_parameters_item(self, context, target_mat):
-    mat_setting = target_mat.sublender
-    if mat_setting.package_missing:
-        self.layout.label(text="Sbsar file is missing, Please reselect it")
-        self.layout.prop(mat_setting, "package_path")
-        return
-    try:
-        clss_name, clss_info = utils.dynamic_gen_clss(
-            mat_setting.package_path, mat_setting.graph_url)
-        self.layout.prop(
-            mat_setting, 'show_setting', icon="OPTIONS")
-        if mat_setting.show_setting:
-            graph_setting = getattr(target_mat, clss_name)
-            group_tree = clss_info['group_tree']
-            global eval_delegate
-            if eval_delegate is None:
-                eval_delegate = EvalDelegate(clss_name, graph_setting, clss_info['graph'])
-            else:
-                eval_delegate.graph_setting = graph_setting
-                eval_delegate.sbs_graph = clss_info['graph']
-                eval_delegate.identity = clss_name
-
-            group_walker(group_tree, self.layout, graph_setting)
-    except FileNotFoundError as e:
-        mat_setting.package_missing = True
-        print(e)
+# def group_walker(group_tree: typing.List,
+#                  layout: bpy.types.UILayout,
+#                  graph_setting):
+#     for group_info in group_tree:
+#         if group_info['mIdentifier'] == consts.UNGROUPED:
+#             for input_info in group_info['inputs']:
+#                 if input_info.get('mIdentifier') == '$outputsize':
+#                     row = layout.row()
+#                     row.prop(graph_setting,
+#                              consts.output_size_x, text='Size')
+#                     row.prop(graph_setting, consts.output_size_lock,
+#                              toggle=1, icon_only=True, icon="LINKED", )
+#                     if getattr(graph_setting, consts.output_size_lock):
+#                         row.prop(graph_setting,
+#                                  consts.output_size_x, text='')
+#                     else:
+#                         row.prop(graph_setting,
+#                                  consts.output_size_y, text='')
+#                 elif input_info.get('mIdentifier') == "$randomseed":
+#                     row = layout.row()
+#                     row.prop(graph_setting, input_info['prop'], text=input_info['label'])
+#                     row.operator('sublender.randomseed', icon="LIGHT_DATA", text="")
+#                 else:
+#                     prop_visibility = calc_prop_visibility(input_info)
+#                     if not prop_visibility:
+#                         continue
+#                     layout.prop(graph_setting, input_info['prop'], text=input_info['label'])
+#             continue
+#         visible_control = calc_group_visibility(group_info)
+#         if not visible_control:
+#             continue
+#
+#         group_prop = utils.substance_group_to_toggle_name(group_info['mIdentifier'])
+#         row = layout.row()
+#         icon = "RIGHTARROW_THIN"
+#         display_group = getattr(graph_setting, group_prop)
+#         if display_group:
+#             icon = "DOWNARROW_HLT"
+#         row.prop(graph_setting, group_prop, icon=icon, icon_only=True)
+#         row.label(text=group_info['nameInShort'])
+#         if display_group:
+#             box = layout.box()
+#             for input_info in group_info['inputs']:
+#                 prop_visibility = calc_prop_visibility(input_info)
+#                 if not prop_visibility:
+#                     continue
+#                 toggle = -1
+#                 if input_info.get('togglebutton', False):
+#                     toggle = 1
+#                 box.prop(graph_setting, input_info['prop'], text=input_info['label'], toggle=toggle)
+#
+#             group_walker(group_info['sub_group'], box, graph_setting)
+#
+# def draw_parameters_item(self, context, target_mat):
+#     mat_setting = target_mat.sublender
+#     if mat_setting.package_missing:
+#         self.layout.label(text="Sbsar file is missing, Please reselect it")
+#         self.layout.prop(mat_setting, "package_path")
+#         return
+#     try:
+#         clss_name, clss_info = utils.dynamic_gen_clss(
+#             mat_setting.package_path, mat_setting.graph_url)
+#         self.layout.prop(
+#             mat_setting, 'show_setting', icon="OPTIONS")
+#         if mat_setting.show_setting:
+#             graph_setting = getattr(target_mat, clss_name)
+#             group_tree = clss_info['group_tree']
+#             # if globalvar.eval_delegate_map.get(clss_name) is None:
+#             #     globalvar.eval_delegate_map[clss_name] = EvalDelegate(clss_name, graph_setting, clss_info['graph'])
+#             # else:
+#             #     globalvar.eval_delegate.graph_setting = graph_setting
+#             #     globalvar.eval_delegate.sbs_graph = clss_info['graph']
+#             #     globalvar.eval_delegate.identity = clss_name
+#
+#             group_walker(group_tree, self.layout, graph_setting)
+#     except FileNotFoundError as e:
+#         mat_setting.package_missing = True
+#         print(e)
 
 
 class Sublender_PT_Main(Panel):
@@ -262,11 +211,14 @@ class Sublender_PT_Main(Panel):
                 target_mat = utils.find_active_mat(context)
                 draw_graph_item(self, context, target_mat)
                 if target_mat is not None:
-                    globalvar.active_material_name = target_mat.name
+                    # globalvar.active_material_name = target_mat.name
                     draw_instance_item(self, context, target_mat)
                     draw_workflow_item(self, context, target_mat)
                     draw_texture_item(self, context, target_mat)
-                    draw_parameters_item(self, context, target_mat)
+
+                    mat_setting = target_mat.sublender
+                    if mat_setting.package_missing:
+                        self.layout.label(text="SBSAR Missing")
             else:
                 self.layout.operator("sublender.import_sbsar", icon='IMPORT')
 

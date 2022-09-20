@@ -11,7 +11,7 @@ from pysbs.sbsarchive.sbsarchive import SBSARGraph
 from . import globalvar, consts
 from .settings import Sublender_Material_MT_Setting
 from .template import inflate_template
-from .utils import new_material_name, dynamic_gen_clss
+from .utils import new_material_name, dynamic_gen_clss, EvalDelegate
 
 
 class Sublender_Import_Graph(Operator):
@@ -53,8 +53,12 @@ class Sublender_Import_Graph(Operator):
         m_sublender.render_policy = preferences.default_render_policy
 
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
-        dynamic_gen_clss(
+        clss_name, clss_info = dynamic_gen_clss(
             self.package_path, self.graph_url)
+        globalvar.eval_delegate_map[material.name] = EvalDelegate(
+            clss_info['sbs_graph'],
+            getattr(material, clss_name)
+        )
         if self.material_template != consts.CUSTOM:
             inflate_template(material, self.material_template, True)
         bpy.ops.sublender.render_texture_async(
