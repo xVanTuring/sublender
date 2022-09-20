@@ -223,6 +223,71 @@ class Sublender_PT_Main(Panel):
                 self.layout.operator("sublender.import_sbsar", icon='IMPORT')
 
 
+def calc_prop_visibility(eval_delegate, input_info: dict):
+    if input_info.get('mVisibleIf') is None:
+        return True
+    eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
+    if eval_delegate is None:
+        return False
+    eval_result = eval(eval_str, {
+        'input': eval_delegate,
+        'true': True,
+        'false': False
+    })
+    if eval_result:
+        return True
+    return False
+
+
+def calc_group_visibility(eval_delegate, group_info: dict):
+    for input_info in group_info['inputs']:
+        input_visibility = calc_prop_visibility(eval_delegate, input_info)
+        if input_visibility:
+            return True
+
+    for group_info in group_info['sub_group']:
+        if calc_group_visibility(eval_delegate, group_info):
+            return True
+    return False
+
+
+class Sublender_Prop_BasePanel(Panel):
+    bl_label = ""
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = 'Sublender'
+    bl_options = {'DEFAULT_CLOSED'}
+    graph_url = ""
+    group_info = None
+
+    @classmethod
+    def poll(cls, context):
+        active_mat, active_graph = utils.find_active_graph(context)
+        if active_mat is None or active_graph is None:
+            return False
+        if globalvar.eval_delegate_map.get(active_mat.name) is None:
+            clss_name = utils.gen_clss_name(cls.graph_url)
+            globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
+                globalvar.graph_clss.get(clss_name)['sbs_graph'],
+                getattr(active_mat, clss_name)
+            )
+        return active_graph == cls.graph_url and not active_mat.sublender.package_missing and calc_group_visibility(
+            globalvar.eval_delegate_map.get(active_mat.name),
+            cls.group_info)
+
+    def draw(self, context):
+        layout = self.layout
+        target_mat = utils.find_active_mat(context)
+        sublender_setting = target_mat.sublender
+        clss_name = utils.gen_clss_name(sublender_setting.graph_url)
+        graph_setting = getattr(target_mat, clss_name)
+        for prop_info in self.group_info['inputs']:
+            toggle = -1
+            if prop_info.get('togglebutton', False):
+                toggle = 1
+            layout.prop(graph_setting, prop_info['prop'], text=prop_info['label'], toggle=toggle)
+
+
 def register():
     bpy.utils.register_class(Sublender_PT_Main)
     bpy.utils.register_class(Sublender_MT_context_menu)

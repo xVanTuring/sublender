@@ -8,7 +8,7 @@ from bpy_extras.io_utils import ImportHelper
 from pysbs import sbsarchive
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
-from . import globalvar, consts
+from . import globalvar, consts, utils
 from .settings import Sublender_Material_MT_Setting
 from .template import inflate_template
 from .utils import new_material_name, dynamic_gen_clss, EvalDelegate

@@ -6,7 +6,7 @@ import typing
 
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 import os
-from . import globalvar, consts, settings, parser
+from . import globalvar, consts, settings, parser, ui
 from .parser import parse_sbsar_input, parse_sbsar_group
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
 import mathutils
@@ -41,8 +41,8 @@ class VectorWrapper(object):
 class EvalDelegate(object):
     graph = None
 
-    def __init__(self, graph, graph_setting):
-        self.graph = graph
+    def __init__(self, sbs_graph, graph_setting):
+        self.graph = sbs_graph
         self.graph_setting = graph_setting
 
     def __getitem__(self, identifier: str):
@@ -93,71 +93,6 @@ def gen_clss_name(graph_url: str):
     return "sb" + graph_url.replace("pkg://", "_")
 
 
-def calc_prop_visibility(eval_delegate, input_info: dict):
-    if input_info.get('mVisibleIf') is None:
-        return True
-    eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
-    if eval_delegate is None:
-        return False
-    eval_result = eval(eval_str, {
-        'input': eval_delegate,
-        'true': True,
-        'false': False
-    })
-    if eval_result:
-        return True
-    return False
-
-
-def calc_group_visibility(eval_delegate, group_info: dict):
-    for input_info in group_info['inputs']:
-        input_visibility = calc_prop_visibility(eval_delegate, input_info)
-        if input_visibility:
-            return True
-
-    for group_info in group_info['sub_group']:
-        if calc_group_visibility(eval_delegate, group_info):
-            return True
-    return False
-
-
-class Sublender_Prop_BasePanel(object):
-    bl_label = ""
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = 'Sublender'
-    bl_options = {'DEFAULT_CLOSED'}
-    graph_url = ""
-    group_info = None
-
-    @classmethod
-    def poll(cls, context):
-        active_mat, active_graph = find_active_graph(context)
-        if active_mat is None or active_graph is None:
-            return False
-        if globalvar.eval_delegate_map.get(active_mat.name) is None:
-            clss_name = gen_clss_name(cls.graph_url)
-            globalvar.eval_delegate_map[active_mat.name] = EvalDelegate(
-                globalvar.graph_clss.get(clss_name)['sbs_graph'],
-                getattr(active_mat, clss_name)
-            )
-        return active_graph == cls.graph_url and not active_mat.sublender.package_missing and calc_group_visibility(
-            globalvar.eval_delegate_map.get(active_mat.name),
-            cls.group_info)
-
-    def draw(self, context):
-        layout = self.layout
-        target_mat = find_active_mat(context)
-        sublender_setting = target_mat.sublender
-        clss_name = gen_clss_name(sublender_setting.graph_url)
-        graph_setting = getattr(target_mat, clss_name)
-        for prop_info in self.group_info['inputs']:
-            toggle = -1
-            if prop_info.get('togglebutton', False):
-                toggle = 1
-            layout.prop(graph_setting, prop_info['prop'], text=prop_info['label'], toggle=toggle)
-
-
 def generate_sub_panel(group_map, graph_url):
     for group_key in group_map.keys():
         if group_key == consts.UNGROUPED:
@@ -168,7 +103,7 @@ def generate_sub_panel(group_map, graph_url):
         if parent_name != '':
             bl_parent_id = "Sbs_PT_{0}".format(hash(parent_name + graph_url))
         p_clss = type("Sbs_PT_{0}".format(hash(group_key + graph_url)),
-                      (Sublender_Prop_BasePanel, bpy.types.Panel,), {
+                      (ui.Sublender_Prop_BasePanel,), {
                           'bl_label': displace_name,
                           'bl_parent_id': bl_parent_id,
                           'graph_url': graph_url,
@@ -269,12 +204,6 @@ def dynamic_gen_clss(package_path: str, graph_url: str):
                 'usage': output_usage_dict
             },
             'sbs_graph': sbs_graph,
-
-            # 'group_map': group_map,
-            # 'group_tree': group_tree,
-            # 'output': output_list,
-            # 'output_usage_dict': output_usage_dict,
-            # 'graph': sbs_graph,
         }
         setattr(bpy.types.Material, clss_name,
                 bpy.props.PointerProperty(type=clss))
