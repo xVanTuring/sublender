@@ -125,6 +125,34 @@ def on_blender_undo(scene):
         bpy.ops.sublender.render_texture_async()
 
 
+from . import async_loop
+
+
+class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
+    bl_idname = "sublender.init_async"
+    bl_label = "Init Sublender"
+    bl_description = "Init Sublender"
+
+    def invoke(self, context, event):
+        return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
+
+    async def async_execute(self, context):
+        globalvar.aContext = pysbs.context.Context()
+        sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
+        if sublender_settings.uuid == "":
+            sublender_settings.uuid = str(uuid.uuid4())
+        globalvar.current_uuid = sublender_settings.uuid
+        await utils.load_sbsars_async(self.report)
+        if sublender_settings.active_graph == '':
+            print(
+                "No graph with given index {0} founded here, reset to 0".format(sublender_settings['active_graph']))
+            bpy.context.scene['sublender_settings']['active_graph'] = 0
+            bpy.context.scene['sublender_settings']['active_instance'] = 0
+        if sublender_settings.active_instance == '':
+            print("Selected instance is missing, reset to 0")
+            bpy.context.scene['sublender_settings']['active_instance'] = 0
+
+
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
     bl_label = "Init Sublender"
@@ -172,6 +200,8 @@ class Sublender_New_Instance(Sublender_Base_Operator, Operator):
 
 
 def register():
+    bpy.utils.register_class(Sublender_Init_Async)
+
     bpy.utils.register_class(Sublender_Inflate_Material)
     # bpy.utils.register_class(Sublender_Reassign)
     bpy.utils.register_class(Sublender_Change_UUID)
@@ -182,7 +212,6 @@ def register():
     bpy.utils.register_class(Sublender_Init)
     bpy.utils.register_class(Sublender_New_Instance)
     bpy.utils.register_class(Sublender_Random_Seed)
-    # bpy.utils.register_class(Sublender_Reporter)
 
 
 def unregister():

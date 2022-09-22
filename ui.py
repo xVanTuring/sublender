@@ -53,7 +53,7 @@ def draw_graph_item(self, context, target_mat):
 
     row.prop(sublender_settings,
              'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
-    row.operator('sublender.import_sbsar',
+    row.operator('sublender.select_sbsar',
                  icon='IMPORT', text='')
 
 
@@ -208,7 +208,7 @@ class Sublender_PT_Main(Panel):
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
         if globalvar.current_uuid == "" or globalvar.current_uuid != sublender_settings.uuid:
-            self.layout.operator("sublender.init")
+            self.layout.operator("sublender.init_async")
         else:
             if sublender_settings.active_instance != "$DUMMY$":
                 target_mat = utils.find_active_mat(context)
@@ -223,7 +223,7 @@ class Sublender_PT_Main(Panel):
                     if mat_setting.package_missing:
                         self.layout.label(text="SBSAR Missing")
             else:
-                self.layout.operator("sublender.import_sbsar", icon='IMPORT')
+                self.layout.operator("sublender.select_sbsar", icon='IMPORT')
 
 
 def calc_prop_visibility(eval_delegate, input_info: dict):

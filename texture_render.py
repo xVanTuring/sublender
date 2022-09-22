@@ -22,7 +22,6 @@ def build_resource_dict(result):
     return resource_dict
 
 
-# sb_operators.Sublender_Base_Operator
 class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                                      Operator):
     bl_idname = "sublender.render_texture_async"
@@ -56,8 +55,8 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             await asyncio.sleep(0.3)
             start = datetime.datetime.now()
             m_sublender: settings.Sublender_Material_MT_Setting = self.material_inst.sublender
-            clss_name, clss_info = utils.dynamic_gen_clss(
-                m_sublender.package_path, m_sublender.graph_url)
+            clss_name = utils.gen_clss_name(m_sublender.graph_url)
+            clss_info = globalvar.graph_clss.get(clss_name)
             graph_setting = getattr(self.material_inst, clss_name)
             input_list = clss_info['input']
             param_list = ["render", "--input", m_sublender.package_path, "--input-graph", m_sublender.graph_url]

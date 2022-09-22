@@ -40,7 +40,8 @@ def active_instance_update(self, context):
 
 
 def package_path_updated(self, context):
-    utils.load_sbsars()
+    pass
+    # utils.load_sbsars()
 
 
 class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
