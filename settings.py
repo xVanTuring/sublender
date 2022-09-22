@@ -40,8 +40,7 @@ def active_instance_update(self, context):
 
 
 def package_path_updated(self, context):
-    pass
-    # utils.load_sbsars()
+    bpy.ops.sublender.load_sbsar(sbsar_path=self.package_path)
 
 
 class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
@@ -69,9 +68,9 @@ class SublenderSetting(bpy.types.PropertyGroup):
         items=graph_list, name="Graph", update=active_graph_updated)
     active_instance: EnumProperty(
         items=instance_list, name="Instance", update=active_instance_update)
-    # active_instance_obj: EnumProperty(
-    #     items=instance_list_obj, name="Instance")
-    catch_undo: BoolProperty(default=False)
+    catch_undo: BoolProperty(name="Catch Undo",
+                             default=False,
+                             description="Tender texture after undo/redo")
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(
         name="Live Update", description="Live Update")

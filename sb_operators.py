@@ -128,13 +128,28 @@ def on_blender_undo(scene):
 from . import async_loop
 
 
+class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
+    bl_idname = "sublender.load_sbsar"
+    bl_label = "Load Sbsar"
+    bl_description = "Load Sbsar"
+    sbsar_path: StringProperty()
+    force_reload: bpy.props.BoolProperty(default=False)
+
+    async def async_execute(self, context):
+        loop = asyncio.get_event_loop()
+        preferences = bpy.context.preferences.addons[__package__].preferences
+
+        for material in bpy.data.materials:
+            m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
+            if (m_sublender is not None) and (m_sublender.graph_url is not "") and (
+                    m_sublender.package_path == self.sbsar_path):
+                await utils.load_sbsar_gen(loop, preferences, material, self.force_reload, self.report)
+
+
 class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.init_async"
     bl_label = "Init Sublender"
     bl_description = "Init Sublender"
-
-    def invoke(self, context, event):
-        return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def async_execute(self, context):
         globalvar.aContext = pysbs.context.Context()
@@ -151,40 +166,6 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
         if sublender_settings.active_instance == '':
             print("Selected instance is missing, reset to 0")
             bpy.context.scene['sublender_settings']['active_instance'] = 0
-
-
-class Sublender_Init(Operator):
-    bl_idname = "sublender.init"
-    bl_label = "Init Sublender"
-    bl_description = "Init Sublender"
-
-    def execute(self, context):
-        print("Sublender Init")
-        globalvar.aContext = pysbs.context.Context()
-        preferences = context.preferences.addons[__package__].preferences
-        sublender_dir = preferences.cache_path
-        globalvar.SUBLENDER_DIR = sublender_dir
-        pathlib.Path(globalvar.SUBLENDER_DIR).mkdir(parents=True, exist_ok=True)
-        print("Default Cache Path: {0}".format(globalvar.SUBLENDER_DIR))
-
-        sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
-        if sublender_settings.uuid == "":
-            sublender_settings.uuid = str(uuid.uuid4())
-        globalvar.current_uuid = sublender_settings.uuid
-        print("Current UUID {0}".format(globalvar.current_uuid))
-
-        utils.load_sbsars(self.report)
-        if sublender_settings.active_graph == '':
-            print(
-                "No graph with given index {0} founded here, reset to 0".format(sublender_settings['active_graph']))
-            bpy.context.scene['sublender_settings']['active_graph'] = 0
-            bpy.context.scene['sublender_settings']['active_instance'] = 0
-        if sublender_settings.active_instance == '':
-            print("Selected instance is missing, reset to 0")
-            bpy.context.scene['sublender_settings']['active_instance'] = 0
-        bpy.app.handlers.undo_post.append(on_blender_undo)
-        bpy.app.handlers.redo_post.append(on_blender_undo)
-        return {'FINISHED'}
 
 
 class Sublender_New_Instance(Sublender_Base_Operator, Operator):
@@ -209,7 +190,7 @@ def register():
     bpy.utils.register_class(Sublender_Copy_Texture_Path)
     bpy.utils.register_class(Sublender_Render_All)
     bpy.utils.register_class(Sublender_Clean_Unused_Image)
-    bpy.utils.register_class(Sublender_Init)
+    bpy.utils.register_class(Sublender_Load_Sbsar)
     bpy.utils.register_class(Sublender_New_Instance)
     bpy.utils.register_class(Sublender_Random_Seed)
 
@@ -221,7 +202,7 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Copy_Texture_Path)
     bpy.utils.unregister_class(Sublender_Render_All)
     bpy.utils.unregister_class(Sublender_Clean_Unused_Image)
-    bpy.utils.unregister_class(Sublender_Init)
+    bpy.utils.unregister_class(Sublender_Load_Sbsar)
     bpy.utils.unregister_class(Sublender_New_Instance)
     bpy.utils.unregister_class(Sublender_Inflate_Material)
     bpy.utils.unregister_class(Sublender_Random_Seed)
