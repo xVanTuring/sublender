@@ -1,15 +1,14 @@
 Fix:
-* fix output toggle bugs -> output policy
-* fix undo crash: hard to catch :? cause by texture reload -> better image reload process
-
+* ~~fix undo crash: hard to catch :? cause by texture reload -> better image reload process~~
+* ~~fix undo subpanel missing~~
+* ~~fix error when toggle visible if~~
 Todo:
 * add panel to 3d view and options:?
 * register blender file uuid -> user preference 
 * short class name -> to uid or hash(identifier)
 * Use nodes group instead ... 
 * async for sbsar loading :failed
-* ~~fix undo subpanel missing~~
-* ~~fix error when toggle visible if~~
+
 Workflow:
 * ab workflow
 * height workflow
