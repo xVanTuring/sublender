@@ -60,6 +60,7 @@ class EvalDelegate(object):
         return value
 
 
+# TODO maybe not needed
 def new_material_name(material_name: str) -> str:
     """Make Sure No Name Conflict"""
     for mat in bpy.data.materials:
@@ -67,8 +68,6 @@ def new_material_name(material_name: str) -> str:
         if name == material_name:
             try:
                 base, suffix = name.rsplit('.', 1)
-
-                # trigger the exception
                 num = int(suffix, 10)
                 material_name = base + "." + '%03d' % (num + 1)
             except ValueError:
@@ -95,9 +94,9 @@ def gen_clss_name(graph_url: str):
 
 def generate_sub_panel(group_map, graph_url):
     for group_key in group_map.keys():
-        if group_key == consts.UNGROUPED:
-            continue
-        displace_name = group_key.split('/')[-1]
+        cur_group = group_map.get(group_key)
+        group_name_map = {'$UNGROUPED$': 'Parameters'}
+        displace_name = group_name_map.get(cur_group['nameInShort'], cur_group['nameInShort'])
         parent_name = '/'.join(group_key.split('/')[:-1])
         bl_parent_id = ''
         if parent_name != '':
@@ -107,7 +106,7 @@ def generate_sub_panel(group_map, graph_url):
                           'bl_label': displace_name,
                           'bl_parent_id': bl_parent_id,
                           'graph_url': graph_url,
-                          'group_info': group_map.get(group_key)
+                          'group_info': cur_group
                       })
         register_class(p_clss)
 
@@ -211,11 +210,32 @@ def dynamic_gen_clss(package_path: str, graph_url: str):
     return clss_name, globalvar.graph_clss.get(clss_name)
 
 
+#
+# import threading
+
+
+# def load_sbsar(mat: bpy.types.Material):
+#     try:
+#         m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
+#         clss_name, clss_info = dynamic_gen_clss(
+#             m_sublender.package_path, m_sublender.graph_url)
+#         m_sublender.package_missing = False
+#         globalvar.eval_delegate_map[mat.name] = EvalDelegate(
+#             clss_info['sbs_graph'],
+#             getattr(mat, clss_name)
+#         )
+#         return True
+#     except FileNotFoundError as e:
+#         print(e)
+#         print("Set Sbsar missing")
+#         return False
+#         # m_sublender.package_missing = True
+
+
 def load_sbsars():
     mats = bpy.data.materials.items()
     for _, mat in mats:
         m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
-        # TODO fix material name override
         if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
             try:
                 clss_name, clss_info = dynamic_gen_clss(
@@ -269,4 +289,6 @@ def find_active_graph(context):
 
     mats = bpy.data.materials
     target_mat = mats.get(scene_sb_settings.active_instance)
-    return target_mat, target_mat.sublender.graph_url
+    if target_mat is not None:
+        return target_mat, target_mat.sublender.graph_url
+    return None, None

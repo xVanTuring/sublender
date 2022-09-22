@@ -52,7 +52,6 @@ def register():
     settings.register()
     sb_operators.register()
     ui.register()
-    # bpy.app.handlers.undo_post.append(my_handle)
 
 
 def unregister():
@@ -74,3 +73,4 @@ def unregister():
     globalvar.graph_clss.clear()
     globalvar.sbsar_dict.clear()
     globalvar.aContext = None
+    globalvar.instance_map.clear()

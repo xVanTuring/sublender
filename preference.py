@@ -51,6 +51,9 @@ class SublenderPreferences(AddonPreferences):
             ("workflow", "Follow active workflow", "Follow active workflow"),
         ]
     )
+    enable_visible_if: BoolProperty(
+        name="Enable Visible If"
+    )
 
     # ("channels", "Follow Channels group",
     #  "Follow channels group info in graph parameters"),
@@ -71,6 +74,8 @@ class SublenderPreferences(AddonPreferences):
             row.prop(self,
                      'output_size_y', text='')
         layout.prop(self, 'compatible_mode',
+                    toggle=1, icon="GHOST_ENABLED")
+        layout.prop(self, 'enable_visible_if',
                     toggle=1, icon="GHOST_ENABLED")
 
 

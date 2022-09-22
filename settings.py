@@ -70,6 +70,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
         items=instance_list, name="Instance", update=active_instance_update)
     # active_instance_obj: EnumProperty(
     #     items=instance_list_obj, name="Instance")
+    catch_undo: BoolProperty(default=False)
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(
         name="Live Update", description="Live Update")

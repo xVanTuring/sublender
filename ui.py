@@ -4,8 +4,6 @@ import bpy
 from bpy.types import Panel, Menu
 
 from . import settings, utils, globalvar, consts, parser
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
-import mathutils
 
 
 class Sublender_MT_context_menu(Menu):
@@ -14,8 +12,8 @@ class Sublender_MT_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator("sublender.copy_texture_path", icon='COPYDOWN')
-        layout.operator("sublender.clean_unused_image", icon='BRUSH_DATA')
-        layout.operator("sublender.render_all", icon='NODE_TEXTURE')
+        # layout.operator("sublender.clean_unused_image", icon='BRUSH_DATA')
+        # layout.operator("sublender.render_all", icon='NODE_TEXTURE')
         # layout.operator(
         #     "sublender.reload_texture", icon='FILE_REFRESH', )
         layout.operator(
@@ -80,35 +78,40 @@ def draw_texture_item(self, context, target_mat):
              'render_policy', text='')
     row.prop(sublender_settings,
              'live_update', icon='FILE_REFRESH', icon_only=True)
+    if sublender_settings.live_update:
+        row.prop(sublender_settings,
+                 'catch_undo', icon='FILE_REFRESH', icon_only=True)
     row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")
     if mat_setting.package_missing:
         row.enabled = False
 
 
-def calc_prop_visibility(input_info: dict):
-    if input_info.get('mVisibleIf') is None:
-        return True
-    eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
-    eval_result = eval(eval_str, {
-        'input': globalvar.eval_delegate,
-        'true': True,
-        'false': False
-    })
-    if eval_result:
-        return True
-    return False
-
-
-def calc_group_visibility(group_info: dict):
-    for input_info in group_info['inputs']:
-        input_visibility = calc_prop_visibility(input_info)
-        if input_visibility:
-            return True
-
-    for group_info in group_info['sub_group']:
-        if calc_group_visibility(group_info):
-            return True
-    return False
+# def calc_prop_visibility(input_info: dict):
+#     if input_info.get('mVisibleIf') is None:
+#         return True
+#     eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
+#     eval_result = eval(eval_str, {
+#         'input': globalvar.eval_delegate,
+#         'true': True,
+#         'false': False
+#     })
+#     if eval_result:
+#         return True
+#     return False
+#
+#
+# def calc_group_visibility(group_info: dict, debug=False):
+#     for input_info in group_info['inputs']:
+#         input_visibility = calc_prop_visibility(input_info)
+#         if debug:
+#             print("Calc Prop Visi :{0}".format(input_visibility))
+#         if input_visibility:
+#             return True
+#
+#     for group_info in group_info['sub_group']:
+#         if calc_group_visibility(group_info, debug):
+#             return True
+#     return False
 
 
 # def group_walker(group_tree: typing.List,
@@ -239,14 +242,16 @@ def calc_prop_visibility(eval_delegate, input_info: dict):
     return False
 
 
-def calc_group_visibility(eval_delegate, group_info: dict):
+def calc_group_visibility(eval_delegate, group_info: dict, debug=False):
     for input_info in group_info['inputs']:
         input_visibility = calc_prop_visibility(eval_delegate, input_info)
+        if debug:
+            print("Calc Prop Visi {0}:{1}".format(input_info.get('mVisibleIf'), input_visibility))
         if input_visibility:
             return True
 
     for group_info in group_info['sub_group']:
-        if calc_group_visibility(eval_delegate, group_info):
+        if calc_group_visibility(eval_delegate, group_info, debug):
             return True
     return False
 
@@ -265,15 +270,23 @@ class Sublender_Prop_BasePanel(Panel):
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
-        if globalvar.eval_delegate_map.get(active_mat.name) is None:
+        preferences = bpy.context.preferences.addons[__package__].preferences
+        if preferences.enable_visible_if:
             clss_name = utils.gen_clss_name(cls.graph_url)
-            globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
-                globalvar.graph_clss.get(clss_name)['sbs_graph'],
-                getattr(active_mat, clss_name)
-            )
-        return active_graph == cls.graph_url and not active_mat.sublender.package_missing and calc_group_visibility(
-            globalvar.eval_delegate_map.get(active_mat.name),
-            cls.group_info)
+            if globalvar.eval_delegate_map.get(active_mat.name) is None:
+                globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
+                    globalvar.graph_clss.get(clss_name)['sbs_graph'],
+                    getattr(active_mat, clss_name)
+                )
+            else:
+                # assign again, undo/redo will change the memory address
+                globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
+        visible = active_graph == cls.graph_url and not active_mat.sublender.package_missing and (
+                not preferences.enable_visible_if or
+                calc_group_visibility(
+                    globalvar.eval_delegate_map.get(active_mat.name),
+                    cls.group_info))
+        return visible
 
     def draw(self, context):
         layout = self.layout
@@ -282,10 +295,27 @@ class Sublender_Prop_BasePanel(Panel):
         clss_name = utils.gen_clss_name(sublender_setting.graph_url)
         graph_setting = getattr(target_mat, clss_name)
         for prop_info in self.group_info['inputs']:
-            toggle = -1
-            if prop_info.get('togglebutton', False):
-                toggle = 1
-            layout.prop(graph_setting, prop_info['prop'], text=prop_info['label'], toggle=toggle)
+            if prop_info.get('mIdentifier') == '$outputsize':
+                row = layout.row()
+                row.prop(graph_setting,
+                         consts.output_size_x, text='Size')
+                row.prop(graph_setting, consts.output_size_lock,
+                         toggle=1, icon_only=True, icon="LINKED", )
+                if getattr(graph_setting, consts.output_size_lock):
+                    row.prop(graph_setting,
+                             consts.output_size_x, text='')
+                else:
+                    row.prop(graph_setting,
+                             consts.output_size_y, text='')
+            elif prop_info.get('mIdentifier') == "$randomseed":
+                row = layout.row()
+                row.prop(graph_setting, prop_info['prop'], text=prop_info['label'])
+                row.operator('sublender.randomseed', icon="LIGHT_DATA", text="")
+            else:
+                toggle = -1
+                if prop_info.get('togglebutton', False):
+                    toggle = 1
+                layout.prop(graph_setting, prop_info['prop'], text=prop_info['label'], toggle=toggle)
 
 
 def register():

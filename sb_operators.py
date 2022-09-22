@@ -5,7 +5,8 @@ from . import settings, utils, globalvar, consts, template
 from bpy.props import (StringProperty)
 import uuid
 import random
-from bpy_extras.io_utils import ImportHelper
+import pysbs
+import asyncio
 
 
 # TODO
@@ -117,6 +118,18 @@ class Sublender_Clean_Unused_Image(Operator):
         return {'FINISHED'}
 
 
+def on_blender_undo(scene):
+    sublender_settings = scene.sublender_settings
+    if sublender_settings.live_update and sublender_settings.catch_undo:
+        print("sublender_settings.catch_undo is On,re-render texture now")
+        bpy.ops.sublender.render_texture_async()
+
+
+# def on_blender_redo(scene):
+#     print("my_handle")
+#     print(scene)
+
+
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
     bl_label = "Init Sublender"
@@ -124,7 +137,6 @@ class Sublender_Init(Operator):
 
     def execute(self, context):
         print("Sublender Init")
-        import pysbs
         globalvar.aContext = pysbs.context.Context()
         preferences = context.preferences.addons[__package__].preferences
         sublender_dir = preferences.cache_path
@@ -147,6 +159,8 @@ class Sublender_Init(Operator):
         if sublender_settings.active_instance == '':
             print("Selected instance is missing, reset to 0")
             bpy.context.scene['sublender_settings']['active_instance'] = 0
+        bpy.app.handlers.undo_post.append(on_blender_undo)
+        bpy.app.handlers.redo_post.append(on_blender_undo)
         return {'FINISHED'}
 
 

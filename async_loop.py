@@ -182,11 +182,11 @@ class AsyncModalOperatorMixin:
             async_task.result()
         except asyncio.CancelledError:
             pass
-            # print('Asynchronous task was cancelled')
+            print('Asynchronous task was cancelled')
         except Exception as e:
-            pass
-            # print("Exception from asynchronous task")
-            # print(e)
+            # pass
+            print("Exception from asynchronous task")
+            print(e)
 
 
 def register():

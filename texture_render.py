@@ -127,7 +127,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             result = await asyncio.gather(*worker_list)
             end = datetime.datetime.now()
             resource_dict = build_resource_dict(result)
-            globalvar.material_output_dict[self.material_inst.name] = resource_dict
+            # globalvar.material_output_dict[self.material_inst.name] = resource_dict
             template.ensure_assets(context, self.material_inst, m_workflow, resource_dict)
             self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
                 (end - start).total_seconds()))

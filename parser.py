@@ -22,8 +22,8 @@ def combine_group(parent: str, group: str):
         return "{0}/{1}".format(parent, group)
 
 
-def ensure_group(name: str, group_map, group_tree):
-    group_path = name.split("/")
+def ensure_group(group_name: str, group_map, group_tree):
+    group_path = group_name.split("/")
     parent_group = ""
     for group in group_path:
         current_group = combine_group(parent_group, group)
@@ -43,7 +43,7 @@ def ensure_group(name: str, group_map, group_tree):
             group_map[current_group] = group_info
 
         parent_group = current_group
-    return group_map[name]
+    return group_map[group_name]
 
 
 def parse_sbsar_group(graph: SBSARGraph):

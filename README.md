@@ -7,6 +7,9 @@ Todo:
 * register blender file uuid -> user preference 
 * short class name -> to uid or hash(identifier)
 * Use nodes group instead ... 
+* async for sbsar loading :failed
+* ~~fix undo subpanel missing~~
+
 
 Workflow:
 * ab workflow
