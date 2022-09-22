@@ -109,6 +109,7 @@ def generate_sub_panel(group_map, graph_url):
                           'group_info': cur_group
                       })
         register_class(p_clss)
+        globalvar.sub_panel_clss_list.append(p_clss)
 
 
 def dynamic_gen_clss(package_path: str, graph_url: str):
@@ -210,41 +211,24 @@ def dynamic_gen_clss(package_path: str, graph_url: str):
     return clss_name, globalvar.graph_clss.get(clss_name)
 
 
-#
-# import threading
-
-
-# def load_sbsar(mat: bpy.types.Material):
-#     try:
-#         m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
-#         clss_name, clss_info = dynamic_gen_clss(
-#             m_sublender.package_path, m_sublender.graph_url)
-#         m_sublender.package_missing = False
-#         globalvar.eval_delegate_map[mat.name] = EvalDelegate(
-#             clss_info['sbs_graph'],
-#             getattr(mat, clss_name)
-#         )
-#         return True
-#     except FileNotFoundError as e:
-#         print(e)
-#         print("Set Sbsar missing")
-#         return False
-#         # m_sublender.package_missing = True
-
-
-def load_sbsars():
+def load_sbsars(report=None):
     mats = bpy.data.materials.items()
+    preferences = bpy.context.preferences.addons[__package__].preferences
+
     for _, mat in mats:
         m_sublender: settings.Sublender_Material_MT_Setting = mat.sublender
         if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
             try:
+                if report is not None:
+                    report({"INFO"}, "Loading package {0}".format(m_sublender.package_path))
                 clss_name, clss_info = dynamic_gen_clss(
                     m_sublender.package_path, m_sublender.graph_url)
                 m_sublender.package_missing = False
-                globalvar.eval_delegate_map[mat.name] = EvalDelegate(
-                    clss_info['sbs_graph'],
-                    getattr(mat, clss_name)
-                )
+                if preferences.enable_visible_if:
+                    globalvar.eval_delegate_map[mat.name] = EvalDelegate(
+                        clss_info['sbs_graph'],
+                        getattr(mat, clss_name)
+                    )
             except FileNotFoundError as e:
                 print(e)
                 print("Set Sbsar missing")

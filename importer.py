@@ -55,10 +55,12 @@ class Sublender_Import_Graph(Operator):
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
         clss_name, clss_info = dynamic_gen_clss(
             self.package_path, self.graph_url)
-        globalvar.eval_delegate_map[material.name] = EvalDelegate(
-            clss_info['sbs_graph'],
-            getattr(material, clss_name)
-        )
+        preferences = context.preferences.addons[__package__].preferences
+        if preferences.enable_visible_if:
+            globalvar.eval_delegate_map[material.name] = EvalDelegate(
+                clss_info['sbs_graph'],
+                getattr(material, clss_name)
+            )
         if self.material_template != consts.CUSTOM:
             inflate_template(material, self.material_template, True)
         bpy.ops.sublender.render_texture_async(

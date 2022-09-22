@@ -9,14 +9,14 @@ import pysbs
 import asyncio
 
 
-# TODO
-class Sublender_Reassign(Operator):
-    bl_idname = "sublender.reload_texture"
-    bl_label = "Reload Texture"
-    bl_description = "Reload Texture"
-
-    def execute(self, context):
-        return {'FINISHED'}
+# # TODO
+# class Sublender_Reassign(Operator):
+#     bl_idname = "sublender.reload_texture"
+#     bl_label = "Reload Texture"
+#     bl_description = "Reload Texture"
+#
+#     def execute(self, context):
+#         return {'FINISHED'}
 
 
 class Sublender_Change_UUID(Operator):
@@ -125,11 +125,6 @@ def on_blender_undo(scene):
         bpy.ops.sublender.render_texture_async()
 
 
-# def on_blender_redo(scene):
-#     print("my_handle")
-#     print(scene)
-
-
 class Sublender_Init(Operator):
     bl_idname = "sublender.init"
     bl_label = "Init Sublender"
@@ -150,7 +145,7 @@ class Sublender_Init(Operator):
         globalvar.current_uuid = sublender_settings.uuid
         print("Current UUID {0}".format(globalvar.current_uuid))
 
-        utils.load_sbsars()
+        utils.load_sbsars(self.report)
         if sublender_settings.active_graph == '':
             print(
                 "No graph with given index {0} founded here, reset to 0".format(sublender_settings['active_graph']))
@@ -176,32 +171,9 @@ class Sublender_New_Instance(Sublender_Base_Operator, Operator):
         return {'FINISHED'}
 
 
-class Sublender_Reload_Texture(Operator):
-    bl_idname = "sublender.reload_texture"
-    bl_label = "Clean reload_texture"
-    image_name: StringProperty()
-
-    def execute(self, context):
-        print("Sublender_Reload_Texture")
-        texture_img: bpy.types.Image = bpy.data.images.get(self.image_name)
-        texture_img.reload()
-        return {'FINISHED'}
-
-
-# class Sublender_Reporter(Operator):
-#     bl_idname = "sublender.report"
-#     bl_label = "Report msg"
-#     msg: StringProperty()
-#     msg_type: StringProperty(default="INFO")
-#
-#     def execute(self, context):
-#         self.report({"INFO"}, self.msg)
-#         return {'FINISHED'}
-
-
 def register():
     bpy.utils.register_class(Sublender_Inflate_Material)
-    bpy.utils.register_class(Sublender_Reassign)
+    # bpy.utils.register_class(Sublender_Reassign)
     bpy.utils.register_class(Sublender_Change_UUID)
     bpy.utils.register_class(Sublender_Select_Active)
     bpy.utils.register_class(Sublender_Copy_Texture_Path)
@@ -209,13 +181,12 @@ def register():
     bpy.utils.register_class(Sublender_Clean_Unused_Image)
     bpy.utils.register_class(Sublender_Init)
     bpy.utils.register_class(Sublender_New_Instance)
-    bpy.utils.register_class(Sublender_Reload_Texture)
     bpy.utils.register_class(Sublender_Random_Seed)
     # bpy.utils.register_class(Sublender_Reporter)
 
 
 def unregister():
-    bpy.utils.unregister_class(Sublender_Reassign)
+    # bpy.utils.unregister_class(Sublender_Reassign)
     bpy.utils.unregister_class(Sublender_Change_UUID)
     bpy.utils.unregister_class(Sublender_Select_Active)
     bpy.utils.unregister_class(Sublender_Copy_Texture_Path)
@@ -224,6 +195,8 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Init)
     bpy.utils.unregister_class(Sublender_New_Instance)
     bpy.utils.unregister_class(Sublender_Inflate_Material)
-    bpy.utils.unregister_class(Sublender_Reload_Texture)
     bpy.utils.unregister_class(Sublender_Random_Seed)
+    # if on_blender_undo in bpy.app.handlers.undo_post:
+    #     bpy.app.handlers.undo_post.remove(on_blender_undo)
+    #     bpy.app.handlers.redo_post.remove(on_blender_undo)
     # bpy.utils.unregister_class(Sublender_Reporter)

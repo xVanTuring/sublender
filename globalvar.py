@@ -11,6 +11,7 @@ sbsar_dict = {}
 
 graph_clss = {}
 """clss_name->{clss,input...}"""
+sub_panel_clss_list = []
 
 material_templates = {}
 material_template_enum = []

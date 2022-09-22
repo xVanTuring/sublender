@@ -1,4 +1,5 @@
 import bpy
+from bpy.app.handlers import persistent
 
 bl_info = {
     "name": "Sublender",
@@ -9,6 +10,22 @@ bl_info = {
     "description": "An add-on for sbsar",
     "category": "Material"
 }
+
+
+@persistent
+def on_load_pre(dummy):
+    from . import (globalvar)
+    for clss in globalvar.sub_panel_clss_list:
+        bpy.utils.unregister_class(clss)
+    globalvar.sub_panel_clss_list.clear()
+    for class_name in globalvar.graph_clss:
+        class_info = globalvar.graph_clss.get(class_name)
+        bpy.utils.unregister_class(class_info['clss'])
+    globalvar.current_uuid = ""
+    globalvar.graph_clss.clear()
+    globalvar.sbsar_dict.clear()
+    globalvar.aContext = None
+    globalvar.instance_map.clear()
 
 
 def register():
@@ -52,6 +69,7 @@ def register():
     settings.register()
     sb_operators.register()
     ui.register()
+    bpy.app.handlers.load_pre.append(on_load_pre)
 
 
 def unregister():
@@ -65,8 +83,10 @@ def unregister():
     importer.unregister()
     settings.unregister()
     sb_operators.unregister()
+
+    for clss in globalvar.sub_panel_clss_list:
+        bpy.utils.unregister_class(clss)
     for class_name in globalvar.graph_clss:
-        print(class_name)
         class_info = globalvar.graph_clss.get(class_name)
         bpy.utils.unregister_class(class_info['clss'])
     globalvar.current_uuid = ""
@@ -74,3 +94,5 @@ def unregister():
     globalvar.sbsar_dict.clear()
     globalvar.aContext = None
     globalvar.instance_map.clear()
+
+    bpy.app.handlers.load_pre.remove(on_load_pre)
