@@ -223,6 +223,7 @@ def load_sbsar_package(filepath: str):
 
 async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
     m_sublender = material.sublender
+    m_sublender.package_loaded = False
     sbs_package = None
     if not force:
         sbs_package = globalvar.sbsar_dict.get(m_sublender.package_path)
@@ -233,6 +234,7 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
     if sbs_package is not None:
         sbs_graph: SBSARGraph = sbs_package.getSBSGraphFromPkgUrl(
             m_sublender.graph_url)
+        # TODO force to unregister loaded clss
         clss_name, clss_info = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
         m_sublender.package_missing = False
         if preferences.enable_visible_if:
@@ -246,6 +248,7 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         m_sublender.package_missing = True
         if report is not None:
             report({'WARNING'}, "Package is missing or corrupted: {0}".format(m_sublender.package_path))
+    m_sublender.package_loaded = True
 
 
 async def load_sbsars_async(report=None):

@@ -60,6 +60,7 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
         default="all"
     )
     package_missing: BoolProperty()
+    package_loaded: BoolProperty(default=False)
 
 
 class SublenderSetting(bpy.types.PropertyGroup):

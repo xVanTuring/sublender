@@ -64,7 +64,7 @@ def draw_workflow_item(self, context, target_mat):
              'material_template', text='Workflow')
     row.operator(
         "sublender.apply_workflow", icon='MATERIAL', text="")
-    if mat_setting.package_missing:
+    if mat_setting.package_missing or not mat_setting.package_loaded:
         row.enabled = False
 
 
@@ -82,7 +82,7 @@ def draw_texture_item(self, context, target_mat):
         row.prop(sublender_settings,
                  'catch_undo', icon='PROP_CON', icon_only=True)
     row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")
-    if mat_setting.package_missing:
+    if mat_setting.package_missing or not mat_setting.package_loaded:
         row.enabled = False
 
 
@@ -114,6 +114,8 @@ class Sublender_PT_Main(Panel):
                     if mat_setting.package_missing:
                         self.layout.label(text="Sbsar file is missing, Please reselect it")
                         self.layout.prop(mat_setting, "package_path")
+                    elif not mat_setting.package_loaded:
+                        self.layout.label(text="Loading...")
             else:
                 self.layout.operator("sublender.select_sbsar", icon='IMPORT')
 
@@ -180,7 +182,6 @@ class Sublender_Prop_BasePanel(Panel):
                 return visible
             return True
         return False
-
 
     def draw(self, context):
         layout = self.layout

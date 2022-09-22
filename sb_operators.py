@@ -1,7 +1,7 @@
 from bpy.types import Operator
 import bpy
 import pathlib
-from . import settings, utils, globalvar, consts, template
+from . import settings, utils, globalvar, consts, template, async_loop
 from bpy.props import (StringProperty)
 import uuid
 import random
@@ -123,9 +123,6 @@ def on_blender_undo(scene):
     if sublender_settings.live_update and sublender_settings.catch_undo:
         print("sublender_settings.catch_undo is On,re-render texture now")
         bpy.ops.sublender.render_texture_async()
-
-
-from . import async_loop
 
 
 class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
