@@ -163,22 +163,24 @@ class Sublender_Prop_BasePanel(Panel):
         if active_mat is None or active_graph is None:
             return False
         preferences = bpy.context.preferences.addons[__package__].preferences
-        if preferences.enable_visible_if:
-            clss_name = utils.gen_clss_name(cls.graph_url)
-            if globalvar.eval_delegate_map.get(active_mat.name) is None:
-                globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
-                    globalvar.graph_clss.get(clss_name)['sbs_graph'],
-                    getattr(active_mat, clss_name)
-                )
-            else:
-                # assign again, undo/redo will change the memory address
-                globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
-        visible = active_graph == cls.graph_url and not active_mat.sublender.package_missing and (
-                not preferences.enable_visible_if or
-                calc_group_visibility(
+        if active_graph == cls.graph_url and not active_mat.sublender.package_missing:
+            if preferences.enable_visible_if:
+                clss_name = utils.gen_clss_name(cls.graph_url)
+                if globalvar.eval_delegate_map.get(active_mat.name) is None:
+                    globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
+                        globalvar.graph_clss.get(clss_name)['sbs_graph'],
+                        getattr(active_mat, clss_name)
+                    )
+                else:
+                    # assign again, undo/redo will change the memory address
+                    globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
+                visible = calc_group_visibility(
                     globalvar.eval_delegate_map.get(active_mat.name),
-                    cls.group_info))
-        return visible
+                    cls.group_info)
+                return visible
+            return True
+        return False
+
 
     def draw(self, context):
         layout = self.layout

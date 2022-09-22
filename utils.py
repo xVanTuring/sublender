@@ -41,6 +41,7 @@ class VectorWrapper(object):
 
 class EvalDelegate(object):
     graph = None
+    graph_setting = None
 
     def __init__(self, sbs_graph, graph_setting):
         self.graph = sbs_graph
@@ -207,105 +208,6 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
     return clss_name, globalvar.graph_clss.get(clss_name)
 
 
-def dynamic_gen_clss(package_path: str, graph_url: str):
-    if globalvar.sbsar_dict.get(package_path) is None:
-        if not os.path.exists(package_path):
-            raise FileNotFoundError("File {0} does not exist".format(package_path))
-        sbsar_pkg = sbsarchive.SBSArchive(
-            globalvar.aContext, package_path)
-        sbsar_pkg.parseDoc()
-        globalvar.sbsar_dict[package_path] = sbsar_pkg
-    clss_name = gen_clss_name(graph_url)
-    if globalvar.graph_clss.get(clss_name) is None:
-        sbs_graph: SBSARGraph = globalvar.sbsar_dict[package_path].getSBSGraphFromPkgUrl(
-            graph_url)
-        all_inputs = sbs_graph.getAllInputs()
-        all_outputs = sbs_graph.getGraphOutputs()
-        input_list = parse_sbsar_input(all_inputs)
-        _anno_obj = {}
-
-        def assign(obj_from, obj_to, m_prop_name: str):
-            if obj_from.get(m_prop_name) is not None:
-                obj_to[m_prop_name] = obj_from.get(m_prop_name)
-
-        for input_info in input_list:
-            (prop_type,
-             prop_size) = consts.sbsar_type_to_property[input_info['mType']]
-            _anno_item = {
-            }
-            if prop_size is not None:
-                _anno_item['size'] = prop_size
-            assign(input_info, _anno_item, 'default')
-            assign(input_info, _anno_item, 'min')
-            assign(input_info, _anno_item, 'max')
-            assign(input_info, _anno_item, 'step')
-            if input_info['mType'] == SBSARTypeEnum.INTEGER1:
-                if input_info.get('mWidget') == 'togglebutton':
-                    prop_type = BoolProperty
-                if input_info.get('mWidget') == 'combobox' and input_info.get('enum_items') is not None:
-                    prop_type = EnumProperty
-                    _anno_item['items'] = input_info.get('enum_items')
-            if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
-                if input_info.get('mWidget') == 'color':
-                    _anno_item['min'] = 0
-                    _anno_item['max'] = 1
-                    _anno_item['subtype'] = 'COLOR'
-
-            _anno_item['update'] = sbsar_input_updated
-            if input_info['mIdentifier'] == '$outputsize':
-                preferences = bpy.context.preferences
-                addon_prefs = preferences.addons[__package__].preferences
-                _anno_obj[consts.output_size_x] = (EnumProperty, {
-                    'items': consts.output_size_one_enum,
-                    'default': addon_prefs.output_size_x,
-                    'update': output_size_x_updated,
-                })
-                _anno_obj[consts.output_size_y] = (EnumProperty, {
-                    'items': consts.output_size_one_enum,
-                    'default': addon_prefs.output_size_x,
-                    'update': output_size_x_updated,
-                })
-                _anno_obj[consts.output_size_lock] = (BoolProperty, {
-                    'default': addon_prefs.output_size_lock,
-                    'update': output_size_x_updated
-                })
-            else:
-                _anno_obj[input_info['prop']] = (prop_type, _anno_item)
-
-        group_tree, group_map = parse_sbsar_group(sbs_graph)
-        generate_sub_panel(group_map, graph_url)
-        clss = type(clss_name, (bpy.types.PropertyGroup,), {
-            '__annotations__': _anno_obj
-        })
-        register_class(clss)
-
-        output_list = []
-        output_usage_dict: typing.Dict[str, typing.List[str]] = {}
-        for output in all_outputs:
-            output_list.append(output.mIdentifier)
-            for usage in output.getUsages():
-                if output_usage_dict.get(usage.mName) is None:
-                    output_usage_dict[usage.mName] = []
-                output_usage_dict[usage.mName].append(output.mIdentifier)
-        globalvar.graph_clss[clss_name] = {
-            'clss': clss,
-            'input': input_list,
-            'group_info': {
-                'tree': group_tree,
-                'map': group_map
-            },
-            'output_info': {
-                'list': output_list,
-                'usage': output_usage_dict
-            },
-            'sbs_graph': sbs_graph,
-        }
-        setattr(bpy.types.Material, clss_name,
-                bpy.props.PointerProperty(type=clss))
-
-    return clss_name, globalvar.graph_clss.get(clss_name)
-
-
 def load_sbsar_package(filepath: str):
     try:
         if not os.path.exists(filepath):
@@ -329,7 +231,7 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         globalvar.sbsar_dict[m_sublender.package_path] = sbs_package
 
     if sbs_package is not None:
-        sbs_graph = sbs_package.getSBSGraphFromPkgUrl(
+        sbs_graph: SBSARGraph = sbs_package.getSBSGraphFromPkgUrl(
             m_sublender.graph_url)
         clss_name, clss_info = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
         m_sublender.package_missing = False

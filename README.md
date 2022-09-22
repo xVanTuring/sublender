@@ -9,7 +9,7 @@ Todo:
 * Use nodes group instead ... 
 * async for sbsar loading :failed
 * ~~fix undo subpanel missing~~
-* fix error when toggle visible if
+* ~~fix error when toggle visible if~~
 Workflow:
 * ab workflow
 * height workflow
