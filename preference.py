@@ -48,28 +48,32 @@ class SublenderPreferences(AddonPreferences):
         name="Default Render Policy",
         items=[
             ("all", "Render all texture", "Render all texture to disk"),
-            ("workflow", "Follow active workflow", "Follow active workflow"),
-        ]
+            ("workflow", "Follow active workflow", "Follow active workflow"), ]
     )
     enable_visible_if: BoolProperty(
         name="Enable Visible If"
     )
+
     engine_enum: EnumProperty(
         items=[
-            ("$default$", "Unspecified", "Unspecified"),
-            ("d3d11pc", "d3d11pc", "d3d11pc"),
+            ("$default$", "Unspecified", "Unspecified, it will use the default engine."),
+            ("d3d11pc", "d3d11pc(windows)",
+             "d3d11pc: it will use dx11 as render engine, might not be available in linux"),
             ("sse2", "sse2", "sse2"),
+            ("ogl3", "ogl3(non-windows)", "ogl3"),
             (consts.CUSTOM, "Custom", "Custom")],
         default="$default$",
         name="Substance Render Engine"
     )
-    custom_engine: StringProperty(name="Custom Engine")
+    custom_engine: StringProperty(name="Custom Engine", default='')
+    sat_path: StringProperty(name="SAT Installation Path", default='', subtype='DIR_PATH')
 
     # ("channels", "Follow Channels group",
     #  "Follow channels group info in graph parameters"),
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, 'sat_path')
         layout.prop(self, "cache_path")
         layout.prop(self, "default_render_policy")
         row = self.layout.row()
@@ -85,9 +89,12 @@ class SublenderPreferences(AddonPreferences):
                      'output_size_y', text='')
         row = layout.row()
         row.prop(self, 'compatible_mode',
-                    toggle=1, icon="GHOST_ENABLED")
+                 toggle=1, icon="GHOST_ENABLED")
         row.prop(self, 'enable_visible_if',
-                    toggle=1, icon="HIDE_OFF")
+                 toggle=1, icon="HIDE_OFF")
+        layout.prop(self, 'engine_enum')
+        if self.engine_enum == consts.CUSTOM:
+            layout.prop(self, 'custom_engine')
 
 
 def register():

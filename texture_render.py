@@ -100,8 +100,20 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             param_list.append(target_dir)
             param_list.append("--output-name")
             param_list.append("{outputNodeName}")
-            param_list.append('--engine')
-            param_list.append('d3d11pc')
+            engine_value = context.preferences.addons[__package__].preferences.engine_enum
+            if engine_value != "$default$":
+                if engine_value != consts.CUSTOM:
+                    param_list.append('--engine')
+                    param_list.append(engine_value)
+                    print("Render engine is {0}".format(engine_value))
+                else:
+                    custom_value = context.preferences.addons[__package__].preferences.custom_engine
+                    if custom_value != "":
+                        param_list.append('--engine')
+                        param_list.append(custom_value)
+                        print("Render engine is {0}".format(custom_value))
+            else:
+                print("Use Default Engine")
             worker_list = []
             # TODO: don't assign texture in custom workflow
             m_workflow = globalvar.material_templates.get(

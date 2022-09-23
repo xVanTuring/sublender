@@ -151,6 +151,10 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
     bl_description = "Init Sublender"
 
     async def async_execute(self, context):
+        sat_path = context.preferences.addons[__package__].preferences.sat_path
+        if sat_path != "":
+            print("Setting SAT Path {0}".format(sat_path))
+            pysbs.context.Context.setAutomationToolkitInstallPath(sat_path)
         globalvar.aContext = pysbs.context.Context()
         sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
         if sublender_settings.uuid == "":
