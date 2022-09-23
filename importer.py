@@ -8,7 +8,7 @@ from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
-from . import globalvar, consts, utils
+from . import globalvar, consts, utils, async_loop
 from .settings import Sublender_Material_MT_Setting
 from .template import inflate_template
 from .utils import new_material_name, EvalDelegate
@@ -91,9 +91,6 @@ class Sublender_Import_Graph(Operator):
         col.prop(self, "assign_to_selection")
         col.prop(self, "render_policy")
         col.prop(self, "material_template")
-
-
-from . import async_loop
 
 
 class Sublender_Sbsar_Selector(Operator, ImportHelper):

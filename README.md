@@ -30,3 +30,13 @@ Workflow:
 ## Draw steps
 1. list all inputs
 2. draw linearly and draw other input in the same group
+
+Sublender: Substance add-on for Blender!
+
+Support:
+
+import sbsar
+paramaters turning
+custom workflow and material generation
+visibleIf  support for input
+...
