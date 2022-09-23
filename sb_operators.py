@@ -163,6 +163,8 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
         if sublender_settings.active_instance == '':
             print("Selected instance is missing, reset to 0")
             bpy.context.scene['sublender_settings']['active_instance'] = 0
+        bpy.app.handlers.undo_post.append(on_blender_undo)
+        bpy.app.handlers.redo_post.append(on_blender_undo)
 
 
 class Sublender_New_Instance(Sublender_Base_Operator, Operator):

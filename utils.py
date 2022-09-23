@@ -1,16 +1,17 @@
+import asyncio
+import os
+import typing
+
 import bpy
+import mathutils
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
 from pysbs import sbsarchive
-import typing
-
+from pysbs.sbsarchive.sbsarchive import SBSARGraph
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
-import os
+
 from . import globalvar, consts, settings, parser, ui
 from .parser import parse_sbsar_input, parse_sbsar_group
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
-import mathutils
-import asyncio
 
 
 def sbsar_input_updated(self, context):
@@ -40,23 +41,26 @@ class VectorWrapper(object):
 
 
 class EvalDelegate(object):
-    graph = None
-    graph_setting = None
+    material_name = ""
+    clss_name = ""
 
-    def __init__(self, sbs_graph, graph_setting):
-        self.graph = sbs_graph
-        self.graph_setting = graph_setting
+    def __init__(self, material_name, clss_name):
+        self.material_name = material_name
+        self.clss_name = clss_name
 
     def __getitem__(self, identifier: str):
+        sbs_graph = globalvar.graph_clss.get(self.clss_name)['sbs_graph'],
+        graph_setting = bpy.data.materials.get(self.material_name, self.clss_name)
+
         if identifier == "$outputsize":
-            if getattr(self.graph_setting, consts.output_size_lock):
-                return VectorWrapper([int(getattr(self.graph_setting, consts.output_size_x)),
-                                      int(getattr(self.graph_setting, consts.output_size_x))])
+            if getattr(graph_setting, consts.output_size_lock):
+                return VectorWrapper([int(getattr(graph_setting, consts.output_size_x)),
+                                      int(getattr(graph_setting, consts.output_size_x))])
             else:
-                return VectorWrapper([int(getattr(self.graph_setting, consts.output_size_x)),
-                                      int(getattr(self.graph_setting, consts.output_size_y))])
-        prop_name = parser.uid_prop(self.graph.getInput(identifier).mUID)
-        value = getattr(self.graph_setting, prop_name, None)
+                return VectorWrapper([int(getattr(graph_setting, consts.output_size_x)),
+                                      int(getattr(graph_setting, consts.output_size_y))])
+        prop_name = parser.uid_prop(sbs_graph.getInput(identifier).mUID)
+        value = getattr(graph_setting, prop_name, None)
         if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
             return VectorWrapper(value)
         return value
@@ -232,15 +236,14 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         globalvar.sbsar_dict[m_sublender.package_path] = sbs_package
 
     if sbs_package is not None:
-        sbs_graph: SBSARGraph = sbs_package.getSBSGraphFromPkgUrl(
-            m_sublender.graph_url)
+        sbs_graph: SBSARGraph = sbs_package.getSBSGraphFromPkgUrl(m_sublender.graph_url)
         # TODO force to unregister loaded clss
         clss_name, clss_info = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
         m_sublender.package_missing = False
         if preferences.enable_visible_if:
             globalvar.eval_delegate_map[material.name] = EvalDelegate(
-                clss_info['sbs_graph'],
-                getattr(material, clss_name)
+                material.name,
+                clss_name
             )
         if report is not None:
             report({'INFO'}, "Package {0} is loaded".format(m_sublender.package_path))

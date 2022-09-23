@@ -50,7 +50,9 @@ def ensure_options(mat, template):
                     mat.cycles.displacement_method = 'DISPLACEMENT'
 
 
-def ensure_assets(context, material: bpy.types.Material, template, resource):
+# TODO to name
+def ensure_assets(context, material_name: str, template, resource):
+    material = bpy.data.materials.get(material_name)
     preferences = context.preferences
     addon_prefs = preferences.addons[__package__].preferences
     compatible_undo = addon_prefs.compatible_mode

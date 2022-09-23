@@ -2,6 +2,7 @@ Fix:
 * ~~fix undo crash: hard to catch :? cause by texture reload -> better image reload process~~
 * ~~fix undo subpanel missing~~
 * ~~fix error when toggle visible if~~
+* StructRNA of type Material has been removed when dragging slider :hard to catch
 Todo:
 * add panel to 3d view and options:?
 * register blender file uuid -> user preference 

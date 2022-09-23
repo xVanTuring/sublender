@@ -1,9 +1,7 @@
-import typing
-
 import bpy
 from bpy.types import Panel, Menu
 
-from . import settings, utils, globalvar, consts, parser
+from . import settings, utils, globalvar, consts
 
 
 class Sublender_MT_context_menu(Menu):
@@ -170,8 +168,8 @@ class Sublender_Prop_BasePanel(Panel):
                 clss_name = utils.gen_clss_name(cls.graph_url)
                 if globalvar.eval_delegate_map.get(active_mat.name) is None:
                     globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
-                        globalvar.graph_clss.get(clss_name)['sbs_graph'],
-                        getattr(active_mat, clss_name)
+                        active_mat.name,
+                        clss_name
                     )
                 else:
                     # assign again, undo/redo will change the memory address

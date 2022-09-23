@@ -1,10 +1,12 @@
-from typing import List
 import typing
+from typing import List
+
+import bpy
 from pysbs.sbsarchive import SBSARGuiComboBox
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
 from pysbs.sbsarchive.sbsargraph import SBSARInput, SBSARInputGui
-import bpy
-from .consts import sbsar_name_to_label, UNGROUPED, sbsar_name_prop
+
+from .consts import sbsar_name_to_label
 
 
 def hash_prop(value: str):

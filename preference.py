@@ -54,6 +54,14 @@ class SublenderPreferences(AddonPreferences):
     enable_visible_if: BoolProperty(
         name="Enable Visible If"
     )
+    engine_enum: EnumProperty(
+        items=[
+            ("$default$", "Unspecified", "Unspecified"),
+            ("d3d11pc", "d3d11pc", "d3d11pc"),
+            ("sse2", "sse2", "sse2"),
+            (consts.CUSTOM, "Custom", "Custom")],
+        default="$default$"
+    )
 
     # ("channels", "Follow Channels group",
     #  "Follow channels group info in graph parameters"),

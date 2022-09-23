@@ -1,3 +1,4 @@
+import asyncio
 import pathlib
 from typing import List
 
@@ -7,7 +8,6 @@ from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
-import asyncio
 from . import globalvar, consts, utils
 from .settings import Sublender_Material_MT_Setting
 from .template import inflate_template
@@ -35,6 +35,15 @@ class Sublender_Import_Graph(Operator):
         items=globalvar.material_template_enum,
         name='Material Template'
     )
+    # noinspection PyTypeChecker
+    render_policy: EnumProperty(
+        name="Render Policy",
+        items=[
+            ("all", "Render all texture", "Render all texture to disk"),
+            ("workflow", "Follow active workflow", "Follow active workflow"),
+        ],
+        default="all"
+    )
 
     def execute(self, context):
         # TODO better custom workflow
@@ -49,8 +58,8 @@ class Sublender_Import_Graph(Operator):
         m_sublender.graph_url = self.graph_url
         m_sublender.package_path = self.package_path
         m_sublender.material_template = self.material_template
-        preferences = bpy.context.preferences.addons[__package__].preferences
-        m_sublender.render_policy = preferences.default_render_policy
+        m_sublender.render_policy = self.render_policy
+        m_sublender.package_loaded = True
 
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
         sbs_package = globalvar.sbsar_dict.get(self.package_path).getSBSGraphFromPkgUrl(self.graph_url)
@@ -58,8 +67,8 @@ class Sublender_Import_Graph(Operator):
         preferences = context.preferences.addons[__package__].preferences
         if preferences.enable_visible_if:
             globalvar.eval_delegate_map[material.name] = EvalDelegate(
-                clss_info['sbs_graph'],
-                getattr(material, clss_name)
+                material.name,
+                clss_name
             )
         if self.material_template != consts.CUSTOM:
             inflate_template(material, self.material_template, True)
@@ -68,6 +77,7 @@ class Sublender_Import_Graph(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        self.render_policy = context.preferences.addons[__package__].preferences.default_render_policy
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=400)
 
@@ -79,6 +89,7 @@ class Sublender_Import_Graph(Operator):
         col.prop(self, "material_name")
         col.prop(self, "use_fake_user", icon='FAKE_USER_ON')
         col.prop(self, "assign_to_selection")
+        col.prop(self, "render_policy")
         col.prop(self, "material_template")
 
 
@@ -87,7 +98,7 @@ from . import async_loop
 
 class Sublender_Sbsar_Selector(Operator, ImportHelper):
     bl_idname = "sublender.select_sbsar"
-    bl_label = "Select Sbsar"
+    bl_label = "Import Sbsar"
     bl_description = "Import Sbsar"
     filename_ext = ".sbsar"
     filter_glob: StringProperty(

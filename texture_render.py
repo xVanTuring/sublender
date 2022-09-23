@@ -8,6 +8,7 @@ import bpy
 from bpy.props import StringProperty
 from bpy.types import Operator
 from pysbs.context import Context
+
 from . import globalvar, settings, utils, consts, async_loop, template
 
 
@@ -28,17 +29,20 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
     bl_label = "Render Texture"
     bl_description = "Render Texture"
     material_name: StringProperty(name="Target Material Name, Optional", default="")
-    material_inst = None
+    target_material_name = ""
+
+    # material_inst = None
 
     def invoke(self, context, event):
         if self.material_name != "":
-            self.material_inst = bpy.data.materials.get(self.material_name)
+            material_inst = bpy.data.materials.get(self.material_name)
         else:
-            self.material_inst = utils.find_active_mat(context)
-        if self.material_inst is None:
+            material_inst = utils.find_active_mat(context)
+        if material_inst is None:
             self.report({"Error"}, "No material is selected or given")
             return {"CANCELLED"}
-        print("Sublender_Render_Texture_Async: Rendering Texture for {0}".format(self.material_inst.name))
+        self.target_material_name = material_inst.name
+        print("Sublender_Render_Texture_Async: Rendering Texture for {0}".format(material_inst.name))
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str], output_id: str):
@@ -51,13 +55,14 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         return await process.stdout.read()
 
     async def async_execute(self, context):
-        if self.material_inst is not None:
+        if self.target_material_name == "":
             await asyncio.sleep(0.3)
             start = datetime.datetime.now()
-            m_sublender: settings.Sublender_Material_MT_Setting = self.material_inst.sublender
+            material_inst = bpy.data.materials.get(self.target_material_name)
+            m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
             clss_name = utils.gen_clss_name(m_sublender.graph_url)
             clss_info = globalvar.graph_clss.get(clss_name)
-            graph_setting = getattr(self.material_inst, clss_name)
+            graph_setting = getattr(material_inst, clss_name)
             input_list = clss_info['input']
             param_list = ["render", "--input", m_sublender.package_path, "--input-graph", m_sublender.graph_url]
             for input_info in input_list:
@@ -90,7 +95,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         param_list.append("{0}@{1}".format(
                             input_info['mIdentifier'], value))
             param_list.append("--output-path")
-            target_dir = utils.texture_output_dir(clss_name, self.material_inst.name)
+            target_dir = utils.texture_output_dir(clss_name, self.target_material_name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
             param_list.append("--output-name")
@@ -127,7 +132,8 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             end = datetime.datetime.now()
             resource_dict = build_resource_dict(result)
             # globalvar.material_output_dict[self.material_inst.name] = resource_dict
-            template.ensure_assets(context, self.material_inst, m_workflow, resource_dict)
+
+            template.ensure_assets(context, self.target_material_name, m_workflow, resource_dict)
             self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
                 (end - start).total_seconds()))
 
