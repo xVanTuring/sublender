@@ -1,12 +1,13 @@
-from bpy.types import Operator
-import bpy
-import pathlib
-from . import settings, utils, globalvar, consts, template, async_loop
-from bpy.props import (StringProperty)
-import uuid
-import random
-import pysbs
 import asyncio
+import random
+import uuid
+
+import bpy
+import pysbs
+from bpy.props import (StringProperty)
+from bpy.types import Operator
+
+from . import settings, utils, globalvar, consts, template, async_loop
 
 
 # # TODO
@@ -108,7 +109,6 @@ class Sublender_Render_All(Operator):
         return {'FINISHED'}
 
 
-# Pro Feature
 class Sublender_Clean_Unused_Image(Operator):
     bl_idname = "sublender.clean_unused_image"
     bl_label = "Clean Unused Texture"
@@ -140,7 +140,9 @@ class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
             m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
             if (m_sublender is not None) and (m_sublender.graph_url is not "") and (
                     m_sublender.package_path == self.sbsar_path):
+                m_sublender.package_loaded = False
                 await utils.load_sbsar_gen(loop, preferences, material, self.force_reload, self.report)
+                m_sublender.package_loaded = True
 
 
 class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):

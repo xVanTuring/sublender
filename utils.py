@@ -49,9 +49,8 @@ class EvalDelegate(object):
         self.clss_name = clss_name
 
     def __getitem__(self, identifier: str):
-        sbs_graph = globalvar.graph_clss.get(self.clss_name)['sbs_graph'],
+        sbs_graph = globalvar.graph_clss.get(self.clss_name).get('sbs_graph')
         graph_setting = bpy.data.materials.get(self.material_name, self.clss_name)
-
         if identifier == "$outputsize":
             if getattr(graph_setting, consts.output_size_lock):
                 return VectorWrapper([int(getattr(graph_setting, consts.output_size_x)),
@@ -212,22 +211,8 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
     return clss_name, globalvar.graph_clss.get(clss_name)
 
 
-def load_sbsar_package(filepath: str):
-    try:
-        if not os.path.exists(filepath):
-            return None
-        sbsar_pkg = sbsarchive.SBSArchive(
-            globalvar.aContext, filepath)
-        sbsar_pkg.parseDoc()
-        return sbsar_pkg
-    except Exception as e:
-        print(e)
-        return None
-
-
 async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
     m_sublender = material.sublender
-    m_sublender.package_loaded = False
     sbs_package = None
     if not force:
         sbs_package = globalvar.sbsar_dict.get(m_sublender.package_path)
@@ -251,18 +236,50 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         m_sublender.package_missing = True
         if report is not None:
             report({'WARNING'}, "Package is missing or corrupted: {0}".format(m_sublender.package_path))
-    m_sublender.package_loaded = True
+
+
+def load_sbsar_package(filepath: str):
+    try:
+        if not os.path.exists(filepath):
+            return None
+        sbsar_pkg = sbsarchive.SBSArchive(
+            globalvar.aContext, filepath)
+        sbsar_pkg.parseDoc()
+        return sbsar_pkg
+    except Exception as e:
+        print(e)
+        return None
+
+
+async def load_and_assign(filepath: str, report=None):
+    if report is not None:
+        report({'INFO'}, "Parsing sbsar {0}".format(filepath))
+    loop = asyncio.get_event_loop()
+    sbs_package = await loop.run_in_executor(None, load_sbsar_package, filepath)
+    globalvar.sbsar_dict[filepath] = sbs_package
+    if report is not None:
+        report({'INFO'}, "Package {0} is parsed".format(filepath))
 
 
 async def load_sbsars_async(report=None):
     loop = asyncio.get_event_loop()
     preferences = bpy.context.preferences.addons[__package__].preferences
+    sb_materials = []
+    sbs_package_set = set()
     for material in bpy.data.materials:
         m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
         if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
-            if report is not None:
-                report({'INFO'}, "Loading sbsar: {0}".format(m_sublender.package_path))
-            await load_sbsar_gen(loop, preferences, material, False, report)
+            m_sublender.package_loaded = False
+            sb_materials.append(material)
+            sbs_package_set.add(m_sublender.package_path)
+    load_queue = []
+    for fp in sbs_package_set:
+        load_queue.append(load_and_assign(fp, report))
+    await asyncio.gather(*load_queue)
+    for material in sb_materials:
+        m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
+        await load_sbsar_gen(loop, preferences, material, False, report)
+        m_sublender.package_loaded = True
 
 
 def texture_output_dir(clss_name: str, material_name: str):

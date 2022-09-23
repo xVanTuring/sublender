@@ -60,8 +60,10 @@ class SublenderPreferences(AddonPreferences):
             ("d3d11pc", "d3d11pc", "d3d11pc"),
             ("sse2", "sse2", "sse2"),
             (consts.CUSTOM, "Custom", "Custom")],
-        default="$default$"
+        default="$default$",
+        name="Substance Render Engine"
     )
+    custom_engine: StringProperty(name="Custom Engine")
 
     # ("channels", "Follow Channels group",
     #  "Follow channels group info in graph parameters"),
