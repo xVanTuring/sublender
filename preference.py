@@ -83,10 +83,11 @@ class SublenderPreferences(AddonPreferences):
         else:
             row.prop(self,
                      'output_size_y', text='')
-        layout.prop(self, 'compatible_mode',
+        row = layout.row()
+        row.prop(self, 'compatible_mode',
                     toggle=1, icon="GHOST_ENABLED")
-        layout.prop(self, 'enable_visible_if',
-                    toggle=1, icon="GHOST_ENABLED")
+        row.prop(self, 'enable_visible_if',
+                    toggle=1, icon="HIDE_OFF")
 
 
 def register():

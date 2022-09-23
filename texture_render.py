@@ -55,7 +55,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         return await process.stdout.read()
 
     async def async_execute(self, context):
-        if self.target_material_name == "":
+        if self.target_material_name != "":
             await asyncio.sleep(0.3)
             start = datetime.datetime.now()
             material_inst = bpy.data.materials.get(self.target_material_name)
