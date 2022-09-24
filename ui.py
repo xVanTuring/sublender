@@ -4,7 +4,7 @@ from bpy.types import Panel, Menu
 from . import settings, utils, globalvar, consts
 
 
-class Sublender_MT_context_menu(Menu):
+class SUBLENDER_MT_context_menu(Menu):
     bl_label = "Sublender Settings"
 
     def draw(self, context):
@@ -79,7 +79,7 @@ def draw_texture_item(self, context, target_mat):
     if sublender_settings.live_update:
         row.prop(sublender_settings,
                  'catch_undo', icon='PROP_CON', icon_only=True)
-    row.menu("Sublender_MT_context_menu", icon="DOWNARROW_HLT", text="")
+    row.menu("SUBLENDER_MT_context_menu", icon="DOWNARROW_HLT", text="")
     if mat_setting.package_missing or not mat_setting.package_loaded:
         row.enabled = False
 
@@ -213,9 +213,9 @@ class Sublender_Prop_BasePanel(Panel):
 
 def register():
     bpy.utils.register_class(Sublender_PT_Main)
-    bpy.utils.register_class(Sublender_MT_context_menu)
+    bpy.utils.register_class(SUBLENDER_MT_context_menu)
 
 
 def unregister():
     bpy.utils.unregister_class(Sublender_PT_Main)
-    bpy.utils.unregister_class(Sublender_MT_context_menu)
+    bpy.utils.unregister_class(SUBLENDER_MT_context_menu)
