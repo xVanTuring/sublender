@@ -201,7 +201,7 @@ def register():
 
 
 def unregister():
-    # bpy.utils.unregister_class(Sublender_Reassign)
+    bpy.utils.unregister_class(Sublender_Init_Async)
     bpy.utils.unregister_class(Sublender_Change_UUID)
     bpy.utils.unregister_class(Sublender_Select_Active)
     bpy.utils.unregister_class(Sublender_Copy_Texture_Path)
