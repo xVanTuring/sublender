@@ -64,6 +64,7 @@ def register():
     template.load_material_templates()
     preference.register()
     texture_render.register()
+    async_loop.setup_asyncio_executor()
     async_loop.register()
     importer.register()
     settings.register()

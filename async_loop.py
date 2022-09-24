@@ -1,12 +1,14 @@
 import asyncio
 import concurrent.futures
-import bpy
 import gc
-import typing
-from . import globalvar
 import sys
+import typing
 
-# blender cloud add-on
+import bpy
+
+from . import globalvar
+
+# sublender
 _loop_kicking_operator_running = False
 
 
@@ -18,6 +20,8 @@ def setup_asyncio_executor():
         # Source: https://docs.python.org/3/library/asyncio-subprocess.html
         loop = asyncio.ProactorEventLoop()
         asyncio.set_event_loop(loop)
+        # TODO:
+        # asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
     else:
         loop = asyncio.get_event_loop()
 
