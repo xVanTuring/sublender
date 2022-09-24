@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
-from . import globalvar, utils
+
+from . import globalvar
 
 
 def graph_list(self, context):

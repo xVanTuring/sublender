@@ -82,9 +82,8 @@ class Sublender_Import_Graph(Operator):
         return wm.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
-        layout = self.layout
-        layout.label(text="Import " + self.graph_url, icon="IMPORT")
-        col = layout.column()
+        self.layout.label(text="Import " + self.graph_url, icon="IMPORT")
+        col = self.layout.column()
         col.alignment = 'CENTER'
         col.prop(self, "material_name")
         col.prop(self, "use_fake_user", icon='FAKE_USER_ON')

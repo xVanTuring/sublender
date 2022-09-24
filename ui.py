@@ -84,7 +84,7 @@ def draw_texture_item(self, context, target_mat):
         row.enabled = False
 
 
-class Sublender_PT_Main(Panel):
+class SUBLENDER_PT_Main(Panel):
     bl_label = "Sublender"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -212,10 +212,10 @@ class Sublender_Prop_BasePanel(Panel):
 
 
 def register():
-    bpy.utils.register_class(Sublender_PT_Main)
+    bpy.utils.register_class(SUBLENDER_PT_Main)
     bpy.utils.register_class(SUBLENDER_MT_context_menu)
 
 
 def unregister():
-    bpy.utils.unregister_class(Sublender_PT_Main)
+    bpy.utils.unregister_class(SUBLENDER_PT_Main)
     bpy.utils.unregister_class(SUBLENDER_MT_context_menu)

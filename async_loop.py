@@ -1,15 +1,17 @@
 import asyncio
 import concurrent.futures
 import gc
+import logging
 import sys
+import traceback
 import typing
 
 import bpy
 
 from . import globalvar
 
-# sublender
 _loop_kicking_operator_running = False
+log = logging.getLogger(__name__)
 
 
 def setup_asyncio_executor():
@@ -29,7 +31,7 @@ def setup_asyncio_executor():
     loop.set_default_executor(executor)
 
 
-def kick_async_loop(*args) -> bool:
+def kick_async_loop() -> bool:
     loop = asyncio.get_event_loop()
     stop_after_this_kick = False
     if loop.is_closed():
@@ -45,27 +47,36 @@ def kick_async_loop(*args) -> bool:
                 continue
             try:
                 res = task.result()
+                log.debug('   task #%i: result=%r', task_idx, res)
             except asyncio.CancelledError:
-                pass
-                # print("asyncio.CancelledError")
-            except Exception as e:
-                pass
-                # print("Exception")
-                # print(e)
+                print("asyncio.CancelledError")
+            except Exception:
+                print('{}: resulted in exception'.format(task))
+                traceback.print_exc()
     loop.stop()
     loop.run_forever()
     return stop_after_this_kick
 
 
 def ensure_async_loop():
+    log.debug('Starting asyncio loop')
     result = bpy.ops.sublender.asyncio_loop()
-    # print("asyncio_loop")
-    # print(result)
+    log.debug('Result of starting modal operator is %r', result)
 
 
 class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
     bl_idname = "sublender.asyncio_loop"
-    bl_label = "..."
+    bl_label = "Runs the asyncio main loop"
+    timer = None
+    log = logging.getLogger(__name__ + '.SublenderAsyncLoopModalOperator')
+
+    def __del__(self):
+        global _loop_kicking_operator_running
+
+        # This can be required when the operator is running while Blender
+        # (re)loads a file. The operator then doesn't get the chance to
+        # finish the async tasks, hence stop_after_this_kick is never True.
+        _loop_kicking_operator_running = False
 
     def execute(self, context):
         return self.invoke(context, None)
@@ -73,17 +84,19 @@ class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
     def invoke(self, context, event):
         global _loop_kicking_operator_running
         if _loop_kicking_operator_running:
+            self.log.debug('Another loop-kicking operator is already running.')
             return {'PASS_THROUGH'}
 
         context.window_manager.modal_handler_add(self)
         _loop_kicking_operator_running = True
+
         wm = context.window_manager
         self.timer = wm.event_timer_add(0.03, window=context.window)
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
-        # print("I'm modal from Sublender_AsyncLoopModalOperator")
         global _loop_kicking_operator_running
+
         if not _loop_kicking_operator_running:
             return {'FINISHED'}
 
@@ -94,6 +107,7 @@ class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
         if stop_after:
             context.window_manager.event_timer_remove(self.timer)
             _loop_kicking_operator_running = False
+            self.log.debug('Stopped asyncio loop kicking')
             return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
@@ -105,8 +119,7 @@ class AsyncModalOperatorMixin:
     _state = 'INITIALIZING'
     stop_upon_exception = False
     timer = None
-
-    # id = -1
+    log = logging.getLogger('%s.AsyncModalOperatorMixin' % __name__)
 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
@@ -131,10 +144,8 @@ class AsyncModalOperatorMixin:
 
     def modal(self, context, event):
         task = self.async_task
-        # print("MODEL: {0}".format(self.id))
         if task and (task.done() or task.cancelled()):
-            # print("Task Done {0}".format(task.done()))
-            # print("Task Cancelled {0}".format(task.cancelled()))
+            self.log.debug('Previous task was cancelled')
             self._finish(context)
             return {'FINISHED'}
 
@@ -145,29 +156,21 @@ class AsyncModalOperatorMixin:
         context.window_manager.event_timer_remove(self.timer)
 
     def _new_async_task(self, async_task: typing.Coroutine):
-        """Stops the currently running async task, and starts another one."""
-        # print('Setting up a new task {0}, so any existing task must be stopped'.format(
-        #     async_task))
         self._stop_async_task()
 
         self.async_task = asyncio.ensure_future(async_task)
         globalvar.async_task = self.async_task
-        # print('Created new task {0}'.format(globalvar.async_task))
 
-        # Start the async manager so everything happens.
         ensure_async_loop()
 
     def _stop_async_task(self, is_global=True):
-        # print('Stopping async task')
         if is_global:
             async_task = globalvar.async_task
         else:
             async_task = self.async_task
         if async_task is None:
-            # print('No async task, trivially stopped')
             return
 
-        # Signal that we want to stop.
         async_task.cancel()
 
         # Wait until the asynchronous task is done.
@@ -177,7 +180,7 @@ class AsyncModalOperatorMixin:
             try:
                 loop.run_until_complete(async_task)
             except asyncio.CancelledError:
-                # print('Asynchronous task was cancelled')
+                self.log.info('Asynchronous task was cancelled')
                 return
 
         # noinspection PyBroadException
@@ -185,10 +188,9 @@ class AsyncModalOperatorMixin:
             # This re-raises any exception of the task.
             async_task.result()
         except asyncio.CancelledError:
-            print('Asynchronous task was cancelled')
+            self.log.info('Asynchronous task was cancelled')
         except Exception as e:
-            print("Get Exception from asynchronous task")
-            print(e)
+            self.log.exception("Exception from asynchronous task")
 
 
 def register():

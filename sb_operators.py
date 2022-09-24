@@ -10,16 +10,6 @@ from bpy.types import Operator
 from . import settings, utils, globalvar, consts, template, async_loop
 
 
-# # TODO
-# class Sublender_Reassign(Operator):
-#     bl_idname = "sublender.reload_texture"
-#     bl_label = "Reload Texture"
-#     bl_description = "Reload Texture"
-#
-#     def execute(self, context):
-#         return {'FINISHED'}
-
-
 class Sublender_Change_UUID(Operator):
     bl_idname = "sublender.change_uuid"
     bl_label = "Change UUID"
@@ -189,7 +179,6 @@ def register():
     bpy.utils.register_class(Sublender_Init_Async)
 
     bpy.utils.register_class(Sublender_Inflate_Material)
-    # bpy.utils.register_class(Sublender_Reassign)
     bpy.utils.register_class(Sublender_Change_UUID)
     bpy.utils.register_class(Sublender_Select_Active)
     bpy.utils.register_class(Sublender_Copy_Texture_Path)
@@ -211,7 +200,6 @@ def unregister():
     bpy.utils.unregister_class(Sublender_New_Instance)
     bpy.utils.unregister_class(Sublender_Inflate_Material)
     bpy.utils.unregister_class(Sublender_Random_Seed)
-    # if on_blender_undo in bpy.app.handlers.undo_post:
-    #     bpy.app.handlers.undo_post.remove(on_blender_undo)
-    #     bpy.app.handlers.redo_post.remove(on_blender_undo)
-    # bpy.utils.unregister_class(Sublender_Reporter)
+    if on_blender_undo in bpy.app.handlers.undo_post:
+        bpy.app.handlers.undo_post.remove(on_blender_undo)
+        bpy.app.handlers.redo_post.remove(on_blender_undo)

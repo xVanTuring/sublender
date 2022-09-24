@@ -1,3 +1,5 @@
+import logging
+
 import bpy
 from bpy.app.handlers import persistent
 
@@ -10,10 +12,13 @@ bl_info = {
     "description": "An add-on for sbsar",
     "category": "Material"
 }
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 @persistent
-def on_load_pre(dummy):
+def on_load_pre(_):
+    """Remove all register clss, global var generate previously"""
     from . import (globalvar)
     for clss in globalvar.sub_panel_clss_list:
         bpy.utils.unregister_class(clss)
@@ -29,6 +34,7 @@ def on_load_pre(dummy):
 
 
 def register():
+    log.debug('Sublender@register: Starting')
     import sys
 
     # Support reloading
@@ -71,6 +77,7 @@ def register():
     sb_operators.register()
     ui.register()
     bpy.app.handlers.load_pre.append(on_load_pre)
+    log.debug('Sublender@register: Done')
 
 
 def unregister():
