@@ -31,8 +31,6 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
     material_name: StringProperty(name="Target Material Name, Optional", default="")
     target_material_name = ""
 
-    # material_inst = None
-
     def invoke(self, context, event):
         if self.material_name != "":
             material_inst = bpy.data.materials.get(self.material_name)

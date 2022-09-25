@@ -20,23 +20,10 @@ Workflow:
 * pip install fake-bpy-module-2.82
 
 
-## Pro
+## Advanced
 * preset
 * generate workflow from material
 * animation
 * preview mode
 * output visible if
 * add height scale to panel
-## Draw steps
-1. list all inputs
-2. draw linearly and draw other input in the same group
-
-Sublender: Substance add-on for Blender!
-
-Support:
-
-import sbsar
-paramaters turning
-custom workflow and material generation
-visibleIf  support for input
-...

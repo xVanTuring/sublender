@@ -189,7 +189,7 @@ class AsyncModalOperatorMixin:
             async_task.result()
         except asyncio.CancelledError:
             self.log.info('Asynchronous task was cancelled')
-        except Exception as e:
+        except Exception:
             self.log.exception("Exception from asynchronous task")
 
 
