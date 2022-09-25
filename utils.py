@@ -50,7 +50,7 @@ class EvalDelegate(object):
 
     def __getitem__(self, identifier: str):
         sbs_graph = globalvar.graph_clss.get(self.clss_name).get('sbs_graph')
-        graph_setting = bpy.data.materials.get(self.material_name, self.clss_name)
+        graph_setting = getattr(bpy.data.materials.get(self.material_name), self.clss_name)
         if identifier == "$outputsize":
             if getattr(graph_setting, consts.output_size_lock):
                 return VectorWrapper([int(getattr(graph_setting, consts.output_size_x)),
