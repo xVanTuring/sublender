@@ -50,6 +50,7 @@ class EvalDelegate(object):
 
     def __getitem__(self, identifier: str):
         sbs_graph = globalvar.graph_clss.get(self.clss_name).get('sbs_graph')
+
         graph_setting = getattr(bpy.data.materials.get(self.material_name), self.clss_name)
         if identifier == "$outputsize":
             if getattr(graph_setting, consts.output_size_lock):
@@ -60,8 +61,11 @@ class EvalDelegate(object):
                                       int(getattr(graph_setting, consts.output_size_y))])
         prop_name = parser.uid_prop(sbs_graph.getInput(identifier).mUID)
         value = getattr(graph_setting, prop_name, None)
+        # FIX drop_down enum type
         if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
             return VectorWrapper(value)
+        if isinstance(value, str) and value.startswith("$NUM:"):
+            value = int(value.replace("$NUM:", ""))
         return value
 
 
@@ -121,6 +125,8 @@ def generate_sub_panel(group_map, graph_url):
         globalvar.sub_panel_clss_list.append(p_clss)
 
 
+# TODO Fix image input
+# FIX path relative/absolute
 def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
     clss_name = gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
@@ -150,6 +156,8 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 if input_info.get('mWidget') == 'combobox' and input_info.get('enum_items') is not None:
                     prop_type = EnumProperty
                     _anno_item['items'] = input_info.get('enum_items')
+            if input_info['mType'] == SBSARTypeEnum.IMAGE:
+                _anno_item['subtype'] = 'FILE_PATH'
             if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
                 if input_info.get('mWidget') == 'color':
                     _anno_item['min'] = 0

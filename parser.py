@@ -102,12 +102,12 @@ def parse_sbsar_input(graph_inputs: List[SBSARInput]):
                     enum_items = []
                     for key in drop_down_keys:
                         enum_items.append(
-                            (str(key), drop_down_list[key], drop_down_list[key]))
+                            ("$NUM:{0}".format(key), drop_down_list[key], drop_down_list[key]))
                     input_info['enum_items'] = enum_items
                     input_info['drop_down_list'] = enum_items
                     # assign default value to string here,
                     if input_info.get('default') is not None:
-                        input_info['default'] = str(input_info['default'])
+                        input_info['default'] = "$NUM:{0}".format(input_info['default'])
 
         if sbsar_graph_input.getMaxValue() is not None:
             input_info['max'] = sbsar_graph_input.getMaxValue()

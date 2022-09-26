@@ -90,6 +90,8 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                                 value = ','.join(map(str, to_list()))
                         if isinstance(value, float):
                             value = ("%.3f" % value)
+                        if isinstance(value, str) and value.startswith("$NUM:"):
+                            value = value.replace("$NUM:", "")
                         param_list.append("{0}@{1}".format(
                             input_info['mIdentifier'], value))
             param_list.append("--output-path")

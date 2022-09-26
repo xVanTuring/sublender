@@ -1,7 +1,6 @@
-from bpy.props import (PointerProperty, StringProperty, BoolProperty, CollectionProperty,
-                       EnumProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
-import pathlib
 import os
+
+from bpy.props import (StringProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
 type_dict = ['FLOAT1',
              'FLOAT2',
@@ -30,7 +29,7 @@ sbsar_type_to_property = [
     (FloatVectorProperty, 3,),
     (FloatVectorProperty, 4,),
     (IntProperty, None),
-    (None, None),
+    (StringProperty, None),
     (StringProperty, None),
     (None, None),
     (IntVectorProperty, 2),

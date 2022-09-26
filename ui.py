@@ -162,7 +162,7 @@ class Sublender_Prop_BasePanel(Panel):
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
-        preferences = bpy.context.preferences.addons[__package__].preferences
+        preferences = context.preferences.addons[__package__].preferences
         if active_graph == cls.graph_url and not active_mat.sublender.package_missing:
             if preferences.enable_visible_if:
                 clss_name = utils.gen_clss_name(cls.graph_url)
@@ -187,6 +187,8 @@ class Sublender_Prop_BasePanel(Panel):
         sublender_setting = target_mat.sublender
         clss_name = utils.gen_clss_name(sublender_setting.graph_url)
         graph_setting = getattr(target_mat, clss_name)
+        preferences = context.preferences.addons[__package__].preferences
+        eval_dele = globalvar.eval_delegate_map.get(target_mat.name)
         for prop_info in self.group_info['inputs']:
             if prop_info.get('mIdentifier') == '$outputsize':
                 row = layout.row()
@@ -205,6 +207,10 @@ class Sublender_Prop_BasePanel(Panel):
                 row.prop(graph_setting, prop_info['prop'], text=prop_info['label'])
                 row.operator('sublender.randomseed', icon="LIGHT_DATA", text="")
             else:
+                if preferences.enable_visible_if:
+                    visible = calc_prop_visibility(eval_dele, prop_info)
+                    if not visible:
+                        continue
                 toggle = -1
                 if prop_info.get('togglebutton', False):
                     toggle = 1
