@@ -28,3 +28,6 @@ Workflow:
 * preview mode
 * output visible if
 * add height scale to panel
+
+# CMD
+git archive --format zip --output E:\sublender.zip master --prefix sublender/
