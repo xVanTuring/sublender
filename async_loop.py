@@ -49,7 +49,7 @@ def kick_async_loop() -> bool:
                 res = task.result()
                 log.debug('   task #%i: result=%r', task_idx, res)
             except asyncio.CancelledError:
-                print("asyncio.CancelledError")
+                pass
             except Exception:
                 print('{}: resulted in exception'.format(task))
                 traceback.print_exc()
@@ -108,7 +108,6 @@ class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
 class AsyncModalOperatorMixin:
     async_task = None  # asyncio task for fetching thumbnails
     # asyncio future for signalling that we want to cancel everything.
-    _state = 'INITIALIZING'
     stop_upon_exception = False
     timer = None
     log = logging.getLogger('%s.AsyncModalOperatorMixin' % __name__)
@@ -127,10 +126,6 @@ class AsyncModalOperatorMixin:
         """
         return
 
-    def quit(self):
-        """Signals the state machine to stop this operator from running."""
-        self._state = 'QUIT'
-
     def execute(self, context):
         return self.invoke(context, None)
 
@@ -138,28 +133,26 @@ class AsyncModalOperatorMixin:
         task = self.async_task
         if task and (task.done() or task.cancelled()):
             self.log.debug('Previous task was cancelled')
-            self._finish(context)
-            return {'FINISHED'}
+            context.window_manager.event_timer_remove(self.timer)
+            try:
+                self.async_task.result()
+            except asyncio.CancelledError:
+                self.log.info('modal: Asynchronous task was cancelled')
+            except Exception:
+                self.log.exception("modal: Exception from asynchronous task")
 
         return {'PASS_THROUGH'}
 
-    def _finish(self, context):
-        self._stop_async_task(False)
-        context.window_manager.event_timer_remove(self.timer)
-
     def _new_async_task(self, async_task: typing.Coroutine):
-        self._stop_async_task()
+        self._stop_prev_async_task()
 
         self.async_task = asyncio.ensure_future(async_task)
         globalvar.async_task = self.async_task
 
         ensure_async_loop()
 
-    def _stop_async_task(self, is_global=True):
-        if is_global:
-            async_task = globalvar.async_task
-        else:
-            async_task = self.async_task
+    def _stop_prev_async_task(self):
+        async_task = globalvar.async_task
         if async_task is None:
             return
 

@@ -41,7 +41,6 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             self.report({"Error"}, "No material is selected or given")
             return {"CANCELLED"}
         self.target_material_name = material_inst.name
-        print("Sublender_Render_Texture_Async: Rendering Texture for {0}".format(material_inst.name))
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str], output_id: str):
