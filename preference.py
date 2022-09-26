@@ -62,10 +62,10 @@ class SublenderPreferences(AddonPreferences):
     engine_enum: EnumProperty(
         items=[
             ("$default$", "Unspecified", "Unspecified, it will use the default engine."),
-            ("d3d11pc", "d3d11pc(windows)",
+            ("d3d11pc", "d3d11pc(gpu,windows)",
              "d3d11pc: it will use dx11 as render engine, might not be available in linux"),
-            ("sse2", "sse2", "sse2"),
-            ("ogl3", "ogl3(non-windows)", "ogl3"),
+            ("sse2", "sse2(cpu)", "sse2"),
+            ("ogl3", "ogl3(gpu,non-windows)", "ogl3"),
             (consts.CUSTOM, "Custom", "Custom")],
         default="$default$",
         name="Substance Render Engine"
