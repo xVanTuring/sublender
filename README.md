@@ -9,6 +9,7 @@ Todo:
 * short class name -> to uid or hash(identifier)
 * Use nodes group instead ... 
 * async for sbsar loading :failed
+* better support for image image
 
 Workflow:
 * ab workflow
