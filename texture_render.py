@@ -8,6 +8,7 @@ import bpy
 from bpy.props import StringProperty
 from bpy.types import Operator
 from pysbs.context import Context
+from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 
 from . import globalvar, settings, utils, consts, async_loop, template
 
@@ -77,11 +78,15 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         param_list.append("{0}@{1},{2}".format(
                             input_info['mIdentifier'], width, height))
                 else:
+                    is_image = input_info['mType'] == SBSARTypeEnum.IMAGE
                     value = graph_setting.get(input_info['prop'])
                     if value is not None:
                         if input_info.get('enum_items') is not None:
                             value = input_info.get('enum_items')[value][0]
-                        param_list.append("--set-value")
+                        if is_image:
+                            param_list.append("--set-entry")
+                        else:
+                            param_list.append("--set-value")
                         to_list = getattr(value, 'to_list', None)
                         if to_list is not None:
                             if isinstance(value[0], float):
@@ -114,6 +119,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         print("Render engine is {0}".format(custom_value))
             else:
                 print("Use Default Engine")
+            # print(' '.join(param_list))
             worker_list = []
             # TODO: don't assign texture in custom workflow
             m_workflow = globalvar.material_templates.get(
