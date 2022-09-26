@@ -70,14 +70,6 @@ class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
     timer = None
     log = logging.getLogger(__name__ + '.SublenderAsyncLoopModalOperator')
 
-    def __del__(self):
-        global _loop_kicking_operator_running
-
-        # This can be required when the operator is running while Blender
-        # (re)loads a file. The operator then doesn't get the chance to
-        # finish the async tasks, hence stop_after_this_kick is never True.
-        _loop_kicking_operator_running = False
-
     def execute(self, context):
         return self.invoke(context, None)
 
