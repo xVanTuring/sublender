@@ -6,11 +6,11 @@ Fix:
 Todo:
 * add panel to 3d view and options:?
 * register blender file uuid -> user preference 
-* short class name -> to uid or hash(identifier)
+* ~~short class name -> to uid or hash(identifier)~~
 * Use nodes group instead ... 
-* async for sbsar loading :failed
-* better support for image image
-
+* ~~async for sbsar loading :failed->done~~
+* ~~better support for image image~~
+* material slider in sublender panel
 Workflow:
 * ab workflow
 * height workflow

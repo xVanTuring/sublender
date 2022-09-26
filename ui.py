@@ -148,6 +148,30 @@ def calc_group_visibility(eval_delegate, group_info: dict, debug=False):
     return False
 
 
+class SUBLENDER_PT_Material_Prop_Panel(Panel):
+    bl_label = "Material Settings"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = 'Sublender'
+
+    @classmethod
+    def poll(cls, context):
+        active_mat, active_graph = utils.find_active_graph(context)
+        if active_mat is None or active_graph is None:
+            return False
+        return True
+
+    def draw(self, context):
+        active_mat = utils.find_active_mat(context)
+        normal_node = active_mat.node_tree.nodes.get('Normal Map')
+        if normal_node is not None and isinstance(normal_node, bpy.types.ShaderNodeNormalMap):
+            self.layout.prop(normal_node.inputs['Strength'], 'default_value', text="Normal Strength")
+        displacement_node = active_mat.node_tree.nodes.get('Displacement')
+        if displacement_node is not None and isinstance(displacement_node, bpy.types.ShaderNodeDisplacement):
+            self.layout.prop(displacement_node.inputs['Midlevel'], 'default_value', text="Displacement Midlevel")
+            self.layout.prop(displacement_node.inputs['Scale'], 'default_value', text="Displacement Scale")
+
+
 class Sublender_Prop_BasePanel(Panel):
     bl_label = ""
     bl_space_type = "VIEW_3D"
@@ -222,8 +246,10 @@ class Sublender_Prop_BasePanel(Panel):
 def register():
     bpy.utils.register_class(SUBLENDER_PT_Main)
     bpy.utils.register_class(SUBLENDER_MT_context_menu)
+    bpy.utils.register_class(SUBLENDER_PT_Material_Prop_Panel)
 
 
 def unregister():
     bpy.utils.unregister_class(SUBLENDER_PT_Main)
     bpy.utils.unregister_class(SUBLENDER_MT_context_menu)
+    bpy.utils.unregister_class(SUBLENDER_PT_Material_Prop_Panel)
