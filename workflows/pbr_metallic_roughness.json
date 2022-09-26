@@ -69,6 +69,26 @@
                 -450,
                 -209
             ]
+        },
+        {
+            "type": "ShaderNodeTexCoord",
+            "name": "Texture Coordinate",
+            "label": "Texture Coordinate",
+            "hide": false,
+            "location": [
+                -1079,
+                120
+            ]
+        },
+        {
+            "type": "ShaderNodeMapping",
+            "name": "Mapping",
+            "label": "Mapping",
+            "hide": false,
+            "location": [
+                -927,
+                134
+            ]
         }
     ],
     "links": [
@@ -107,6 +127,36 @@
             "fromSocket": "Normal",
             "toNode": "Principled BSDF",
             "toSocket": "Normal"
+        },
+        {
+            "fromNode": "Texture Coordinate",
+            "fromSocket": "UV",
+            "toNode": "Mapping",
+            "toSocket": "Vector"
+        },
+        {
+            "fromNode": "Mapping",
+            "fromSocket": "Vector",
+            "toNode": "baseColor",
+            "toSocket": "Vector"
+        },
+        {
+            "fromNode": "Mapping",
+            "fromSocket": "Vector",
+            "toNode": "metallic",
+            "toSocket": "Vector"
+        },
+        {
+            "fromNode": "Mapping",
+            "fromSocket": "Vector",
+            "toNode": "roughness",
+            "toSocket": "Vector"
+        },
+        {
+            "fromNode": "Mapping",
+            "fromSocket": "Vector",
+            "toNode": "normal",
+            "toSocket": "Vector"
         }
     ],
     "texture": [
