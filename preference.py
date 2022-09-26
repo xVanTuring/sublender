@@ -30,6 +30,11 @@ class SublenderPreferences(AddonPreferences):
                     " from crash when undo in Material Mode.",
         default=True
     )
+    # update_when_sizing: BoolProperty(
+    #     name="Update texture when change size",
+    #     description="Update texture when change size",
+    #     default=True
+    # )
     output_size_x: EnumProperty(
         name='Width',
         items=consts.output_size_one_enum,
@@ -92,6 +97,7 @@ class SublenderPreferences(AddonPreferences):
                  toggle=1, icon="GHOST_ENABLED")
         row.prop(self, 'enable_visible_if',
                  toggle=1, icon="HIDE_OFF")
+        # layout.prop(self, 'update_when_sizing', toggle=1, icon='FILE_REFRESH')
         layout.prop(self, 'engine_enum')
         if self.engine_enum == consts.CUSTOM:
             layout.prop(self, 'custom_engine')

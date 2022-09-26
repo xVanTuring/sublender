@@ -202,6 +202,8 @@ class Sublender_Prop_BasePanel(Panel):
                 else:
                     row.prop(graph_setting,
                              consts.output_size_y, text='')
+                if context.scene.sublender_settings.live_update:
+                    row.prop(graph_setting, consts.update_when_sizing, toggle=1, icon_only=True, icon="UV_SYNC_SELECT")
             elif prop_info.get('mIdentifier') == "$randomseed":
                 row = layout.row()
                 row.prop(graph_setting, prop_info['prop'], text=prop_info['label'])

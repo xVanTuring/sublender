@@ -77,3 +77,4 @@ TEMPLATE_PATH = os.path.join(ADDON_DIR, 'workflows')
 output_size_x = "$sb_output_size_x"
 output_size_y = "$sb_output_size_y"
 output_size_lock = "$sb_output_size_lock"
+update_when_sizing = "$update_when_sizing"

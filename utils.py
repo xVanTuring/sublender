@@ -90,7 +90,8 @@ def output_size_x_updated(self, context):
             getattr(self, consts.output_size_y) != getattr(self,
                                                            consts.output_size_x):
         setattr(self, consts.output_size_y, getattr(self, consts.output_size_x))
-    sbsar_input_updated(self, context)
+        if getattr(self, consts.update_when_sizing):
+            sbsar_input_updated(self, context)
 
 
 def substance_group_to_toggle_name(name: str) -> str:
@@ -176,11 +177,15 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 _anno_obj[consts.output_size_y] = (EnumProperty, {
                     'items': consts.output_size_one_enum,
                     'default': addon_prefs.output_size_x,
-                    'update': output_size_x_updated,
+                    # 'update': output_size_x_updated,
                 })
                 _anno_obj[consts.output_size_lock] = (BoolProperty, {
                     'default': addon_prefs.output_size_lock,
                     'update': output_size_x_updated
+                })
+                _anno_obj[consts.update_when_sizing] = (BoolProperty, {
+                    'name': "Update texture when change size",
+                    'default': True
                 })
             else:
                 _anno_obj[input_info['prop']] = (prop_type, _anno_item)
