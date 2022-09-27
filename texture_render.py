@@ -31,6 +31,13 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
     bl_description = "Render Texture"
     material_name: StringProperty(name="Target Material Name, Optional", default="")
     target_material_name = ""
+    process_list = list()
+
+    def clean(self, context):
+        while self.process_list:
+            process: asyncio.subprocess.Process = self.process_list.pop()
+            if process.returncode is None:
+                process.terminate()
 
     def invoke(self, context, event):
         if self.material_name != "":
@@ -48,6 +55,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             Context.getBatchToolExePath(5),
             *cmd_list,
             stdout=asyncio.subprocess.PIPE)
+        self.process_list.append(process)
         await process.wait()
         self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
         return await process.stdout.read()
@@ -148,7 +156,6 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             result = await asyncio.gather(*worker_list)
             end = datetime.datetime.now()
             resource_dict = build_resource_dict(result)
-            # globalvar.material_output_dict[self.material_inst.name] = resource_dict
 
             template.ensure_assets(context, self.target_material_name, m_workflow, resource_dict)
             self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(

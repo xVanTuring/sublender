@@ -126,6 +126,9 @@ class AsyncModalOperatorMixin:
         """
         return
 
+    def clean(self, context):
+        return
+
     def execute(self, context):
         return self.invoke(context, None)
 
@@ -140,6 +143,8 @@ class AsyncModalOperatorMixin:
                 self.log.info('modal: Asynchronous task was cancelled')
             except Exception:
                 self.log.exception("modal: Exception from asynchronous task")
+            self.clean(context)
+            return {'FINISHED'}
 
         return {'PASS_THROUGH'}
 
