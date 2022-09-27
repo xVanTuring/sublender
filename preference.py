@@ -2,8 +2,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import AddonPreferences
 
-# from .consts import output_size_enum, SUBLENDER_DIR
-from . import consts, globalvar
+from . import consts
 
 
 def output_size_x_updated(self, context):
@@ -20,12 +19,6 @@ class SublenderPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __package__
 
-    cache_path: StringProperty(
-        name="Sublender Path(Restart needed)",
-        subtype='FILE_PATH',
-        default=globalvar.SUBLENDER_DIR,
-        description="Path to store texture cache"
-    )
     compatible_mode: BoolProperty(
         name="Compatible Undo Mode",
         description="Enable Compatible Undo Mode for blender 2.82a, with this option on, "
@@ -33,11 +26,6 @@ class SublenderPreferences(AddonPreferences):
                     " from crash when undo in Material Mode.",
         default=True
     )
-    # update_when_sizing: BoolProperty(
-    #     name="Update texture when change size",
-    #     description="Update texture when change size",
-    #     default=True
-    # )
     output_size_x: EnumProperty(
         name='Width',
         items=consts.output_size_one_enum,
@@ -84,9 +72,8 @@ class SublenderPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'sat_path')
-        layout.prop(self, "cache_path")
         layout.prop(self, "default_render_policy")
-        row = self.layout.row()
+        row = layout.row()
         row.prop(self,
                  'output_size_x', text='Default Texture Size')
         row.prop(self, 'output_size_lock',

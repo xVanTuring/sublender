@@ -112,7 +112,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         param_list.append("{0}@{1}".format(
                             input_info['mIdentifier'], value))
             param_list.append("--output-path")
-            target_dir = utils.texture_output_dir(clss_name, self.target_material_name)
+            target_dir = utils.texture_output_dir(self.target_material_name)
             pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
             param_list.append(target_dir)
             param_list.append("--output-name")

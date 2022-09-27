@@ -85,7 +85,7 @@ class Sublender_Copy_Texture_Path(Sublender_Base_Operator, Operator):
     def execute(self, context):
         material_instance = utils.find_active_mat(context)
         m_sublender: settings.Sublender_Material_MT_Setting = material_instance.sublender
-        output_dir = utils.texture_output_dir(utils.gen_clss_name(m_sublender.graph_url), material_instance.name)
+        output_dir = utils.texture_output_dir(material_instance.name)
         bpy.context.window_manager.clipboard = output_dir
         self.report({"INFO"}, "Copied")
         return {'FINISHED'}
