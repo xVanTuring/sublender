@@ -11,6 +11,9 @@ def output_size_x_updated(self, context):
         self.output_size_y = self.output_size_x
 
 
+thank_list = ["kalish"]
+
+
 # noinspection PyTypeChecker
 class SublenderPreferences(AddonPreferences):
     # this must match the add-on name, use '__package__'
@@ -101,6 +104,9 @@ class SublenderPreferences(AddonPreferences):
         layout.prop(self, 'engine_enum')
         if self.engine_enum == consts.CUSTOM:
             layout.prop(self, 'custom_engine')
+
+        layout.label(text="Special Thanks to YOU and: ")
+        layout.label(text=' '.join(thank_list))
 
 
 def register():
