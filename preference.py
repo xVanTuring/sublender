@@ -69,6 +69,8 @@ class SublenderPreferences(AddonPreferences):
              "d3d11pc: it will use dx11 as render engine, might not be available in linux"),
             ("sse2", "sse2(cpu)", "sse2"),
             ("ogl3", "ogl3(gpu,non-windows)", "ogl3"),
+            ("d3d10pc", "d3d10pc(gpu,2019)",
+             "similar to d3d11pc, but for substance 2019"),
             (consts.CUSTOM, "Custom", "Custom")],
         default="$default$",
         name="Substance Render Engine"

@@ -7,7 +7,7 @@ from typing import List
 import bpy
 from bpy.props import StringProperty
 from bpy.types import Operator
-from pysbs.context import Context
+from pysbs import context as sbsContext
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 
 from . import globalvar, settings, utils, consts, async_loop, template
@@ -52,7 +52,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
 
     async def render_map(self, cmd_list: List[str], output_id: str):
         process = await asyncio.create_subprocess_exec(
-            Context.getBatchToolExePath(5),
+            sbsContext.Context.getBatchToolExePath(5),
             *cmd_list,
             stdout=asyncio.subprocess.PIPE)
         self.process_list.append(process)

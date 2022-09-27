@@ -4,6 +4,7 @@ import uuid
 
 import bpy
 import pysbs
+from pysbs import context as sbsContext
 from bpy.props import (StringProperty)
 from bpy.types import Operator
 
@@ -144,8 +145,8 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
         sat_path = context.preferences.addons[__package__].preferences.sat_path
         if sat_path != "":
             print("Setting SAT Path {0}".format(sat_path))
-            pysbs.context.Context.setAutomationToolkitInstallPath(sat_path)
-        globalvar.aContext = pysbs.context.Context()
+            sbsContext.Context.setAutomationToolkitInstallPath(sat_path)
+        globalvar.aContext = sbsContext.Context()
         sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
         if sublender_settings.uuid == "":
             sublender_settings.uuid = str(uuid.uuid4())

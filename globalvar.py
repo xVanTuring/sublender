@@ -3,7 +3,7 @@ import os
 import pathlib
 import typing
 
-import pysbs
+from pysbs import context
 
 instance_map = {
 }
@@ -17,7 +17,7 @@ sub_panel_clss_list = []
 material_templates = {}
 material_template_enum = []
 # material_output_dict = {}
-aContext: typing.Optional[pysbs.context.Context] = None
+aContext: typing.Optional[context.Context] = None
 current_uuid = ""
 
 async_task: typing.Optional[asyncio.Future] = None
