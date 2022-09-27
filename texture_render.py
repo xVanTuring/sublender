@@ -91,7 +91,12 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         if input_info.get('enum_items') is not None:
                             value = input_info.get('enum_items')[value][0]
                         if is_image:
-                            param_list.append("--set-entry")
+                            if value == "":
+                                # Ignore input if it is empty
+                                # TODO add exist check?
+                                continue
+                            else:
+                                param_list.append("--set-entry")
                         else:
                             param_list.append("--set-value")
                         to_list = getattr(value, 'to_list', None)
