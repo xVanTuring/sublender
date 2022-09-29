@@ -29,16 +29,28 @@ def ensure_nodes(mat: bpy.types.Material, template, clear_nodes: bool):
             node_inst.location = node_info['location']
         if node_info.get('hide', False):
             node_inst.hide = True
+        if node_info.get('prop') is not None:
+            for prop_item in node_info.get('prop'):
+                temp = node_inst
+                path_list = prop_item['path'].split('.')
+                for prop_name in path_list[:-1]:
+                    temp = getattr(temp, prop_name)
+                    if temp is None:
+                        break
+                setattr(temp, path_list[-1], prop_item['value'])
 
 
 def ensure_link(mat, template):
     node_list = mat.node_tree.nodes
     node_links = mat.node_tree.links
     for link in template['links']:
-        from_node = node_list.get(link['fromNode'])
-        to_node = node_list.get(link['toNode'])
+        from_info, to_info = link.split('/')
+        from_name, from_socket = from_info.split('.')
+        to_name, to_socket = to_info.split('.')
+        from_node = node_list.get(from_name)
+        to_node = node_list.get(to_name)
         node_links.new(
-            from_node.outputs[link['fromSocket']], to_node.inputs[link['toSocket']])
+            from_node.outputs[from_socket], to_node.inputs[to_socket])
 
 
 def ensure_options(mat, template):
@@ -58,12 +70,12 @@ def ensure_assets(context, material_name: str, template, resource):
     compatible_undo = addon_prefs.compatible_mode
     node_list = material.node_tree.nodes
     for texture_info in template['texture']:
-        texture_path_list = resource.get(texture_info['type'])
+        texture_path_list = resource.get(texture_info)
         if texture_path_list is not None and len(texture_path_list) > 0:
             texture_path = texture_path_list[0]
-            target_node = node_list.get(texture_info['node'])
+            target_node = node_list.get(texture_info)
             target_img_name = "{0}_{1}".format(
-                material.name, texture_info['type'])
+                material.name, texture_info)
             if compatible_undo:
                 texture_img = bpy.data.images.load(
                     texture_path, check_existing=False)
@@ -77,9 +89,10 @@ def ensure_assets(context, material_name: str, template, resource):
                     texture_img = bpy.data.images.load(
                         texture_path, check_existing=True)
                     texture_img.name = target_img_name
-            if texture_info.get('colorspace') is not None:
-                texture_img.colorspace_settings.name = texture_info.get(
-                    'colorspace')
+            # COLOR BY NAME?
+            # if texture_info.get('colorspace') is not None:
+            #     texture_img.colorspace_settings.name = texture_info.get(
+            #         'colorspace')
             if target_node is not None:
                 target_node.image = texture_img
             else:
@@ -89,6 +102,20 @@ def ensure_assets(context, material_name: str, template, resource):
             print("Missing Texture:{0}".format(texture_info['type']))
 
 
+def load_default_texture(mat, template):
+    default_color = os.path.join(consts.RESOURCES_PATH, "default_color.png")
+    default_normal = os.path.join(consts.RESOURCES_PATH, "default_normal.png")
+    default_color_node = bpy.data.images.load(default_color, check_existing=True)
+    default_normal_node = bpy.data.images.load(default_normal, check_existing=True)
+    for texture in template['texture']:
+        texture_node: bpy.types.ShaderNodeTexImage = mat.node_tree.nodes.get(texture)
+        if texture_node is not None:
+            if texture == 'normal':
+                texture_node.image = default_normal_node
+            else:
+                texture_node.image = default_color_node
+
+
 def inflate_template(mat, template_name: str, clear_nodes=False):
     template = globalvar.material_templates.get(template_name)
     if template is None:
@@ -96,6 +123,7 @@ def inflate_template(mat, template_name: str, clear_nodes=False):
     ensure_nodes(mat, template, clear_nodes)
     ensure_link(mat, template)
     ensure_options(mat, template)
+    load_default_texture(mat, template)
 
 
 def load_material_templates():

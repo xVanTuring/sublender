@@ -10,11 +10,13 @@ from bpy.types import Operator
 from pysbs import context as sbsContext
 from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 
-from . import globalvar, settings, utils, consts, async_loop, template
+from . import globalvar, settings, utils, consts, async_loop
 
 
 def build_resource_dict(result):
-    resource_dict = {}
+    resource_dict = {
+        '$extra': []
+    }
     for output in result:
         img_output = json.loads(str(output, encoding="ascii"))
         for usage in img_output[0]['outputs'][0]['usages']:
@@ -29,6 +31,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
     bl_idname = "sublender.render_texture_async"
     bl_label = "Render Texture"
     bl_description = "Render Texture"
+    assign_material: bpy.props.BoolProperty()
     material_name: StringProperty(name="Target Material Name, Optional", default="")
     target_material_name = ""
     process_list = list()
@@ -45,12 +48,12 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         else:
             material_inst = utils.find_active_mat(context)
         if material_inst is None:
-            self.report({"Error"}, "No material is selected or given")
+            self.report({"WARNING"}, "No material is selected or given")
             return {"CANCELLED"}
         self.target_material_name = material_inst.name
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
-    async def render_map(self, cmd_list: List[str], output_id: str):
+    async def render_map(self, cmd_list: List[str], output_id: str, material_name: str):
         process = await asyncio.create_subprocess_exec(
             sbsContext.Context.getBatchToolExePath(5),
             *cmd_list,
@@ -58,13 +61,40 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         self.process_list.append(process)
         await process.wait()
         self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
-        return await process.stdout.read()
+        output_result = await process.stdout.read()
+        img_output_info = json.loads(str(output_result, encoding="ascii"))
+        usages = img_output_info[0]['outputs'][0]['usages']
+        texture_path = bpy.path.relpath(img_output_info[0]['outputs'][0]['value'])
+        one_usage = None
+        if len(usages) > 0:
+            one_usage = usages[0]
+            image_name = '{0}_{1}'.format(material_name, usages[0])
+        else:
+            graph_identifier = img_output_info[0]['outputs'][0]['identifier']
+            image_name = '{0}_{1}'.format(material_name, graph_identifier)
+        texture_image = bpy.data.images.get(image_name)
+        if texture_image is not None:
+            texture_image.filepath = texture_path
+            texture_image.reload()
+        else:
+            texture_image = bpy.data.images.load(
+                texture_path, check_existing=True)
+            texture_image.name = image_name
+        if one_usage is not None and one_usage in consts.non_color_dict:
+            texture_image.colorspace_settings.name = 'Non-Color'
+        if self.assign_material and one_usage is not None:
+            material_instance: bpy.types.Material = bpy.data.materials.get(material_name)
+            if material_instance is not None:
+                image_node: bpy.types.ShaderNodeTexImage = material_instance.node_tree.nodes.get(one_usage)
+                if image_node is not None:
+                    image_node.image = texture_image
+        return output_result
 
     async def async_execute(self, context):
         if self.target_material_name != "":
             await asyncio.sleep(0.3)
             start = datetime.datetime.now()
-            material_inst = bpy.data.materials.get(self.target_material_name)
+            material_inst: bpy.types.Material = bpy.data.materials.get(self.target_material_name)
             m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
             clss_name = utils.gen_clss_name(m_sublender.graph_url)
             clss_info = globalvar.graph_clss.get(clss_name)
@@ -131,38 +161,22 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         print("Render engine is {0}".format(custom_value))
             else:
                 print("Use Default Engine")
-            # print(' '.join(param_list))
+            build_list = []
+            output_info_list = clss_info['output_info']['list']
+            for output in output_info_list:
+                if getattr(graph_setting, utils.sb_output_to_prop(output['name'])):
+                    build_list.append(output['name'])
             worker_list = []
-            # TODO: don't assign texture in custom workflow
-            m_workflow = globalvar.material_templates.get(
-                m_sublender.material_template)
-            output_list = clss_info['output_info']['list']
-            if m_sublender.render_policy == "workflow":
-                if m_sublender.material_template != consts.CUSTOM:
-                    output_usage_dict = clss_info['output_info']['usage']
-                    output_list = []
-                    for item in m_workflow['texture']:
-                        if output_usage_dict.get(item['type']) is not None:
-                            output_list.append(output_usage_dict.get(item['type'])[0])
-                        else:
-                            self.report({"WARNING"}, "Missing texture with Usage: {0}".format(item['type']))
-            self.report({"INFO"}, "Rendering texture: {0}".format(",".join(output_list)))
-            # elif addon_prefs.default_render_policy == "channels":
-            #     sbsar_graph: SBSARGraph = clss_info['graph']
-            #     channels_options = sbsar_graph.getAllInputsInGroup("Channels")
-            #     if len(channels_options) != 0:
-            #         # do have this group
-            #         pass
-            for output in output_list:
+            for output in build_list:
                 per_output = param_list[:]
                 per_output.append("--input-graph-output")
                 per_output.append(output)
-                worker_list.append(self.render_map(per_output, output))
-            result = await asyncio.gather(*worker_list)
+                worker_list.append(self.render_map(per_output, output, material_inst.name))
+            await asyncio.gather(*worker_list)
             end = datetime.datetime.now()
-            resource_dict = build_resource_dict(result)
-
-            template.ensure_assets(context, self.target_material_name, m_workflow, resource_dict)
+            # resource_dict = build_resource_dict(result)
+            #
+            # template.ensure_assets(context, self.target_material_name, m_workflow, resource_dict)
             self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
                 (end - start).total_seconds()))
 

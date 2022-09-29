@@ -74,7 +74,12 @@ output_size_enum = [
 ADDON_DIR = os.path.dirname(__file__)
 
 TEMPLATE_PATH = os.path.join(ADDON_DIR, 'workflows')
+RESOURCES_PATH = os.path.join(ADDON_DIR, 'resources')
 output_size_x = "$sb_output_size_x"
 output_size_y = "$sb_output_size_y"
 output_size_lock = "$sb_output_size_lock"
 update_when_sizing = "$update_when_sizing"
+non_color_dict = ['metallic',
+                  'roughness',
+                  'normal',
+                  'height', ]

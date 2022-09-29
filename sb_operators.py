@@ -3,10 +3,9 @@ import random
 import uuid
 
 import bpy
-import pysbs
-from pysbs import context as sbsContext
 from bpy.props import (StringProperty)
 from bpy.types import Operator
+from pysbs import context as sbsContext
 
 from . import settings, utils, globalvar, consts, template, async_loop
 
@@ -44,13 +43,7 @@ class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
         workflow_name: str = mat_setting.material_template
         if workflow_name != consts.CUSTOM:
             template.inflate_template(material_instance, workflow_name, True)
-            # resource_dict = globalvar.material_output_dict.get(material_instance.name)
-            # if resource_dict is not None:
-            #     workflow = globalvar.material_templates.get(workflow_name)
-            #     template.ensure_assets(context, material_instance, workflow, resource_dict)
-            # else:
-            # TODO check rendered workflow
-            bpy.ops.sublender.render_texture_async()
+            bpy.ops.sublender.render_texture_async(assign_material=True)
         return {'FINISHED'}
 
 

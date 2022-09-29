@@ -8,9 +8,8 @@ from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
-from . import globalvar, consts, utils, async_loop
+from . import globalvar, utils, async_loop, consts, template
 from .settings import Sublender_Material_MT_Setting
-from .template import inflate_template
 from .utils import new_material_name, EvalDelegate
 
 
@@ -35,15 +34,6 @@ class Sublender_Import_Graph(Operator):
         items=globalvar.material_template_enum,
         name='Material Template'
     )
-    # noinspection PyTypeChecker
-    render_policy: EnumProperty(
-        name="Render Policy",
-        items=[
-            ("all", "Render all texture", "Render all texture to disk"),
-            ("workflow", "Follow active workflow", "Follow active workflow"),
-        ],
-        default="all"
-    )
 
     def execute(self, context):
         # TODO better custom workflow
@@ -58,7 +48,6 @@ class Sublender_Import_Graph(Operator):
         m_sublender.graph_url = self.graph_url
         m_sublender.package_path = self.package_path
         m_sublender.material_template = self.material_template
-        m_sublender.render_policy = self.render_policy
         m_sublender.package_loaded = True
 
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
@@ -70,14 +59,21 @@ class Sublender_Import_Graph(Operator):
                 material.name,
                 clss_name
             )
+
+        material_template = globalvar.material_templates.get(self.material_template)
+        output_info_usage: dict = clss_info['output_info']['usage']
+        graph_setting = getattr(material, clss_name)
+        for template_texture in material_template['texture']:
+            if output_info_usage.get(template_texture) is not None:
+                name = output_info_usage.get(template_texture)[0]
+                setattr(graph_setting, utils.sb_output_to_prop(name), True)
         if self.material_template != consts.CUSTOM:
-            inflate_template(material, self.material_template, True)
+            template.inflate_template(material, self.material_template, True)
         bpy.ops.sublender.render_texture_async(
-            material_name=material.name)
+            material_name=material.name, assign_material=True)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.render_policy = context.preferences.addons[__package__].preferences.default_render_policy
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=400)
 
@@ -88,7 +84,6 @@ class Sublender_Import_Graph(Operator):
         col.prop(self, "material_name")
         col.prop(self, "use_fake_user", icon='FAKE_USER_ON')
         col.prop(self, "assign_to_selection")
-        col.prop(self, "render_policy")
         col.prop(self, "material_template")
 
 

@@ -25,8 +25,8 @@
             "name": "baseColor",
             "label": "Base Color",
             "location": [
-                -338,
-                190
+                -540.0,
+                180.0
             ],
             "hide": true
         },
@@ -51,6 +51,16 @@
             "hide": true
         },
         {
+            "type": "ShaderNodeTexImage",
+            "name": "normal",
+            "label": "Normal",
+            "location": [
+                -450,
+                -209
+            ],
+            "hide": true
+        },
+        {
             "type": "ShaderNodeNormalMap",
             "name": "Normal Map",
             "label": "Normal Map",
@@ -62,12 +72,38 @@
         },
         {
             "type": "ShaderNodeTexImage",
-            "name": "normal",
-            "label": "Normal",
+            "name": "ambientOcclusion",
+            "label": "Ambient Occlusion",
             "hide": true,
             "location": [
-                -450,
-                -209
+                -560.0,
+                260.0
+            ]
+        },
+        {
+            "type": "ShaderNodeMixRGB",
+            "name": "AO Intensity",
+            "label": "AO Intensity",
+            "hide": false,
+            "location": [
+                -220.0,
+                320.0
+            ],
+            "prop": [
+                {
+                    "path": "blend_type",
+                    "value": "MULTIPLY"
+                }
+            ]
+        },
+        {
+            "type": "ShaderNodeTexCoord",
+            "name": "Texture Coordinate",
+            "label": "Texture Coordinate",
+            "hide": false,
+            "location": [
+                -1079,
+                120
             ]
         },
         {
@@ -92,92 +128,26 @@
         }
     ],
     "links": [
-        {
-            "fromNode": "Principled BSDF",
-            "toNode": "Material Output",
-            "fromSocket": "BSDF",
-            "toSocket": "Surface"
-        },
-        {
-            "fromNode": "baseColor",
-            "toNode": "Principled BSDF",
-            "fromSocket": "Color",
-            "toSocket": "Base Color"
-        },
-        {
-            "fromNode": "metallic",
-            "fromSocket": "Color",
-            "toNode": "Principled BSDF",
-            "toSocket": "Metallic"
-        },
-        {
-            "fromNode": "roughness",
-            "fromSocket": "Color",
-            "toNode": "Principled BSDF",
-            "toSocket": "Roughness"
-        },
-        {
-            "fromNode": "normal",
-            "fromSocket": "Color",
-            "toNode": "Normal Map",
-            "toSocket": "Color"
-        },
-        {
-            "fromNode": "Normal Map",
-            "fromSocket": "Normal",
-            "toNode": "Principled BSDF",
-            "toSocket": "Normal"
-        },
-        {
-            "fromNode": "Texture Coordinate",
-            "fromSocket": "UV",
-            "toNode": "Mapping",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "baseColor",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "metallic",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "roughness",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "normal",
-            "toSocket": "Vector"
-        }
+        "Texture Coordinate.UV/Mapping.Vector",
+        "Mapping.Vector/ambientOcclusion.Vector",
+        "Mapping.Vector/baseColor.Vector",
+        "Mapping.Vector/metallic.Vector",
+        "Mapping.Vector/roughness.Vector",
+        "Mapping.Vector/normal.Vector",
+        "ambientOcclusion.Color/AO Intensity.Color2",
+        "baseColor.Color/AO Intensity.Color1",
+        "AO Intensity.Color/Principled BSDF.Base Color",
+        "metallic.Color/Principled BSDF.Metallic",
+        "roughness.Color/Principled BSDF.Roughness",
+        "normal.Color/Normal Map.Color",
+        "Normal Map.Normal/Principled BSDF.Normal",
+        "Principled BSDF.BSDF/Material Output.Surface"
     ],
     "texture": [
-        {
-            "type": "baseColor",
-            "node": "baseColor"
-        },
-        {
-            "type": "metallic",
-            "node": "metallic",
-            "colorspace": "Non-Color"
-        },
-        {
-            "type": "roughness",
-            "node": "roughness",
-            "colorspace": "Non-Color"
-        },
-        {
-            "type": "normal",
-            "node": "normal",
-            "colorspace": "Non-Color"
-        }
+        "baseColor",
+        "metallic",
+        "roughness",
+        "normal",
+        "ambientOcclusion"
     ]
 }

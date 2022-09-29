@@ -40,12 +40,7 @@ class SublenderPreferences(AddonPreferences):
         default=True,
         update=output_size_x_updated
     )
-    default_render_policy: EnumProperty(
-        name="Default Render Policy",
-        items=[
-            ("all", "Render all texture", "Render all texture to disk"),
-            ("workflow", "Follow active workflow", "Follow active workflow"), ]
-    )
+
     enable_visible_if: BoolProperty(
         name="Enable Visible If"
     )
@@ -72,7 +67,6 @@ class SublenderPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'sat_path')
-        layout.prop(self, "default_render_policy")
         row = layout.row()
         row.prop(self,
                  'output_size_x', text='Default Texture Size')

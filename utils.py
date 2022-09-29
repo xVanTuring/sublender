@@ -100,6 +100,10 @@ def substance_group_to_toggle_name(name: str) -> str:
     return "sb_{0}_gptl".format(bpy.path.clean_name(str(hash(name))))
 
 
+def sb_output_to_prop(uid: str):
+    return "sbo_{0}".format(uid)
+
+
 def gen_clss_name(graph_url: str):
     return "sb" + graph_url.replace("pkg://", "_")
 
@@ -192,6 +196,24 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             else:
                 _anno_obj[input_info['prop']] = (prop_type, _anno_item)
 
+        output_list = []
+        output_usage_dict: typing.Dict[str, typing.List[str]] = {}
+        for output in all_outputs:
+            # TODO trigger build after changing
+            _anno_obj[sb_output_to_prop(output.mIdentifier)] = (BoolProperty, {
+                'name': output.mOutputGui.mLabel,
+                'default': False
+            })
+            output_list.append({
+                'name': output.mIdentifier,
+                'usages': output.getUsages(),
+                'label': output.mOutputGui.mLabel,
+                'uid': output.mUID
+            })
+            for usage in output.getUsages():
+                if output_usage_dict.get(usage.mName) is None:
+                    output_usage_dict[usage.mName] = []
+                output_usage_dict[usage.mName].append(output.mIdentifier)
         group_tree, group_map = parse_sbsar_group(sbs_graph)
         generate_sub_panel(group_map, graph_url)
         clss = type(clss_name, (bpy.types.PropertyGroup,), {
@@ -199,14 +221,6 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
         })
         register_class(clss)
 
-        output_list = []
-        output_usage_dict: typing.Dict[str, typing.List[str]] = {}
-        for output in all_outputs:
-            output_list.append(output.mIdentifier)
-            for usage in output.getUsages():
-                if output_usage_dict.get(usage.mName) is None:
-                    output_usage_dict[usage.mName] = []
-                output_usage_dict[usage.mName].append(output.mIdentifier)
         globalvar.graph_clss[clss_name] = {
             'clss': clss,
             'input': input_list,

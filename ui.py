@@ -72,8 +72,6 @@ def draw_texture_item(self, context, target_mat):
         "sublender.render_texture_async", icon='TEXTURE')
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
-    row.prop(mat_setting,
-             'render_policy', text='')
     row.prop(sublender_settings,
              'live_update', icon='FILE_REFRESH', icon_only=True)
     if sublender_settings.live_update:
@@ -177,6 +175,29 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
             self.layout.prop(displacement_node.inputs['Scale'], 'default_value', text="Displacement Scale")
 
 
+class SUBLENDER_PT_SB_Output_Panel(Panel):
+    bl_label = "Output"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = 'Sublender'
+
+    @classmethod
+    def poll(cls, context):
+        active_mat, active_graph = utils.find_active_graph(context)
+        if active_mat is None or active_graph is None:
+            return False
+        clss_name = utils.gen_clss_name(active_graph)
+        graph_setting = getattr(active_mat, clss_name, None)
+        return graph_setting is not None
+
+    def draw(self, context):
+        active_mat, active_graph = utils.find_active_graph(context)
+        clss_name = utils.gen_clss_name(active_graph)
+        graph_setting = getattr(active_mat, clss_name)
+        for output_info in globalvar.graph_clss.get(clss_name)['output_info']['list']:
+            self.layout.prop(graph_setting, utils.sb_output_to_prop(output_info['name']))
+
+
 class Sublender_Prop_BasePanel(Panel):
     bl_label = ""
     bl_space_type = "VIEW_3D"
@@ -224,7 +245,7 @@ class Sublender_Prop_BasePanel(Panel):
                 row.prop(graph_setting,
                          consts.output_size_x, text='Size')
                 row.prop(graph_setting, consts.output_size_lock,
-                         toggle=1, icon_only=True, icon="LINKED", )
+                         toggle=1, icon_only=True, icon="LINKED")
                 if getattr(graph_setting, consts.output_size_lock):
                     row.prop(graph_setting,
                              consts.output_size_x, text='')
@@ -251,10 +272,10 @@ class Sublender_Prop_BasePanel(Panel):
 def register():
     bpy.utils.register_class(SUBLENDER_PT_Main)
     bpy.utils.register_class(SUBLENDER_MT_context_menu)
-    bpy.utils.register_class(SUBLENDER_PT_Material_Prop_Panel)
+    bpy.utils.register_class(SUBLENDER_PT_SB_Output_Panel)
 
 
 def unregister():
     bpy.utils.unregister_class(SUBLENDER_PT_Main)
     bpy.utils.unregister_class(SUBLENDER_MT_context_menu)
-    bpy.utils.unregister_class(SUBLENDER_PT_Material_Prop_Panel)
+    bpy.utils.unregister_class(SUBLENDER_PT_SB_Output_Panel)
