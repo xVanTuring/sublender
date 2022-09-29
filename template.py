@@ -38,6 +38,9 @@ def ensure_nodes(mat: bpy.types.Material, template, clear_nodes: bool):
                     if temp is None:
                         break
                 setattr(temp, path_list[-1], prop_item['value'])
+        if node_info.get('inputs') is not None:
+            for input_item in node_info.get('inputs'):
+                node_inst.inputs[input_item['name']].default_value = input_item['value']
 
 
 def ensure_link(mat, template):
@@ -56,50 +59,10 @@ def ensure_link(mat, template):
 def ensure_options(mat, template):
     if template.get('options') is not None:
         for option in template.get('options'):
-            if option == "withHeight":
+            if option == "displacement":
                 # works for both cycles and prorender
                 if getattr(mat, 'cycles', None) is not None:
                     mat.cycles.displacement_method = 'DISPLACEMENT'
-
-
-# TODO to name
-# def ensure_assets(context, material_name: str, template, resource):
-#     material = bpy.data.materials.get(material_name)
-#     preferences = context.preferences
-#     addon_prefs = preferences.addons[__package__].preferences
-#     compatible_undo = addon_prefs.compatible_mode
-#     node_list = material.node_tree.nodes
-#     for texture_info in template['texture']:
-#         texture_path_list = resource.get(texture_info)
-#         if texture_path_list is not None and len(texture_path_list) > 0:
-#             texture_path = texture_path_list[0]
-#             target_node = node_list.get(texture_info)
-#             target_img_name = "{0}_{1}".format(
-#                 material.name, texture_info)
-#             if compatible_undo:
-#                 texture_img = bpy.data.images.load(
-#                     texture_path, check_existing=False)
-#                 texture_img.name = target_img_name
-#             else:
-#                 texture_img = bpy.data.images.get(target_img_name)
-#                 if texture_img is not None:
-#                     texture_img.filepath = texture_path
-#                     texture_img.reload()
-#                 else:
-#                     texture_img = bpy.data.images.load(
-#                         texture_path, check_existing=True)
-#                     texture_img.name = target_img_name
-#             # COLOR BY NAME?
-#             # if texture_info.get('colorspace') is not None:
-#             #     texture_img.colorspace_settings.name = texture_info.get(
-#             #         'colorspace')
-#             if target_node is not None:
-#                 target_node.image = texture_img
-#             else:
-#                 print("Missing image node with name:{0}".format(
-#                     texture_info['node']))
-#         else:
-#             print("Missing Texture:{0}".format(texture_info['type']))
 
 
 def load_default_texture(mat, template):

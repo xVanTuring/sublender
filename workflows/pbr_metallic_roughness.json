@@ -94,6 +94,12 @@
                     "path": "blend_type",
                     "value": "MULTIPLY"
                 }
+            ],
+            "inputs": [
+                {
+                    "name": "Fac",
+                    "value": 0
+                }
             ]
         },
         {
