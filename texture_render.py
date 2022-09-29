@@ -13,17 +13,17 @@ from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
 from . import globalvar, settings, utils, consts, async_loop
 
 
-def build_resource_dict(result):
-    resource_dict = {
-        '$extra': []
-    }
-    for output in result:
-        img_output = json.loads(str(output, encoding="ascii"))
-        for usage in img_output[0]['outputs'][0]['usages']:
-            if resource_dict.get(usage) is None:
-                resource_dict[usage] = []
-            resource_dict[usage].append(img_output[0]['outputs'][0]['value'])
-    return resource_dict
+# def build_resource_dict(result):
+#     resource_dict = {
+#         '$extra': []
+#     }
+#     for output in result:
+#         img_output = json.loads(str(output, encoding="ascii"))
+#         for usage in img_output[0]['outputs'][0]['usages']:
+#             if resource_dict.get(usage) is None:
+#                 resource_dict[usage] = []
+#             resource_dict[usage].append(img_output[0]['outputs'][0]['value'])
+#     return resource_dict
 
 
 class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
@@ -80,7 +80,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             texture_image = bpy.data.images.load(
                 texture_path, check_existing=True)
             texture_image.name = image_name
-        if one_usage is not None and one_usage in consts.non_color_dict:
+        if one_usage is None or one_usage not in consts.usage_color_dict:
             texture_image.colorspace_settings.name = 'Non-Color'
         if self.assign_material and one_usage is not None:
             material_instance: bpy.types.Material = bpy.data.materials.get(material_name)

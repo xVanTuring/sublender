@@ -79,7 +79,5 @@ output_size_x = "$sb_output_size_x"
 output_size_y = "$sb_output_size_y"
 output_size_lock = "$sb_output_size_lock"
 update_when_sizing = "$update_when_sizing"
-non_color_dict = ['metallic',
-                  'roughness',
-                  'normal',
-                  'height', ]
+usage_color_dict = ['baseColor',
+                    'ambientOcclusion']

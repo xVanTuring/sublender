@@ -1,54 +1,36 @@
 {
     "name": "PBR Metallic/Roughness/Height",
-    "description": "PBR Metallic/Roughness/Height workflow with BaseColor, Metallic and Roughness input",
+    "description": "PBR Metallic/Roughness/Height workflow",
     "nodes": [
         {
             "type": "ShaderNodeOutputMaterial",
             "name": "Material Output",
             "label": "Material Output",
+            "hide": false,
             "location": [
-                786,
-                300
+                448.0,
+                0.0
             ]
         },
         {
             "type": "ShaderNodeBsdfPrincipled",
             "name": "Principled BSDF",
             "label": "Principled BSDF",
+            "hide": false,
             "location": [
-                10,
-                300
+                10.0,
+                300.0
             ]
-        },
-        {
-            "type": "ShaderNodeTexImage",
-            "name": "baseColor",
-            "label": "Base Color",
-            "location": [
-                -338,
-                190
-            ],
-            "hide": true
         },
         {
             "type": "ShaderNodeTexImage",
             "name": "metallic",
             "label": "Metallic",
+            "hide": true,
             "location": [
-                -338,
-                104
-            ],
-            "hide": true
-        },
-        {
-            "type": "ShaderNodeTexImage",
-            "name": "roughness",
-            "label": "Roughness",
-            "location": [
-                -338,
-                37
-            ],
-            "hide": true
+                -338.0,
+                104.0
+            ]
         },
         {
             "type": "ShaderNodeNormalMap",
@@ -56,38 +38,24 @@
             "label": "Normal Map",
             "hide": true,
             "location": [
-                -162,
-                -209
+                -162.0,
+                -209.0
             ]
         },
         {
-            "type": "ShaderNodeTexImage",
-            "name": "normal",
-            "label": "Normal",
-            "hide": true,
+            "type": "ShaderNodeMixRGB",
+            "name": "AO Intensity",
+            "label": "AO Intensity",
+            "hide": false,
             "location": [
-                -450,
-                -209
-            ]
-        },
-        {
-            "type": "ShaderNodeDisplacement",
-            "name": "Displacement",
-            "label": "Displacement",
-            "hide": true,
-            "location": [
-                614,
-                93
-            ]
-        },
-        {
-            "type": "ShaderNodeTexImage",
-            "name": "height",
-            "label": "Height",
-            "hide": true,
-            "location": [
-                309,
-                9
+                -220.0,
+                320.0
+            ],
+            "prop": [
+                {
+                    "path": "blend_type",
+                    "value": "MULTIPLY"
+                }
             ]
         },
         {
@@ -96,8 +64,28 @@
             "label": "Texture Coordinate",
             "hide": false,
             "location": [
-                -1079,
-                120
+                -1079.0,
+                120.0
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "roughness",
+            "label": "Roughness",
+            "hide": true,
+            "location": [
+                -338.0,
+                37.0
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "ambientOcclusion",
+            "label": "Ambient Occlusion",
+            "hide": true,
+            "location": [
+                -560.0,
+                260.0
             ]
         },
         {
@@ -106,124 +94,79 @@
             "label": "Mapping",
             "hide": false,
             "location": [
-                -927,
-                134
+                -927.0,
+                134.0
+            ]
+        },
+        {
+            "type": "ShaderNodeDisplacement",
+            "name": "Displacement",
+            "label": "",
+            "hide": false,
+            "location": [
+                280.0,
+                -300.0
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "baseColor",
+            "label": "Base Color",
+            "hide": true,
+            "location": [
+                -540.0,
+                180.0
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "normal",
+            "label": "Normal",
+            "hide": true,
+            "location": [
+                -450.0,
+                -209.0
+            ]
+        },
+        {
+            "type": "ShaderNodeTexImage",
+            "name": "height",
+            "label": "Height",
+            "hide": true,
+            "location": [
+                -60.0,
+                -400.0
             ]
         }
     ],
     "links": [
-        {
-            "fromNode": "Principled BSDF",
-            "toNode": "Material Output",
-            "fromSocket": "BSDF",
-            "toSocket": "Surface"
-        },
-        {
-            "fromNode": "baseColor",
-            "toNode": "Principled BSDF",
-            "fromSocket": "Color",
-            "toSocket": "Base Color"
-        },
-        {
-            "fromNode": "metallic",
-            "fromSocket": "Color",
-            "toNode": "Principled BSDF",
-            "toSocket": "Metallic"
-        },
-        {
-            "fromNode": "roughness",
-            "fromSocket": "Color",
-            "toNode": "Principled BSDF",
-            "toSocket": "Roughness"
-        },
-        {
-            "fromNode": "normal",
-            "fromSocket": "Color",
-            "toNode": "Normal Map",
-            "toSocket": "Color"
-        },
-        {
-            "fromNode": "Normal Map",
-            "fromSocket": "Normal",
-            "toNode": "Principled BSDF",
-            "toSocket": "Normal"
-        },
-        {
-            "fromNode": "height",
-            "fromSocket": "Color",
-            "toNode": "Displacement",
-            "toSocket": "Height"
-        },
-        {
-            "fromNode": "Displacement",
-            "fromSocket": "Displacement",
-            "toNode": "Material Output",
-            "toSocket": "Displacement"
-        },
-        {
-            "fromNode": "Texture Coordinate",
-            "fromSocket": "UV",
-            "toNode": "Mapping",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "baseColor",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "metallic",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "roughness",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "normal",
-            "toSocket": "Vector"
-        },
-        {
-            "fromNode": "Mapping",
-            "fromSocket": "Vector",
-            "toNode": "height",
-            "toSocket": "Vector"
-        }
+        "Texture Coordinate.UV/Mapping.Vector",
+        "Mapping.Vector/ambientOcclusion.Vector",
+        "Mapping.Vector/baseColor.Vector",
+        "Mapping.Vector/metallic.Vector",
+        "Mapping.Vector/roughness.Vector",
+        "Mapping.Vector/normal.Vector",
+        "ambientOcclusion.Color/AO Intensity.Color2",
+        "baseColor.Color/AO Intensity.Color1",
+        "AO Intensity.Color/Principled BSDF.Base Color",
+        "metallic.Color/Principled BSDF.Metallic",
+        "roughness.Color/Principled BSDF.Roughness",
+        "normal.Color/Normal Map.Color",
+        "Normal Map.Normal/Principled BSDF.Normal",
+        "Principled BSDF.BSDF/Material Output.Surface",
+        "Mapping.Vector/height.Vector",
+        "height.Color/Displacement.Normal",
+        "Displacement.Displacement/Material Output.Displacement"
     ],
     "texture": [
-        {
-            "type": "baseColor",
-            "node": "baseColor"
-        },
-        {
-            "type": "metallic",
-            "node": "metallic",
-            "colorspace": "Non-Color"
-        },
-        {
-            "type": "roughness",
-            "node": "roughness",
-            "colorspace": "Non-Color"
-        },
-        {
-            "type": "normal",
-            "node": "normal",
-            "colorspace": "Non-Color"
-        },
-        {
-            "type": "height",
-            "node": "height",
-            "colorspace": "Non-Color"
-        }
+        "metallic",
+        "roughness",
+        "ambientOcclusion",
+        "baseColor",
+        "normal",
+        "height"
     ],
     "options": [
-        "withHeight"
+        "displacement"
     ]
 }
