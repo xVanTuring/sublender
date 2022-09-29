@@ -68,7 +68,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(
         name="Live Update", description="Live Update")
-    follow_selection: BoolProperty(name="Follow Selection", default=True)
+    follow_selection: BoolProperty(name="Follow Selection", default=False)
 
 
 def register():
