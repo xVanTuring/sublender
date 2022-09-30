@@ -192,7 +192,6 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         return graph_setting is not None
 
     def draw(self, context):
-        # TODO Refresh all files existence
         active_mat, active_graph = utils.find_active_graph(context)
         clss_name = utils.gen_clss_name(active_graph)
         graph_setting = getattr(active_mat, clss_name)
@@ -201,7 +200,6 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         open_texture_dir.filepath = material_output_folder
 
         for output_info in globalvar.graph_clss.get(clss_name)['output_info']['list']:
-            # TODO FILTER TOGGLES
             sbo_prop_name = utils.sb_output_to_prop(output_info['name'])
             row = self.layout.row()
             row.prop(graph_setting, sbo_prop_name)

@@ -115,7 +115,6 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict):
-        # TODO FORMAT
         process = await asyncio.create_subprocess_exec(
             sbsContext.Context.getBatchToolExePath(5),
             *cmd_list,
