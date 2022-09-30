@@ -2,6 +2,7 @@
 * update workflow template
 * generated texture into same folder
 * a simple workflow/render policy
+* add operator to output panel
 ## v0.1.4
 * add support for SAT 2019
 ## v0.1.3
