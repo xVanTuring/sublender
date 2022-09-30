@@ -26,7 +26,6 @@ def sbsar_output_updated_name(sbs_id: str):
         prop_name = sb_output_to_prop(sbs_id)
         if getattr(self, consts.SBS_CONFIGURED) and getattr(self, prop_name):
             bpy.ops.sublender.render_texture_async(texture_name=sbs_id)
-            print("Render Texture here {0}".format(sbs_id))
 
     return sbsar_output_updated
 

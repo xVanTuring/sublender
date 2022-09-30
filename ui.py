@@ -68,8 +68,11 @@ def draw_workflow_item(self, context, target_mat):
 
 def draw_texture_item(self, context, target_mat):
     row = self.layout.row()
-    row.operator(
+    render_ops = row.operator(
         "sublender.render_texture_async", icon='TEXTURE')
+    render_ops.assign_material = False
+    render_ops.material_name = ""
+    render_ops.texture_name = ""
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
     row.prop(sublender_settings,
