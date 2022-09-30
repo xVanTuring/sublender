@@ -9,7 +9,10 @@ import bpy
 from bpy.props import StringProperty
 from bpy.types import Operator
 from pysbs import context as sbsContext
-from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
+from pysbs import sbsarchive
+SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARTypeEnum",None)
+if SBSARTypeEnum is None:
+    SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARInputTypeEnum",None)
 
 from . import globalvar, settings, utils, consts, async_loop
 

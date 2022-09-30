@@ -10,7 +10,9 @@ from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
 from pysbs import sbsarchive
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
-from pysbs.sbsarchive.sbsarenum import SBSARTypeEnum
+SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARTypeEnum",None)
+if SBSARTypeEnum is None:
+    SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARInputTypeEnum",None)
 
 from . import globalvar, consts, settings, parser, ui
 from .parser import parse_sbsar_input, parse_sbsar_group
