@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import json
+import os
 import pathlib
 from typing import List
 
@@ -38,9 +39,10 @@ def generate_cmd_list(context, target_material_name: str,
                     value = input_info.get('enum_items')[value][0]
                 if is_image:
                     if value == "":
-                        # TODO add exist check?
                         continue
                     else:
+                        if not os.path.exists(value):
+                            print("Image is missing")
                         param_list.append("--set-entry")
                 else:
                     param_list.append("--set-value")
@@ -133,7 +135,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             texture_image = bpy.data.images.load(
                 texture_path, check_existing=True)
             texture_image.name = image_name
-            # TODO Faker User assign here
+            texture_image.use_fake_user = True
         if one_usage is None or one_usage not in consts.usage_color_dict:
             texture_image.colorspace_settings.name = 'Non-Color'
         if self.assign_material and one_usage is not None:

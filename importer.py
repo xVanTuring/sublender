@@ -125,7 +125,6 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
         sbs_pkg = await loop.run_in_executor(None, utils.load_sbsar_package, self.sbsar_path)
         sbs_graph_list: List[SBSARGraph] = sbs_pkg.getSBSGraphList()
         globalvar.sbsar_dict[self.sbsar_path] = sbs_pkg
-        # TODO Better multiple graph popover
         for graph in sbs_graph_list:
             bpy.ops.sublender.import_graph(
                 'INVOKE_DEFAULT', package_path=self.sbsar_path,

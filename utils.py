@@ -80,7 +80,6 @@ class EvalDelegate(object):
         return value
 
 
-# TODO maybe not needed
 def new_material_name(material_name: str) -> str:
     """Make Sure No Name Conflict"""
     for mat in bpy.data.materials:
@@ -206,7 +205,6 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
         output_list = []
         output_usage_dict: typing.Dict[str, typing.List[str]] = {}
         for output in all_outputs:
-            # TODO trigger build after changing
             _anno_obj[sb_output_to_prop(output.mIdentifier)] = (BoolProperty, {
                 'name': output.mOutputGui.mLabel,
                 'default': False,
@@ -330,7 +328,6 @@ async def load_sbsars_async(report=None):
 
 def texture_output_dir(material_name: str):
     if bpy.data.filepath != "":
-        # TODO Option
         current_file = pathlib.Path(bpy.data.filepath)
         parent_dir = current_file.parent
         file_name = bpy.path.clean_name(current_file.name)

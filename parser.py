@@ -85,7 +85,6 @@ def parse_sbsar_input(graph_inputs: List[SBSARInput]):
             'mIdentifier': sbsar_graph_input.mIdentifier,
             'mType': sbsar_graph_input.mType,
             'default': sbsar_graph_input.getDefaultValue(),
-            # TODO use hash(mIdentifier) instead?
             'prop': uid_prop(sbsar_graph_input.mUID)
         }
         if sbsar_graph_input.mIdentifier == "$randomseed":
