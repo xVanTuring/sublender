@@ -125,8 +125,8 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             one_usage = usages[0]
             image_name = '{0}_{1}'.format(self.material_name, usages[0])
         else:
-            graph_identifier = img_output_info[0]['outputs'][0]['identifier']
-            image_name = '{0}_{1}'.format(self.material_name, graph_identifier)
+            texture_identifier = img_output_info[0]['outputs'][0]['identifier']
+            image_name = '{0}_{1}'.format(self.material_name, texture_identifier)
         texture_image = bpy.data.images.get(image_name)
         if texture_image is not None:
             texture_image.filepath = texture_path

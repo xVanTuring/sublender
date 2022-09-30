@@ -1,3 +1,5 @@
+import os
+
 import bpy
 from bpy.types import Panel, Menu
 
@@ -90,11 +92,6 @@ class SUBLENDER_PT_Main(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = 'Sublender'
-
-    # bl_space_type = "PROPERTIES"
-    # bl_region_type = "WINDOW"
-    # bl_context = 'material'
-    # bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
@@ -195,11 +192,42 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         return graph_setting is not None
 
     def draw(self, context):
+        # TODO Refresh all files existence
         active_mat, active_graph = utils.find_active_graph(context)
         clss_name = utils.gen_clss_name(active_graph)
         graph_setting = getattr(active_mat, clss_name)
+        open_texture_dir = self.layout.operator("wm.path_open", text="", icon="VIEWZOOM")
+        material_output_folder = utils.texture_output_dir(active_mat.name)
+        open_texture_dir.filepath = material_output_folder
         for output_info in globalvar.graph_clss.get(clss_name)['output_info']['list']:
-            self.layout.prop(graph_setting, utils.sb_output_to_prop(output_info['name']))
+            sbo_prop_name = utils.sb_output_to_prop(output_info['name'])
+            row = self.layout.row()
+            row.prop(graph_setting, sbo_prop_name)
+            image_name = utils.gen_image_name(active_mat.name, output_info)
+            bpy_image = bpy.data.images.get(image_name)
+
+            if bpy_image is not None:
+                row.prop(bpy_image, 'use_fake_user', icon_only=True)
+                open_image = row.operator("wm.path_open", text="", icon="HIDE_OFF")
+                open_image.filepath = bpy.path.abspath(bpy_image.filepath)
+
+                delete_image = row.operator("sublender.delete_image", text="", icon="TRASH")
+                delete_image.filepath = bpy.path.abspath(bpy_image.filepath)
+                delete_image.bl_img_name = image_name
+            else:
+                image_file_path = os.path.join(material_output_folder, "{0}.png".format(output_info['name']))
+                if globalvar.file_existence_dict.get(image_file_path) is None:
+                    globalvar.file_existence_dict[image_file_path] = os.path.exists(image_file_path)
+                if globalvar.file_existence_dict.get(image_file_path, False):
+                    load_image = row.operator("sublender.load_image", text="", icon="IMPORT")
+                    load_image.filepath = image_file_path
+                    load_image.bl_img_name = image_name
+
+                    open_image = row.operator("wm.path_open", text="", icon="HIDE_OFF")
+                    open_image.filepath = image_file_path
+
+                    delete_image = row.operator("sublender.delete_image", text="", icon="TRASH")
+                    delete_image.filepath = image_file_path
 
 
 class Sublender_Prop_BasePanel(Panel):

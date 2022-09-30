@@ -30,6 +30,14 @@ def sbsar_output_updated_name(sbs_id: str):
     return sbsar_output_updated
 
 
+def gen_image_name(material_name, output_info):
+    if len(output_info['usages']) > 0:
+        return '{0}_{1}'.format(material_name, output_info['usages'][0])
+    else:
+        graph_identifier = output_info['name']
+        return '{0}_{1}'.format(material_name, graph_identifier)
+
+
 class VectorWrapper(object):
     def __init__(self, vec):
         self.vec = vec
@@ -210,9 +218,10 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 'default': False,
                 'update': sbsar_output_updated_name(output.mIdentifier)
             })
+            usages = list(map(lambda x: x.mName, output.getUsages()))
             output_list.append({
                 'name': output.mIdentifier,
-                'usages': output.getUsages(),
+                'usages': usages,
                 'label': output.mOutputGui.mLabel,
                 'uid': output.mUID
             })

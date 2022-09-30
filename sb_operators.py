@@ -93,12 +93,38 @@ class Sublender_Render_All(Operator):
         return {'FINISHED'}
 
 
-class Sublender_Clean_Unused_Image(Operator):
-    bl_idname = "sublender.clean_unused_image"
-    bl_label = "Clean Unused Texture"
-    bl_description = "Remove Unused Image in this Blender Project"
+import os
+
+
+class SUBLENDER_OT_Delete_Image(Operator):
+    bl_idname = "sublender.delete_image"
+    bl_label = "Delete image"
+    bl_description = "Remove target image"
+    filepath: StringProperty()
+    bl_img_name: StringProperty()
 
     def execute(self, context):
+        if self.bl_img_name != "":
+            bl_image = bpy.data.images.get(self.bl_img_name)
+            if bl_image is not None:
+                bpy.data.images.remove(bl_image)
+        os.remove(self.filepath)
+        globalvar.file_existence_dict[self.filepath] = False
+        return {'FINISHED'}
+
+
+class SUBLENDER_OT_Load_Image(Operator):
+    bl_idname = "sublender.load_image"
+    bl_label = "Load image"
+    bl_description = "Load target image"
+    filepath: StringProperty()
+    bl_img_name: StringProperty()
+
+    def execute(self, context):
+        print(self.filepath)
+        image_data = bpy.data.images.load(self.filepath, check_existing=True)
+        image_data.name = self.bl_img_name
+        globalvar.file_existence_dict[self.filepath] = True
         return {'FINISHED'}
 
 
@@ -177,7 +203,8 @@ def register():
     bpy.utils.register_class(Sublender_Select_Active)
     bpy.utils.register_class(Sublender_Copy_Texture_Path)
     bpy.utils.register_class(Sublender_Render_All)
-    bpy.utils.register_class(Sublender_Clean_Unused_Image)
+    bpy.utils.register_class(SUBLENDER_OT_Delete_Image)
+    bpy.utils.register_class(SUBLENDER_OT_Load_Image)
     bpy.utils.register_class(Sublender_Load_Sbsar)
     bpy.utils.register_class(Sublender_New_Instance)
     bpy.utils.register_class(Sublender_Random_Seed)
@@ -189,7 +216,8 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Select_Active)
     bpy.utils.unregister_class(Sublender_Copy_Texture_Path)
     bpy.utils.unregister_class(Sublender_Render_All)
-    bpy.utils.unregister_class(Sublender_Clean_Unused_Image)
+    bpy.utils.unregister_class(SUBLENDER_OT_Delete_Image)
+    bpy.utils.unregister_class(SUBLENDER_OT_Load_Image)
     bpy.utils.unregister_class(Sublender_Load_Sbsar)
     bpy.utils.unregister_class(Sublender_New_Instance)
     bpy.utils.unregister_class(Sublender_Inflate_Material)

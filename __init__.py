@@ -26,11 +26,7 @@ def on_load_pre(_):
     for class_name in globalvar.graph_clss:
         class_info = globalvar.graph_clss.get(class_name)
         bpy.utils.unregister_class(class_info['clss'])
-    globalvar.current_uuid = ""
-    globalvar.graph_clss.clear()
-    globalvar.sbsar_dict.clear()
-    globalvar.aContext = None
-    globalvar.instance_map.clear()
+    globalvar.clear()
 
 
 def register():
