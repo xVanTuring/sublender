@@ -10,9 +10,10 @@ from bpy.props import StringProperty
 from bpy.types import Operator
 from pysbs import context as sbsContext
 from pysbs import sbsarchive
-SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARTypeEnum",None)
+
+SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARTypeEnum", None)
 if SBSARTypeEnum is None:
-    SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARInputTypeEnum",None)
+    SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARInputTypeEnum", None)
 
 from . import globalvar, settings, utils, consts, async_loop
 
@@ -84,8 +85,8 @@ def generate_cmd_list(context, target_material_name: str,
     return param_list
 
 
-class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
-                                     Operator):
+class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
+                                        Operator):
     bl_idname = "sublender.render_texture_async"
     bl_label = "Render Texture"
     bl_description = "Render Texture"
@@ -111,7 +112,8 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         self.material_name = material_inst.name
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
-    async def render_map(self, cmd_list: List[str], output_id: str):
+    async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict):
+        # TODO FORMAT
         process = await asyncio.create_subprocess_exec(
             sbsContext.Context.getBatchToolExePath(5),
             *cmd_list,
@@ -119,36 +121,27 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         self.process_list.append(process)
         await process.wait()
         self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
-        output_result = await process.stdout.read()
-        img_output_info = json.loads(str(output_result, encoding="ascii"))
-        usages = img_output_info[0]['outputs'][0]['usages']
-        texture_path = bpy.path.relpath(img_output_info[0]['outputs'][0]['value'])
-        one_usage = None
-        if len(usages) > 0:
-            one_usage = usages[0]
-            image_name = '{0}_{1}'.format(self.material_name, usages[0])
-        else:
-            texture_identifier = img_output_info[0]['outputs'][0]['identifier']
-            image_name = '{0}_{1}'.format(self.material_name, texture_identifier)
-        texture_image = bpy.data.images.get(image_name)
+        texture_path = bpy.path.relpath(os.path.join(output_dir, "{0}.png".format(output_id)))
+        output_info = output_dict.get(output_id)
+        bl_img_name = utils.gen_image_name(self.material_name, output_info)
+        texture_image = bpy.data.images.get(bl_img_name)
         if texture_image is not None:
             texture_image.filepath = texture_path
             texture_image.reload()
         else:
             texture_image = bpy.data.images.load(
                 texture_path, check_existing=True)
-            texture_image.name = image_name
+            texture_image.name = bl_img_name
             texture_image.use_fake_user = True
-        if one_usage is None or one_usage not in consts.usage_color_dict:
+        if not output_info['usages'] or output_info['usages'][0] not in consts.usage_color_dict:
             texture_image.colorspace_settings.name = 'Non-Color'
-        if self.assign_material and one_usage is not None:
+        if self.assign_material and output_info['usages'] is not None:
             material_instance: bpy.types.Material = bpy.data.materials.get(self.material_name)
             if material_instance is not None:
-                image_node: bpy.types.ShaderNodeTexImage = material_instance.node_tree.nodes.get(one_usage)
+                image_node: bpy.types.ShaderNodeTexImage = material_instance.node_tree.nodes.get(
+                    output_info['usages'][0])
                 if image_node is not None:
                     image_node.image = texture_image
-
-        return output_result
 
     async def async_execute(self, context):
         if self.material_name != "":
@@ -163,6 +156,7 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
 
             param_list = generate_cmd_list(context, self.material_name,
                                            m_sublender, clss_info, graph_setting)
+            target_dir = utils.texture_output_dir(self.material_name)
             if self.texture_name == "":
                 build_list = []
                 output_info_list = clss_info['output_info']['list']
@@ -175,20 +169,20 @@ class Sublender_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                     per_output_cmd.append("--input-graph-output")
                     per_output_cmd.append(output)
                     worker_list.append(
-                        self.render_map(per_output_cmd, output))
+                        self.render_map(per_output_cmd, output, target_dir, clss_info['output_info']['dict']))
                 await asyncio.gather(*worker_list)
             else:
                 param_list.append("--input-graph-output")
                 param_list.append(self.texture_name)
-                await self.render_map(param_list, self.texture_name)
+                await self.render_map(param_list, self.texture_name, target_dir, clss_info['output_info']['dict'])
             end = datetime.datetime.now()
             self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
                 (end - start).total_seconds()))
 
 
 def register():
-    bpy.utils.register_class(Sublender_Render_Texture_Async)
+    bpy.utils.register_class(SUBLENDER_OT_Render_Texture_Async)
 
 
 def unregister():
-    bpy.utils.unregister_class(Sublender_Render_Texture_Async)
+    bpy.utils.unregister_class(SUBLENDER_OT_Render_Texture_Async)

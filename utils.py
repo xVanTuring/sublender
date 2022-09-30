@@ -10,9 +10,10 @@ from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
 from pysbs import sbsarchive
 from pysbs.sbsarchive.sbsarchive import SBSARGraph
-SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARTypeEnum",None)
+
+SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARTypeEnum", None)
 if SBSARTypeEnum is None:
-    SBSARTypeEnum = getattr(sbsarchive.sbsarenum,"SBSARInputTypeEnum",None)
+    SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARInputTypeEnum", None)
 
 from . import globalvar, consts, settings, parser, ui
 from .parser import parse_sbsar_input, parse_sbsar_group
@@ -213,6 +214,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 _anno_obj[input_info['prop']] = (prop_type, _anno_item)
 
         output_list = []
+        output_list_dict = {}
         output_usage_dict: typing.Dict[str, typing.List[str]] = {}
         for output in all_outputs:
             _anno_obj[sb_output_to_prop(output.mIdentifier)] = (BoolProperty, {
@@ -221,6 +223,12 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 'update': sbsar_output_updated_name(output.mIdentifier)
             })
             usages = list(map(lambda x: x.mName, output.getUsages()))
+            output_list_dict[output.mIdentifier] = {
+                'name': output.mIdentifier,
+                'usages': usages,
+                'label': output.mOutputGui.mLabel,
+                'uid': output.mUID
+            }
             output_list.append({
                 'name': output.mIdentifier,
                 'usages': usages,
@@ -251,6 +259,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             },
             'output_info': {
                 'list': output_list,
+                'dict': output_list_dict,
                 'usage': output_usage_dict
             },
             'sbs_graph': sbs_graph,
