@@ -1,3 +1,7 @@
+## v0.1.5
+* update workflow template
+* generated texture into same folder
+* a simple workflow/render policy
 ## v0.1.4
 * add support for SAT 2019
 ## v0.1.3
