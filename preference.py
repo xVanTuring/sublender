@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import AddonPreferences
 
 from . import consts
@@ -53,6 +53,7 @@ class SublenderPreferences(AddonPreferences):
     )
     custom_engine: StringProperty(name="Custom Engine", default='')
     sat_path: StringProperty(name="SAT Installation Path", default='', subtype='DIR_PATH')
+    memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
 
     def draw(self, context):
         layout = self.layout
@@ -68,8 +69,10 @@ class SublenderPreferences(AddonPreferences):
         else:
             row.prop(self,
                      'output_size_y', text='')
-        layout.prop(self, 'enable_visible_if',
-                    toggle=1, icon="HIDE_OFF")
+        row = layout.row()
+        row.prop(self, 'enable_visible_if',
+                 toggle=1, icon="HIDE_OFF")
+        row.prop(self, 'memory_budget')
         layout.prop(self, 'engine_enum')
         if self.engine_enum == consts.CUSTOM:
             layout.prop(self, 'custom_engine')

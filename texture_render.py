@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 import os
 import pathlib
 from typing import List
@@ -82,6 +81,9 @@ def generate_cmd_list(context, target_material_name: str,
                 print("Render engine is {0}".format(custom_value))
     else:
         print("Use Default Engine")
+    memory_budget = context.preferences.addons[__package__].preferences.memory_budget
+    param_list.append("--memory-budget")
+    param_list.append("{0}".format(memory_budget))
     return param_list
 
 
