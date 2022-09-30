@@ -196,24 +196,37 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         active_mat, active_graph = utils.find_active_graph(context)
         clss_name = utils.gen_clss_name(active_graph)
         graph_setting = getattr(active_mat, clss_name)
-        open_texture_dir = self.layout.operator("wm.path_open", text="", icon="VIEWZOOM")
+        open_texture_dir = self.layout.operator("wm.path_open", text="Open Texture Folder", icon="VIEWZOOM")
         material_output_folder = utils.texture_output_dir(active_mat.name)
         open_texture_dir.filepath = material_output_folder
+
         for output_info in globalvar.graph_clss.get(clss_name)['output_info']['list']:
+            # TODO FILTER TOGGLES
             sbo_prop_name = utils.sb_output_to_prop(output_info['name'])
             row = self.layout.row()
             row.prop(graph_setting, sbo_prop_name)
-            image_name = utils.gen_image_name(active_mat.name, output_info)
-            bpy_image = bpy.data.images.get(image_name)
-
+            bl_img_name = utils.gen_image_name(active_mat.name, output_info)
+            bpy_image = bpy.data.images.get(bl_img_name)
+            if getattr(graph_setting, sbo_prop_name):
+                render_texture = row.operator("sublender.render_texture_async", text="", icon="RENDER_STILL")
+                render_texture.texture_name = output_info['name']
             if bpy_image is not None:
+                if len(output_info['usages']) > 0:
+                    apply_image_node_name = output_info['usages'][0]
+                else:
+                    apply_image_node_name = output_info['name']
+                apply_image = row.operator('sublender.apply_image', text='', icon='NODE_TEXTURE')
+                apply_image.bl_img_name = bl_img_name
+                apply_image.material_name = active_mat.name
+                apply_image.node_name = apply_image_node_name
+
                 row.prop(bpy_image, 'use_fake_user', icon_only=True)
                 open_image = row.operator("wm.path_open", text="", icon="HIDE_OFF")
                 open_image.filepath = bpy.path.abspath(bpy_image.filepath)
 
                 delete_image = row.operator("sublender.delete_image", text="", icon="TRASH")
                 delete_image.filepath = bpy.path.abspath(bpy_image.filepath)
-                delete_image.bl_img_name = image_name
+                delete_image.bl_img_name = bl_img_name
             else:
                 image_file_path = os.path.join(material_output_folder, "{0}.png".format(output_info['name']))
                 if globalvar.file_existence_dict.get(image_file_path) is None:
@@ -221,7 +234,9 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
                 if globalvar.file_existence_dict.get(image_file_path, False):
                     load_image = row.operator("sublender.load_image", text="", icon="IMPORT")
                     load_image.filepath = image_file_path
-                    load_image.bl_img_name = image_name
+                    load_image.bl_img_name = bl_img_name
+                    if output_info['usages']:
+                        load_image.usage = output_info['usages'][0]
 
                     open_image = row.operator("wm.path_open", text="", icon="HIDE_OFF")
                     open_image.filepath = image_file_path

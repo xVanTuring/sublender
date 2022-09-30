@@ -119,12 +119,37 @@ class SUBLENDER_OT_Load_Image(Operator):
     bl_description = "Load target image"
     filepath: StringProperty()
     bl_img_name: StringProperty()
+    usage: StringProperty()
 
     def execute(self, context):
-        print(self.filepath)
-        image_data = bpy.data.images.load(self.filepath, check_existing=True)
-        image_data.name = self.bl_img_name
+        bl_img = bpy.data.images.load(self.filepath, check_existing=True)
+        bl_img.name = self.bl_img_name
         globalvar.file_existence_dict[self.filepath] = True
+        if self.usage != "" and self.usage not in consts.usage_color_dict:
+            bl_img.colorspace_settings.name = 'Non-Color'
+        return {'FINISHED'}
+
+
+class SUBLENDER_OT_Apply_Image(Operator):
+    bl_idname = "sublender.apply_image"
+    bl_label = "Apply image"
+    bl_description = "Apply target image into material"
+    bl_img_name: StringProperty()
+    material_name: StringProperty()
+    node_name: StringProperty()
+
+    def execute(self, context):
+        target_mat: bpy.types.Material = bpy.data.materials.get(self.material_name)
+        if target_mat is not None:
+            target_node: bpy.types.ShaderNodeTexImage = target_mat.node_tree.nodes.get(self.node_name)
+            if target_node is not None and isinstance(target_node, bpy.types.ShaderNodeTexImage):
+                target_node.image = bpy.data.images.get(self.bl_img_name)
+            else:
+                bl_texture_node: bpy.types.ShaderNodeTexImage = target_mat.node_tree.nodes.new('ShaderNodeTexImage')
+                bl_texture_node.name = self.node_name
+                bl_texture_node.image = bpy.data.images.get(self.bl_img_name)
+                bl_texture_node.label = consts.usage_to_label.get(self.node_name, self.node_name)
+
         return {'FINISHED'}
 
 
@@ -208,6 +233,7 @@ def register():
     bpy.utils.register_class(Sublender_Load_Sbsar)
     bpy.utils.register_class(Sublender_New_Instance)
     bpy.utils.register_class(Sublender_Random_Seed)
+    bpy.utils.register_class(SUBLENDER_OT_Apply_Image)
 
 
 def unregister():
@@ -222,6 +248,7 @@ def unregister():
     bpy.utils.unregister_class(Sublender_New_Instance)
     bpy.utils.unregister_class(Sublender_Inflate_Material)
     bpy.utils.unregister_class(Sublender_Random_Seed)
+    bpy.utils.unregister_class(SUBLENDER_OT_Apply_Image)
     if on_blender_undo in bpy.app.handlers.undo_post:
         bpy.app.handlers.undo_post.remove(on_blender_undo)
         bpy.app.handlers.redo_post.remove(on_blender_undo)

@@ -81,3 +81,11 @@ output_size_lock = "$sb_output_size_lock"
 update_when_sizing = "$update_when_sizing"
 usage_color_dict = ['baseColor',
                     'ambientOcclusion']
+usage_to_label = {
+    'baseColor': 'Base Color',
+    'metallic': 'Metallic',
+    'roughness': 'Roughness',
+    'normal': 'Normal',
+    'ambientOcclusion': 'Ambient Occlusion',
+    'height': 'Height'
+}
