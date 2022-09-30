@@ -110,13 +110,14 @@ class SUBLENDER_PT_Main(Panel):
                     draw_instance_item(self, context, target_mat)
                     draw_workflow_item(self, context, target_mat)
                     draw_texture_item(self, context, target_mat)
-
                     mat_setting = target_mat.sublender
                     if mat_setting.package_missing:
                         self.layout.label(text="Sbsar file is missing, Please reselect it")
                         self.layout.prop(mat_setting, "package_path")
                     elif not mat_setting.package_loaded:
                         self.layout.label(text="Loading...")
+                else:
+                    self.layout.label(text="No substance material founded on this object")
             else:
                 self.layout.operator("sublender.select_sbsar", icon='IMPORT')
 

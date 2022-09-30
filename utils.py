@@ -16,9 +16,19 @@ from . import globalvar, consts, settings, parser, ui
 from .parser import parse_sbsar_input, parse_sbsar_group
 
 
-def sbsar_input_updated(self, context):
+def sbsar_input_updated(_, context):
     if context.scene.sublender_settings.live_update:
         bpy.ops.sublender.render_texture_async()
+
+
+def sbsar_output_updated_name(sbs_id: str):
+    def sbsar_output_updated(self, _):
+        prop_name = sb_output_to_prop(sbs_id)
+        if getattr(self, consts.SBS_CONFIGURED) and getattr(self, prop_name):
+            bpy.ops.sublender.render_texture_async(texture_name=sbs_id)
+            print("Render Texture here {0}".format(sbs_id))
+
+    return sbsar_output_updated
 
 
 class VectorWrapper(object):
@@ -132,8 +142,6 @@ def generate_sub_panel(group_map, graph_url):
         globalvar.sub_panel_clss_list.append(p_clss)
 
 
-# TODO Fix image input
-# FIX path relative/absolute
 def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
     clss_name = gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
@@ -202,7 +210,8 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             # TODO trigger build after changing
             _anno_obj[sb_output_to_prop(output.mIdentifier)] = (BoolProperty, {
                 'name': output.mOutputGui.mLabel,
-                'default': False
+                'default': False,
+                'update': sbsar_output_updated_name(output.mIdentifier)
             })
             output_list.append({
                 'name': output.mIdentifier,
@@ -216,6 +225,10 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 output_usage_dict[usage.mName].append(output.mIdentifier)
         group_tree, group_map = parse_sbsar_group(sbs_graph)
         generate_sub_panel(group_map, graph_url)
+        _anno_obj[consts.SBS_CONFIGURED] = (BoolProperty, {
+            'name': "SBS Configured",
+            'default': False,
+        })
         clss = type(clss_name, (bpy.types.PropertyGroup,), {
             '__annotations__': _anno_obj
         })
@@ -259,6 +272,8 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
                 material.name,
                 clss_name
             )
+        graph_setting = getattr(material, clss_name)
+        setattr(graph_setting, consts.SBS_CONFIGURED, True)
         if report is not None:
             report({'INFO'}, "Package {0} is loaded".format(m_sublender.package_path))
     else:
@@ -296,13 +311,16 @@ async def load_sbsars_async(report=None):
     sb_materials = []
     sbs_package_set = set()
     for material in bpy.data.materials:
+        # filter material
         m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
-        if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
+        if (m_sublender is not None) and (m_sublender.graph_url != "") \
+                and (m_sublender.package_path != ""):
             m_sublender.package_loaded = False
             sb_materials.append(material)
             sbs_package_set.add(m_sublender.package_path)
     load_queue = []
     for fp in sbs_package_set:
+        # load and parse all sbsar file
         load_queue.append(load_and_assign(fp, report))
     await asyncio.gather(*load_queue)
     for material in sb_materials:

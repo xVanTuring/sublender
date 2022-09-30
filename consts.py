@@ -14,7 +14,7 @@ type_dict = ['FLOAT1',
              'INTEGER3',
              'INTEGER4', ]
 UNGROUPED = '$UNGROUPED$'
-
+SBS_CONFIGURED = "$CONFIGURED"
 sbsar_name_prop = {
     '$outputsize': 'output_size',
     '$randomseed': 'random_seed'
