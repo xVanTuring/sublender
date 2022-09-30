@@ -3,6 +3,7 @@
 * generated texture into same folder
 * a simple workflow/render policy
 * add operator to output panel
+* support for sat 2018 & simplify texture usage parsing
 ## v0.1.4
 * add support for SAT 2019
 ## v0.1.3
