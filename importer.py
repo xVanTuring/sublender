@@ -36,7 +36,6 @@ class Sublender_Import_Graph(Operator):
     )
 
     def execute(self, context):
-        # TODO better custom workflow
         material_name = new_material_name(self.material_name)
         material = bpy.data.materials.new(material_name)
         material.use_nodes = True
@@ -63,12 +62,16 @@ class Sublender_Import_Graph(Operator):
         material_template = globalvar.material_templates.get(self.material_template)
         output_info_usage: dict = clss_info['output_info']['usage']
         graph_setting = getattr(material, clss_name)
-        for template_texture in material_template['texture']:
-            if output_info_usage.get(template_texture) is not None:
-                name = output_info_usage.get(template_texture)[0]
-                setattr(graph_setting, utils.sb_output_to_prop(name), True)
         if self.material_template != consts.CUSTOM:
+            for template_texture in material_template['texture']:
+                if output_info_usage.get(template_texture) is not None:
+                    name = output_info_usage.get(template_texture)[0]
+                    setattr(graph_setting, utils.sb_output_to_prop(name), True)
             template.inflate_template(material, self.material_template, True)
+        else:
+            for output_info in clss_info['output_info']['list']:
+                setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
+        setattr(graph_setting, consts.SBS_CONFIGURED, True)
         bpy.ops.sublender.render_texture_async(
             material_name=material.name, assign_material=True)
         return {'FINISHED'}
