@@ -35,11 +35,6 @@ def instance_list(self, context):
                                       [("$DUMMY$", "No Instance", "Dummy")])
 
 
-def active_instance_update(self, context):
-    # update active_graph here if not the same
-    pass
-
-
 def package_path_updated(self, context):
     if self.package_missing:
         bpy.ops.sublender.load_sbsar(sbsar_path=self.package_path)
@@ -61,7 +56,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
     active_graph: EnumProperty(
         items=graph_list, name="Graph", update=active_graph_updated)
     active_instance: EnumProperty(
-        items=instance_list, name="Instance", update=active_instance_update)
+        items=instance_list, name="Instance")
     catch_undo: BoolProperty(name="Catch Undo",
                              default=False,
                              description="Tender texture after undo/redo")

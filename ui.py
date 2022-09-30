@@ -1,23 +1,9 @@
 import os
 
 import bpy
-from bpy.types import Panel, Menu
+from bpy.types import Panel
 
 from . import settings, utils, globalvar, consts
-
-
-class SUBLENDER_MT_context_menu(Menu):
-    bl_label = "Sublender Settings"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("sublender.copy_texture_path", icon='COPYDOWN')
-        # layout.operator("sublender.clean_unused_image", icon='BRUSH_DATA')
-        # layout.operator("sublender.render_all", icon='NODE_TEXTURE')
-        # layout.operator(
-        #     "sublender.reload_texture", icon='FILE_REFRESH', )
-        layout.operator(
-            "sublender.change_uuid", icon='FILE', )
 
 
 def draw_instance_item(self, context, target_mat):
@@ -82,7 +68,6 @@ def draw_texture_item(self, context, target_mat):
     if sublender_settings.live_update:
         row.prop(sublender_settings,
                  'catch_undo', icon='PROP_CON', icon_only=True)
-    row.menu("SUBLENDER_MT_context_menu", icon="DOWNARROW_HLT", text="")
     if mat_setting.package_missing or not mat_setting.package_loaded:
         row.enabled = False
 
@@ -316,11 +301,9 @@ class Sublender_Prop_BasePanel(Panel):
 
 def register():
     bpy.utils.register_class(SUBLENDER_PT_Main)
-    bpy.utils.register_class(SUBLENDER_MT_context_menu)
     bpy.utils.register_class(SUBLENDER_PT_SB_Output_Panel)
 
 
 def unregister():
     bpy.utils.unregister_class(SUBLENDER_PT_Main)
-    bpy.utils.unregister_class(SUBLENDER_MT_context_menu)
     bpy.utils.unregister_class(SUBLENDER_PT_SB_Output_Panel)

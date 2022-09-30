@@ -10,19 +10,6 @@ from pysbs import context as sbsContext
 from . import settings, utils, globalvar, consts, template, async_loop
 
 
-class Sublender_Change_UUID(Operator):
-    bl_idname = "sublender.change_uuid"
-    bl_label = "Change UUID"
-    bl_description = "Change UUID, useful if you want to duplicate the .blend file"
-
-    def execute(self, context):
-        sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
-        sublender_settings.uuid = str(uuid.uuid4())
-        globalvar.current_uuid = sublender_settings.uuid
-        self.report({'INFO'}, "New UUID {0}".format(sublender_settings.uuid))
-        return {'FINISHED'}
-
-
 class Sublender_Base_Operator(object):
 
     @classmethod
@@ -224,7 +211,6 @@ def register():
     bpy.utils.register_class(Sublender_Init_Async)
 
     bpy.utils.register_class(Sublender_Inflate_Material)
-    bpy.utils.register_class(Sublender_Change_UUID)
     bpy.utils.register_class(Sublender_Select_Active)
     bpy.utils.register_class(Sublender_Copy_Texture_Path)
     bpy.utils.register_class(Sublender_Render_All)
@@ -238,7 +224,6 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(Sublender_Init_Async)
-    bpy.utils.unregister_class(Sublender_Change_UUID)
     bpy.utils.unregister_class(Sublender_Select_Active)
     bpy.utils.unregister_class(Sublender_Copy_Texture_Path)
     bpy.utils.unregister_class(Sublender_Render_All)
