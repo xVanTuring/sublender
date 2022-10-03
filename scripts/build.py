@@ -2,7 +2,6 @@ import subprocess
 
 result = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE)
 current_version = str(result.stdout, encoding="ascii").strip()
-# git archive --format zip --output E:\sublender.zip master --prefix sublender/
 instr = input("Master(default) or Dev(1):")
 branch = "master"
 if instr == 1:
