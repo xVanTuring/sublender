@@ -58,7 +58,6 @@ def draw_texture_item(self, context, target_mat):
     row = self.layout.row()
     render_ops = row.operator(
         "sublender.render_texture_async", icon='TEXTURE')
-    render_ops.assign_material = False
     render_ops.material_name = ""
     render_ops.texture_name = ""
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings

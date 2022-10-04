@@ -30,7 +30,7 @@ class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
         workflow_name: str = mat_setting.material_template
         if workflow_name != consts.CUSTOM:
             template.inflate_template(material_instance, workflow_name, True)
-            bpy.ops.sublender.render_texture_async(assign_material=True)
+            bpy.ops.sublender.render_texture_async()
         return {'FINISHED'}
 
 

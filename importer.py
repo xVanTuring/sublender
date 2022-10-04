@@ -73,7 +73,7 @@ class Sublender_Import_Graph(Operator):
                 setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
         setattr(graph_setting, consts.SBS_CONFIGURED, True)
         bpy.ops.sublender.render_texture_async(
-            material_name=material.name, assign_material=True)
+            material_name=material.name)
         return {'FINISHED'}
 
     def invoke(self, context, event):

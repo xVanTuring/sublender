@@ -92,7 +92,6 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
     bl_idname = "sublender.render_texture_async"
     bl_label = "Render Texture"
     bl_description = "Render Texture"
-    assign_material: bpy.props.BoolProperty()
     material_name: StringProperty(name="Target Material Name, Optional", default="")
     texture_name: StringProperty(default="")
     process_list = list()
@@ -136,13 +135,14 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             texture_image.use_fake_user = True
         if not output_info['usages'] or output_info['usages'][0] not in consts.usage_color_dict:
             texture_image.colorspace_settings.name = 'Non-Color'
-        if self.assign_material and output_info['usages'] is not None:
+        if output_info['usages'] is not None:
             material_instance: bpy.types.Material = bpy.data.materials.get(self.material_name)
             if material_instance is not None:
                 image_node: bpy.types.ShaderNodeTexImage = material_instance.node_tree.nodes.get(
                     output_info['usages'][0])
                 if image_node is not None:
-                    image_node.image = texture_image
+                    if image_node.image is None or image_node.image.filepath != texture_image.filepath:
+                        image_node.image = texture_image
 
     async def async_execute(self, context):
         if self.material_name != "":
