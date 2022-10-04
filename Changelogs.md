@@ -1,3 +1,6 @@
+## v1.0.2
+* better new instance precess & auto assign texture to TexNode  
+## v1.0.1
 ## v0.1.5
 * update workflow template
 * generated texture into same folder
