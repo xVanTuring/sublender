@@ -1,3 +1,7 @@
+## v1.0.3
+* fix: changing/applying workflow does not update the output state 
+* add material parameters to panel
+* add Hide Channels Group to Preferences 
 ## v1.0.2
 * better new instance precess & auto assign texture to TexNode  
 ## v1.0.1
