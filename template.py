@@ -82,7 +82,7 @@ def load_default_texture(mat, template):
 def inflate_template(mat, template_name: str, clear_nodes=False):
     template = globalvar.material_templates.get(template_name)
     if template is None:
-        raise Exception("Empty workflow")
+        return
     ensure_nodes(mat, template, clear_nodes)
     ensure_link(mat, template)
     ensure_options(mat, template)

@@ -23,14 +23,30 @@ class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
     bl_description = "Apply Workflow, this will remove all existing nodes"
 
     def execute(self, context):
-        material_instance = utils.find_active_mat(context)
-        print("Inflate material {0}".format(material_instance.name))
-        mat_setting: settings.Sublender_Material_MT_Setting = material_instance.sublender
-
+        material_inst = utils.find_active_mat(context)
+        mat_setting: settings.Sublender_Material_MT_Setting = material_inst.sublender
         workflow_name: str = mat_setting.material_template
+        self.report({"INFO"}, "Inflating material {0}".format(material_inst.name))
+
+        material_template = globalvar.material_templates.get(mat_setting.material_template)
+        clss_name = utils.gen_clss_name(mat_setting.graph_url)
+        clss_info = globalvar.graph_clss.get(clss_name)
+        output_info_usage: dict = clss_info['output_info']['usage']
+        graph_setting = getattr(material_inst, clss_name)
+
+        setattr(graph_setting, consts.SBS_CONFIGURED, False)
         if workflow_name != consts.CUSTOM:
-            template.inflate_template(material_instance, workflow_name, True)
-            bpy.ops.sublender.render_texture_async()
+            for template_texture in material_template['texture']:
+                if output_info_usage.get(template_texture) is not None:
+                    name = output_info_usage.get(template_texture)[0]
+                    setattr(graph_setting, utils.sb_output_to_prop(name), True)
+            setattr(graph_setting, consts.SBS_CONFIGURED, True)
+            template.inflate_template(material_inst, workflow_name, True)
+        else:
+            for output_info in clss_info['output_info']['list']:
+                setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
+        setattr(graph_setting, consts.SBS_CONFIGURED, True)
+        bpy.ops.sublender.render_texture_async()
         return {'FINISHED'}
 
 
