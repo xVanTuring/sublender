@@ -137,7 +137,7 @@ def calc_group_visibility(eval_delegate, group_info: dict, debug=False):
 
 
 class SUBLENDER_PT_Material_Prop_Panel(Panel):
-    bl_label = "Material Settings"
+    bl_label = "Material Parameters"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = 'Sublender'
@@ -151,6 +151,11 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
 
     def draw(self, context):
         active_mat = utils.find_active_mat(context)
+
+        ao_intensity = active_mat.node_tree.nodes.get('AO Intensity')
+        if ao_intensity is not None and isinstance(ao_intensity, bpy.types.ShaderNodeMixRGB):
+            self.layout.prop(ao_intensity.inputs['Fac'], 'default_value', text="AO Intensity")
+
         normal_node = active_mat.node_tree.nodes.get('Normal Map')
         if normal_node is not None and isinstance(normal_node, bpy.types.ShaderNodeNormalMap):
             self.layout.prop(normal_node.inputs['Strength'], 'default_value', text="Normal Strength")
@@ -301,8 +306,10 @@ class Sublender_Prop_BasePanel(Panel):
 def register():
     bpy.utils.register_class(SUBLENDER_PT_Main)
     bpy.utils.register_class(SUBLENDER_PT_SB_Output_Panel)
+    bpy.utils.register_class(SUBLENDER_PT_Material_Prop_Panel)
 
 
 def unregister():
     bpy.utils.unregister_class(SUBLENDER_PT_Main)
     bpy.utils.unregister_class(SUBLENDER_PT_SB_Output_Panel)
+    bpy.utils.unregister_class(SUBLENDER_PT_Material_Prop_Panel)
