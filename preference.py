@@ -54,6 +54,7 @@ class SublenderPreferences(AddonPreferences):
     custom_engine: StringProperty(name="Custom Engine", default='')
     sat_path: StringProperty(name="SAT Installation Path", default='', subtype='DIR_PATH')
     memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
+    hide_channels: BoolProperty(name="Hide Channels Group", default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -73,10 +74,10 @@ class SublenderPreferences(AddonPreferences):
         row.prop(self, 'enable_visible_if',
                  toggle=1, icon="HIDE_OFF")
         row.prop(self, 'memory_budget')
+        row.prop(self, 'hide_channels', toggle=1)
         layout.prop(self, 'engine_enum')
         if self.engine_enum == consts.CUSTOM:
             layout.prop(self, 'custom_engine')
-
         layout.label(text="Special Thanks to YOU and: ")
         layout.label(text=' '.join(thank_list))
 

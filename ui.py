@@ -243,10 +243,12 @@ class Sublender_Prop_BasePanel(Panel):
 
     @classmethod
     def poll(cls, context):
+        preferences = context.preferences.addons[__package__].preferences
+        if preferences.hide_channels and cls.bl_label == "Channels":
+            return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
-        preferences = context.preferences.addons[__package__].preferences
         if active_graph == cls.graph_url and not active_mat.sublender.package_missing:
             if preferences.enable_visible_if:
                 clss_name = utils.gen_clss_name(cls.graph_url)
