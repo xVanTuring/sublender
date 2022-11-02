@@ -53,7 +53,7 @@ def generate_cmd_list(context, target_material_name: str,
                         value = ','.join(map(str, to_list()))
                 if isinstance(value, float):
                     value = ("%.3f" % value)
-                if input_info['widget'] == 'combobox':
+                if input_info.get('widget') == 'combobox':
                     value = getattr(graph_setting, input_info['prop']).replace("$NUM:", "")
                 param_list.append("{0}@{1}".format(
                     input_info['identifier'], value))

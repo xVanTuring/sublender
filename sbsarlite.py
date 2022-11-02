@@ -65,6 +65,8 @@ def parse_output(raw: OrderedDict):
         for channel in channels:
             usages.append(channel['@names'])
         parsed_output['usages'] = usages
+    else:
+        parsed_output['usages'] = []
 
     return parsed_output
 
@@ -82,8 +84,24 @@ def parse_input(raw: OrderedDict):
         default_value = parse_str_value(
             raw['@default'], parsed_input['type'])
         parsed_input['default'] = default_value
+    else:
+        parsed_input['default'] = None
+
     if raw.get('inputgui') is not None:
         parse_gui(raw['inputgui'], parsed_input['type'], parsed_input)
+    else:
+        # prevent any error
+        parsed_input['widget'] = None
+        parsed_input['label'] = None
+        parsed_input['visibleIf'] = None
+        parsed_input['group'] = None
+        parsed_input['min'] = None
+        parsed_input['max'] = None
+        parsed_input['step'] = None
+        parsed_input['clamp'] = None
+        parsed_input['label0'] = None
+        parsed_input['label1'] = None
+        parsed_input['combo_items'] = None
     return parsed_input
 
 

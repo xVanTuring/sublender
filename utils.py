@@ -172,6 +172,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             assign(input_info, _anno_item, 'default')
             assign(input_info, _anno_item, 'min')
             assign(input_info, _anno_item, 'max')
+            # TODO: Double check blender step definition
             assign(input_info, _anno_item, 'step')
             if input_info['type'] == sbsarlite.SBSARTypeEnum.INTEGER1:
                 if input_info.get('widget') == 'togglebutton':
