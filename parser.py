@@ -48,10 +48,7 @@ def parse_sbsar_group(graph):
     group_tree = []
     group_map = {}
     for sb_input in typing.cast(List[dict], graph['inputs']):
-        group_name = None
-        if sb_input.get('gui') is not None:
-            group_name = sb_input['gui']['group']
-
+        group_name = sb_input.get('group')
         if group_name is None:
             group_name = "$UNGROUPED$"
         group_obj = ensure_group(group_name, group_map, group_tree)
@@ -63,13 +60,11 @@ def parse_sbsar_group(graph):
         }
         if input_info['identifier'] == "$randomseed":
             input_info['prop'] = "$randomseed"
-        gui_input = sb_input.get('gui')
-        if gui_input is not None:
-            if gui_input['label'] is not None:
-                input_info['label'] = gui_input['label']
-            if gui_input['visibleIf'] is not None:
-                input_info['visibleIf'] = gui_input['visibleIf']
-            if gui_input['widget'] == 'togglebutton':
-                input_info['togglebutton'] = True
+        if sb_input.get('label') is not None:
+            input_info['label'] = sb_input['label']
+        if sb_input.get('visibleIf') is not None:
+            input_info['visibleIf'] = sb_input['visibleIf']
+        if sb_input.get('widget') == 'togglebutton':
+            input_info['togglebutton'] = True
         group_obj['inputs'].append(input_info)
     return group_tree, group_map

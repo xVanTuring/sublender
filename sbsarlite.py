@@ -83,46 +83,44 @@ def parse_input(raw: OrderedDict):
             raw['@default'], parsed_input['type'])
         parsed_input['default'] = default_value
     if raw.get('inputgui') is not None:
-        parsed_input['gui'] = parse_gui(raw['inputgui'], parsed_input['type'])
+        parse_gui(raw['inputgui'], parsed_input['type'], parsed_input)
     return parsed_input
 
 
-def parse_gui(raw: OrderedDict, type_num):
-    parsed_gui = {'widget': raw.get('@widget'),
-                  'label': raw.get('@label'),
-                  'visibleIf': raw.get('@visibleif'),
-                  'group': raw.get('@group')}
-    if parsed_gui['widget'] == 'slider':
+def parse_gui(raw: OrderedDict, type_num, parsed_input):
+    parsed_input['widget'] = raw.get('@widget')
+    parsed_input['label'] = raw.get('@label')
+    parsed_input['visibleIf'] = raw.get('@visibleIf')
+    parsed_input['group'] = raw.get('@group')
+
+    if parsed_input['widget'] == 'slider':
         if raw.get('guislider') is not None:
-            parsed_gui['min'] = parse_str_value(
+            parsed_input['min'] = parse_str_value(
                 raw.get('guislider')['@min'], type_num)
-            parsed_gui['max'] = parse_str_value(
+            parsed_input['max'] = parse_str_value(
                 raw.get('guislider')['@max'], type_num)
-            parsed_gui['step'] = parse_str_value(
+            parsed_input['step'] = parse_str_value(
                 raw.get('guislider')['@step'], type_num)
             if raw.get('guislider').get('@clamp') == "on":
-                parsed_gui['clamp'] = True
+                parsed_input['clamp'] = True
             else:
-                parsed_gui['clamp'] = False
-            parsed_gui['label0'] = raw.get('guislider').get('@label0')
-            parsed_gui['label1'] = raw.get('guislider').get('@label1')
-            parsed_gui['label2'] = raw.get('guislider').get('@label2')
-            parsed_gui['label3'] = raw.get('guislider').get('@label3')
-    elif parsed_gui['widget'] == 'togglebutton':
-        if raw.get('guibutton') is not None:
-            parsed_gui['label0'] = raw.get('guibutton').get('@label0')
-            parsed_gui['label1'] = raw.get('guibutton').get('@label1')
-    elif parsed_gui['widget'] == 'combobox':
-        # TODO: parse based on parser
+                parsed_input['clamp'] = False
+            # parsed_input['label0'] = raw.get('guislider').get('@label0')
+            # parsed_input['label1'] = raw.get('guislider').get('@label1')
+            # parsed_input['label2'] = raw.get('guislider').get('@label2')
+            # parsed_input['label3'] = raw.get('guislider').get('@label3')
+    # elif parsed_input['widget'] == 'togglebutton':
+    #     if raw.get('guibutton') is not None:
+    #         parsed_input['label0'] = raw.get('guibutton').get('@label0')
+    #         parsed_input['label1'] = raw.get('guibutton').get('@label1')
+    elif parsed_input['widget'] == 'combobox':
         if raw.get('guicombobox') is not None:
             combo_item_list = []
-            for raw_combox_item in raw['guicombobox'].get('guicomboboxitem'):
-                combo_item_list.append({
-                    'value': int(raw_combox_item.get('@value')),
-                    'text': raw_combox_item.get('@text')
-                })
-            parsed_gui['combo_items'] = combo_item_list
-    return parsed_gui
+            for raw_combobox_item in raw['guicombobox'].get('guicomboboxitem'):
+                combo_item_list.append(("$NUM:{0}".format(raw_combobox_item.get('@value')),
+                                        raw_combobox_item.get('@text'), raw_combobox_item.get('@text')))
+            parsed_input['combo_items'] = combo_item_list
+    # return parsed_gui
 
 
 def parse_str_value(raw_str: str, type_num):
