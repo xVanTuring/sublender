@@ -53,8 +53,8 @@ def generate_cmd_list(context, target_material_name: str,
                         value = ','.join(map(str, to_list()))
                 if isinstance(value, float):
                     value = ("%.3f" % value)
-                if isinstance(value, str) and value.startswith("$NUM:"):
-                    value = value.replace("$NUM:", "")
+                if input_info['widget'] == 'combobox':
+                    value = getattr(graph_setting, input_info['prop']).replace("$NUM:", "")
                 param_list.append("{0}@{1}".format(
                     input_info['identifier'], value))
     param_list.append("--output-path")
@@ -112,6 +112,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
 
     async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict):
         sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
+        print(" ".join(cmd_list))
         process = await asyncio.create_subprocess_exec(
             sbs_render_path,
             *cmd_list,

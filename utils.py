@@ -216,18 +216,14 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 'update': sbsar_output_updated_name(output['identifier'])
             })
             usages = output['usages']
-            output_list_dict[output['identifier']] = {
+            output_graph = {
                 'name': output['identifier'],
                 'usages': usages,
                 'label': output['label'],
                 'uid': output['uid']
             }
-            output_list.append({
-                'name': output['identifier'],
-                'usages': usages,
-                'label': output['label'],
-                'uid': output['uid']
-            })
+            output_list_dict[output['identifier']] = output_graph
+            output_list.append(output_graph)
             for usage in usages:
                 if output_usage_dict.get(usage) is None:
                     output_usage_dict[usage] = []

@@ -97,8 +97,14 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
         if raw.get('guislider') is not None:
             parsed_input['min'] = parse_str_value(
                 raw.get('guislider')['@min'], type_num)
+            if isinstance(parsed_input['min'], list):
+                parsed_input['min'] = parsed_input['min'][0]
+
             parsed_input['max'] = parse_str_value(
                 raw.get('guislider')['@max'], type_num)
+            if isinstance(parsed_input['max'], list):
+                parsed_input['max'] = parsed_input['max'][0]
+
             parsed_input['step'] = parse_str_value(
                 raw.get('guislider')['@step'], type_num)
             if raw.get('guislider').get('@clamp') == "on":
@@ -120,7 +126,8 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
                 combo_item_list.append(("$NUM:{0}".format(raw_combobox_item.get('@value')),
                                         raw_combobox_item.get('@text'), raw_combobox_item.get('@text')))
             parsed_input['combo_items'] = combo_item_list
-    # return parsed_gui
+            if parsed_input.get('default') is not None:
+                parsed_input['default'] = "$NUM:{0}".format(parsed_input['default'])
 
 
 def parse_str_value(raw_str: str, type_num):
