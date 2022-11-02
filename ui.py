@@ -107,9 +107,9 @@ class SUBLENDER_PT_Main(Panel):
 
 
 def calc_prop_visibility(eval_delegate, input_info: dict):
-    if input_info.get('mVisibleIf') is None:
+    if input_info.get('visibleIf') is None:
         return True
-    eval_str: str = input_info.get('mVisibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
+    eval_str: str = input_info.get('visibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
     if eval_delegate is None:
         return False
     eval_result = eval(eval_str, {
@@ -126,7 +126,7 @@ def calc_group_visibility(eval_delegate, group_info: dict, debug=False):
     for input_info in group_info['inputs']:
         input_visibility = calc_prop_visibility(eval_delegate, input_info)
         if debug:
-            print("Calc Prop Visi {0}:{1}".format(input_info.get('mVisibleIf'), input_visibility))
+            print("Calc Prop Visi {0}:{1}".format(input_info.get('visibleIf'), input_visibility))
         if input_visibility:
             return True
 

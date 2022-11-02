@@ -90,7 +90,7 @@ def parse_input(raw: OrderedDict):
 def parse_gui(raw: OrderedDict, type_num, parsed_input):
     parsed_input['widget'] = raw.get('@widget')
     parsed_input['label'] = raw.get('@label')
-    parsed_input['visibleIf'] = raw.get('@visibleIf')
+    parsed_input['visibleIf'] = raw.get('@visibleif')
     parsed_input['group'] = raw.get('@group')
 
     if parsed_input['widget'] == 'slider':
@@ -115,10 +115,11 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
             # parsed_input['label1'] = raw.get('guislider').get('@label1')
             # parsed_input['label2'] = raw.get('guislider').get('@label2')
             # parsed_input['label3'] = raw.get('guislider').get('@label3')
-    # elif parsed_input['widget'] == 'togglebutton':
-    #     if raw.get('guibutton') is not None:
-    #         parsed_input['label0'] = raw.get('guibutton').get('@label0')
-    #         parsed_input['label1'] = raw.get('guibutton').get('@label1')
+    elif parsed_input['widget'] == 'togglebutton':
+        # TODO better toggle button
+        if raw.get('guibutton') is not None:
+            parsed_input['label0'] = raw.get('guibutton').get('@label0')
+            parsed_input['label1'] = raw.get('guibutton').get('@label1')
     elif parsed_input['widget'] == 'combobox':
         if raw.get('guicombobox') is not None:
             combo_item_list = []

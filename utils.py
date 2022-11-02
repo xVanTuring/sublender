@@ -75,9 +75,15 @@ class EvalDelegate(object):
             else:
                 return VectorWrapper([int(getattr(graph_setting, consts.output_size_x)),
                                       int(getattr(graph_setting, consts.output_size_y))])
-        prop_name = parser.uid_prop(sbs_graph.getInput(identifier).mUID)
+        prop_name = None
+
+        for i in sbs_graph['inputs']:
+            if i['identifier'] == identifier:
+                prop_name = parser.uid_prop(i['uid'])
+        if prop_name is None:
+            return False
         value = getattr(graph_setting, prop_name, None)
-        # FIX drop_down enum type
+        # TODO(???): FIX drop_down enum type
         if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
             return VectorWrapper(value)
         if isinstance(value, str) and value.startswith("$NUM:"):

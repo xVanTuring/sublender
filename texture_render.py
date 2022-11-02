@@ -112,7 +112,6 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
 
     async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict):
         sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
-        print(" ".join(cmd_list))
         process = await asyncio.create_subprocess_exec(
             sbs_render_path,
             *cmd_list,
