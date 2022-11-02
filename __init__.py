@@ -96,7 +96,6 @@ def unregister():
     globalvar.current_uuid = ""
     globalvar.graph_clss.clear()
     globalvar.sbsar_dict.clear()
-    globalvar.aContext = None
     globalvar.instance_map.clear()
 
     bpy.app.handlers.load_pre.remove(on_load_pre)

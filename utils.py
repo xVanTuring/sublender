@@ -8,15 +8,9 @@ import bpy
 import mathutils
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
-from pysbs import sbsarchive
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
-SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARTypeEnum", None)
-if SBSARTypeEnum is None:
-    SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARInputTypeEnum", None)
-
-from . import globalvar, consts, settings, parser, ui
-from .parser import parse_sbsar_input, parse_sbsar_group
+from . import globalvar, consts, settings, parser, ui, sbsarlite
+from .parser import parse_sbsar_group
 
 
 def sbsar_input_updated(_, context):
@@ -154,42 +148,45 @@ def generate_sub_panel(group_map, graph_url):
 def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
     clss_name = gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
-        all_inputs = sbs_graph.getAllInputs()
-        all_outputs = sbs_graph.getGraphOutputs()
-        input_list = parse_sbsar_input(all_inputs)
+        all_inputs = sbs_graph['inputs']
+        all_outputs = sbs_graph['outputs']
         _anno_obj = {}
 
         def assign(obj_from, obj_to, m_prop_name: str):
             if obj_from.get(m_prop_name) is not None:
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
-        for input_info in input_list:
+        for input_info in all_inputs:
             (prop_type,
-             prop_size) = consts.sbsar_type_to_property[input_info['mType']]
+             prop_size) = consts.sbsar_type_to_property[input_info['type']]
             _anno_item = {
             }
             if prop_size is not None:
                 _anno_item['size'] = prop_size
             assign(input_info, _anno_item, 'default')
-            assign(input_info, _anno_item, 'min')
-            assign(input_info, _anno_item, 'max')
-            assign(input_info, _anno_item, 'step')
-            if input_info['mType'] == SBSARTypeEnum.INTEGER1:
-                if input_info.get('mWidget') == 'togglebutton':
-                    prop_type = BoolProperty
-                if input_info.get('mWidget') == 'combobox' and input_info.get('enum_items') is not None:
-                    prop_type = EnumProperty
-                    _anno_item['items'] = input_info.get('enum_items')
-            if input_info['mType'] == SBSARTypeEnum.IMAGE:
+            if input_info.get('gui') is not None:
+                assign(input_info['gui'], _anno_item, 'min')
+                assign(input_info['gui'], _anno_item, 'max')
+                assign(input_info['gui'], _anno_item, 'step')
+            if input_info['type'] == sbsarlite.SBSARTypeEnum.INTEGER1:
+                if input_info.get('gui') is not None:
+                    if input_info['gui'].get('widget') == 'togglebutton':
+                        prop_type = BoolProperty
+                    if input_info['gui'].get('widget') == 'combobox' and input_info['gui'].get(
+                            'combo_items') is not None:
+                        prop_type = EnumProperty
+                        _anno_item['items'] = input_info['gui'].get('combo_items')
+            if input_info['type'] == sbsarlite.SBSARTypeEnum.IMAGE:
                 _anno_item['subtype'] = 'FILE_PATH'
-            if input_info['mType'] in [SBSARTypeEnum.FLOAT3, SBSARTypeEnum.FLOAT4]:
-                if input_info.get('mWidget') == 'color':
-                    _anno_item['min'] = 0
-                    _anno_item['max'] = 1
-                    _anno_item['subtype'] = 'COLOR'
+            if input_info['type'] in [sbsarlite.SBSARTypeEnum.FLOAT3, sbsarlite.SBSARTypeEnum.FLOAT4]:
+                if input_info.get('gui') is not None:
+                    if input_info['gui'].get('widget') == 'color':
+                        _anno_item['min'] = 0
+                        _anno_item['max'] = 1
+                        _anno_item['subtype'] = 'COLOR'
 
             _anno_item['update'] = sbsar_input_updated
-            if input_info['mIdentifier'] == '$outputsize':
+            if input_info['identifier'] == '$outputsize':
                 preferences = bpy.context.preferences
                 addon_prefs = preferences.addons[__package__].preferences
                 _anno_obj[consts.output_size_x] = (EnumProperty, {
@@ -217,28 +214,29 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
         output_list_dict = {}
         output_usage_dict: typing.Dict[str, typing.List[str]] = {}
         for output in all_outputs:
-            _anno_obj[sb_output_to_prop(output.mIdentifier)] = (BoolProperty, {
-                'name': output.mOutputGui.mLabel,
+            _anno_obj[sb_output_to_prop(output['identifier'])] = (BoolProperty, {
+                'name': output['label'],
                 'default': False,
-                'update': sbsar_output_updated_name(output.mIdentifier)
+                'update': sbsar_output_updated_name(output['identifier'])
             })
-            usages = list(map(lambda x: x.mName, output.getUsages()))
-            output_list_dict[output.mIdentifier] = {
-                'name': output.mIdentifier,
+            usages = output['usages']
+            output_list_dict[output['identifier']] = {
+                'name': output['identifier'],
                 'usages': usages,
-                'label': output.mOutputGui.mLabel,
-                'uid': output.mUID
+                'label': output['label'],
+                'uid': output['uid']
             }
             output_list.append({
-                'name': output.mIdentifier,
+                'name': output['identifier'],
                 'usages': usages,
-                'label': output.mOutputGui.mLabel,
-                'uid': output.mUID
+                'label': output['label'],
+                'uid': output['uid']
             })
-            for usage in output.getUsages():
-                if output_usage_dict.get(usage.mName) is None:
-                    output_usage_dict[usage.mName] = []
-                output_usage_dict[usage.mName].append(output.mIdentifier)
+            for usage in usages:
+                if output_usage_dict.get(usage) is None:
+                    output_usage_dict[usage] = []
+                output_usage_dict[usage].append(output['identifier'])
+
         group_tree, group_map = parse_sbsar_group(sbs_graph)
         generate_sub_panel(group_map, graph_url)
         _anno_obj[consts.SBS_CONFIGURED] = (BoolProperty, {
@@ -252,7 +250,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
 
         globalvar.graph_clss[clss_name] = {
             'clss': clss,
-            'input': input_list,
+            'input': all_inputs,
             'group_info': {
                 'tree': group_tree,
                 'map': group_map
@@ -280,7 +278,10 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         globalvar.sbsar_dict[m_sublender.package_path] = sbs_package
 
     if sbs_package is not None:
-        sbs_graph: SBSARGraph = sbs_package.getSBSGraphFromPkgUrl(m_sublender.graph_url)
+        sbs_graph = None
+        for graph in sbs_package['graphs']:
+            if graph['pkgUrl'] == m_sublender.graph_url:
+                sbs_graph = graph
         # TODO force to unregister loaded clss
         clss_name, clss_info = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
         m_sublender.package_missing = False
@@ -303,12 +304,9 @@ def load_sbsar_package(filepath: str):
     try:
         if not os.path.exists(filepath):
             return None
-        sbsar_pkg = sbsarchive.SBSArchive(
-            globalvar.aContext, filepath)
-        sbsar_pkg.parseDoc()
-        return sbsar_pkg
+        sbs_pkg = sbsarlite.parse_doc(filepath)
+        return sbs_pkg
     except Exception as e:
-        print(e)
         return None
 
 
@@ -337,7 +335,6 @@ async def load_sbsars_async(report=None):
             sbs_package_set.add(m_sublender.package_path)
     load_queue = []
     for fp in sbs_package_set:
-        # load and parse all sbsar file
         load_queue.append(load_and_assign(fp, report))
     await asyncio.gather(*load_queue)
     for material in sb_materials:

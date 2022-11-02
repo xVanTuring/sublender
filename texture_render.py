@@ -7,35 +7,30 @@ from typing import List
 import bpy
 from bpy.props import StringProperty
 from bpy.types import Operator
-from pysbs import context as sbsContext
-from pysbs import sbsarchive
 
-SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARTypeEnum", None)
-if SBSARTypeEnum is None:
-    SBSARTypeEnum = getattr(sbsarchive.sbsarenum, "SBSARInputTypeEnum", None)
-
-from . import globalvar, settings, utils, consts, async_loop
+from . import globalvar, settings, utils, consts, async_loop, sbsarlite
 
 
 def generate_cmd_list(context, target_material_name: str,
                       m_sublender, clss_info, graph_setting):
     input_list = clss_info['input']
-    param_list = ["render", "--input", m_sublender.package_path, "--input-graph", m_sublender.graph_url]
+    param_list = ["render", "--input", m_sublender.package_path,
+                  "--input-graph", m_sublender.graph_url]
     for input_info in input_list:
-        if input_info['mIdentifier'] == '$outputsize':
+        if input_info['identifier'] == '$outputsize':
             locked = getattr(
                 graph_setting, consts.output_size_lock, True)
             param_list.append("--set-value")
             width = getattr(graph_setting, consts.output_size_x)
             if locked:
                 param_list.append("{0}@{1},{1}".format(
-                    input_info['mIdentifier'], width))
+                    input_info['identifier'], width))
             else:
                 height = getattr(graph_setting, consts.output_size_x)
                 param_list.append("{0}@{1},{2}".format(
-                    input_info['mIdentifier'], width, height))
+                    input_info['identifier'], width, height))
         else:
-            is_image = input_info['mType'] == SBSARTypeEnum.IMAGE
+            is_image = input_info['type'] == sbsarlite.SBSARTypeEnum.IMAGE
             value = graph_setting.get(input_info['prop'])
             if value is not None:
                 if input_info.get('enum_items') is not None:
@@ -52,7 +47,8 @@ def generate_cmd_list(context, target_material_name: str,
                 to_list = getattr(value, 'to_list', None)
                 if to_list is not None:
                     if isinstance(value[0], float):
-                        value = ','.join(map(lambda x: ("%0.3f" % x), to_list()))
+                        value = ','.join(
+                            map(lambda x: ("%0.3f" % x), to_list()))
                     else:
                         value = ','.join(map(str, to_list()))
                 if isinstance(value, float):
@@ -60,7 +56,7 @@ def generate_cmd_list(context, target_material_name: str,
                 if isinstance(value, str) and value.startswith("$NUM:"):
                     value = value.replace("$NUM:", "")
                 param_list.append("{0}@{1}".format(
-                    input_info['mIdentifier'], value))
+                    input_info['identifier'], value))
     param_list.append("--output-path")
     target_dir = utils.texture_output_dir(target_material_name)
     pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
@@ -92,7 +88,8 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
     bl_idname = "sublender.render_texture_async"
     bl_label = "Render Texture"
     bl_description = "Render Texture"
-    material_name: StringProperty(name="Target Material Name, Optional", default="")
+    material_name: StringProperty(
+        name="Target Material Name, Optional", default="")
     texture_name: StringProperty(default="")
     process_list = list()
 
@@ -114,14 +111,16 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict):
+        sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
         process = await asyncio.create_subprocess_exec(
-            sbsContext.Context.getBatchToolExePath(5),
+            sbs_render_path,
             *cmd_list,
             stdout=asyncio.subprocess.PIPE)
         self.process_list.append(process)
         await process.wait()
         self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
-        texture_path = bpy.path.relpath(os.path.join(output_dir, "{0}.png".format(output_id)))
+        texture_path = bpy.path.relpath(os.path.join(
+            output_dir, "{0}.png".format(output_id)))
         output_info = output_dict.get(output_id)
         bl_img_name = utils.gen_image_name(self.material_name, output_info)
         texture_image = bpy.data.images.get(bl_img_name)
@@ -136,7 +135,8 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         if not output_info['usages'] or output_info['usages'][0] not in consts.usage_color_dict:
             texture_image.colorspace_settings.name = 'Non-Color'
         if output_info['usages'] is not None:
-            material_instance: bpy.types.Material = bpy.data.materials.get(self.material_name)
+            material_instance: bpy.types.Material = bpy.data.materials.get(
+                self.material_name)
             if material_instance is not None:
                 image_node: bpy.types.ShaderNodeTexImage = material_instance.node_tree.nodes.get(
                     output_info['usages'][0])
@@ -149,7 +149,8 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             if self.texture_name == "":
                 await asyncio.sleep(0.3)
             start = datetime.datetime.now()
-            material_inst: bpy.types.Material = bpy.data.materials.get(self.material_name)
+            material_inst: bpy.types.Material = bpy.data.materials.get(
+                self.material_name)
             m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
             clss_name = utils.gen_clss_name(m_sublender.graph_url)
             clss_info = globalvar.graph_clss.get(clss_name)

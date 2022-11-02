@@ -276,7 +276,7 @@ class Sublender_Prop_BasePanel(Panel):
         preferences = context.preferences.addons[__package__].preferences
         eval_dele = globalvar.eval_delegate_map.get(target_mat.name)
         for prop_info in self.group_info['inputs']:
-            if prop_info.get('mIdentifier') == '$outputsize':
+            if prop_info.get('identifier') == '$outputsize':
                 row = layout.row()
                 row.prop(graph_setting,
                          consts.output_size_x, text='Size')
@@ -290,7 +290,7 @@ class Sublender_Prop_BasePanel(Panel):
                              consts.output_size_y, text='')
                 if context.scene.sublender_settings.live_update:
                     row.prop(graph_setting, consts.update_when_sizing, toggle=1, icon_only=True, icon="UV_SYNC_SELECT")
-            elif prop_info.get('mIdentifier') == "$randomseed":
+            elif prop_info.get('identifier') == "$randomseed":
                 row = layout.row()
                 row.prop(graph_setting, prop_info['prop'], text=prop_info['label'])
                 row.operator('sublender.randomseed', icon="LIGHT_DATA", text="")

@@ -1,12 +1,10 @@
 import asyncio
 import pathlib
-from typing import List
 
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
 
 from . import globalvar, utils, async_loop, consts, template
 from .settings import Sublender_Material_MT_Setting
@@ -50,7 +48,11 @@ class Sublender_Import_Graph(Operator):
         m_sublender.package_loaded = True
 
         bpy.context.scene.sublender_settings.active_graph = self.graph_url
-        sbs_package = globalvar.sbsar_dict.get(self.package_path).getSBSGraphFromPkgUrl(self.graph_url)
+        sbs_package = None
+        for graph in globalvar.sbsar_dict.get(self.package_path)['graphs']:
+            if graph['pkgUrl'] == self.graph_url:
+                sbs_package = graph
+                break
         clss_name, clss_info = utils.dynamic_gen_clss_graph(sbs_package, self.graph_url)
         preferences = context.preferences.addons[__package__].preferences
         if preferences.enable_visible_if:
@@ -123,12 +125,12 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
         loop = asyncio.get_event_loop()
         self.report({"INFO"}, "Parsing package: {0}".format(self.sbsar_path))
         sbs_pkg = await loop.run_in_executor(None, utils.load_sbsar_package, self.sbsar_path)
-        sbs_graph_list: List[SBSARGraph] = sbs_pkg.getSBSGraphList()
-        globalvar.sbsar_dict[self.sbsar_path] = sbs_pkg
-        for graph in sbs_graph_list:
-            bpy.ops.sublender.import_graph(
-                'INVOKE_DEFAULT', package_path=self.sbsar_path,
-                graph_url=graph.mPkgUrl, material_name=graph.mLabel)
+        if sbs_pkg is not None:
+            globalvar.sbsar_dict[self.sbsar_path] = sbs_pkg
+            for graph in sbs_pkg['graphs']:
+                bpy.ops.sublender.import_graph(
+                    'INVOKE_DEFAULT', package_path=self.sbsar_path,
+                    graph_url=graph['pkgUrl'], material_name=graph['label'])
 
 
 def register():

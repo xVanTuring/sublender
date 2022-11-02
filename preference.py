@@ -52,13 +52,13 @@ class SublenderPreferences(AddonPreferences):
         name="Substance Render Engine"
     )
     custom_engine: StringProperty(name="Custom Engine", default='')
-    sat_path: StringProperty(name="SAT Installation Path", default='', subtype='DIR_PATH')
+    sbs_render: StringProperty(name="Sbsrender Path", default='', subtype='FILE_PATH')
     memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
     hide_channels: BoolProperty(name="Hide Channels Group", default=False)
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, 'sat_path')
+        layout.prop(self, 'sbs_render')
         row = layout.row()
         row.prop(self,
                  'output_size_x', text='Default Texture Size')

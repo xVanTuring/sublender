@@ -1,8 +1,6 @@
 import asyncio
 import typing
 
-from pysbs import context
-
 instance_map = {
 }
 
@@ -14,8 +12,6 @@ sub_panel_clss_list = []
 
 material_templates = {}
 material_template_enum = []
-# material_output_dict = {}
-aContext: typing.Optional[context.Context] = None
 current_uuid = ""
 
 async_task: typing.Optional[asyncio.Future] = None
@@ -27,10 +23,10 @@ file_existence_dict = {}
 
 def clear():
     global current_uuid
-    global aContext
+    # global aContext
     current_uuid = ""
     graph_clss.clear()
     sbsar_dict.clear()
-    aContext = None
+    # aContext = None
     instance_map.clear()
     file_existence_dict.clear()

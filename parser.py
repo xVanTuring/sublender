@@ -2,10 +2,6 @@ import typing
 from typing import List
 
 import bpy
-from pysbs.sbsarchive import SBSARGuiComboBox
-from pysbs.sbsarchive.sbsarchive import SBSARGraph
-from pysbs.sbsarchive.sbsargraph import SBSARInput, SBSARInputGui
-
 from .consts import sbsar_name_to_label
 
 
@@ -31,7 +27,7 @@ def ensure_group(group_name: str, group_map, group_tree):
         current_group = combine_group(parent_group, group)
         if group_map.get(current_group) is None:
             group_info = {
-                'mIdentifier': current_group,
+                'identifier': current_group,
                 'sub_group': [],
                 "inputs": [],
                 "nameInShort": group
@@ -48,71 +44,32 @@ def ensure_group(group_name: str, group_map, group_tree):
     return group_map[group_name]
 
 
-def parse_sbsar_group(graph: SBSARGraph):
+def parse_sbsar_group(graph):
     group_tree = []
     group_map = {}
-    for sb_input in typing.cast(typing.List[SBSARInput], graph.getAllInputs()):
-        group_name = sb_input.getGroup()
+    for sb_input in typing.cast(List[dict], graph['inputs']):
+        group_name = None
+        if sb_input.get('gui') is not None:
+            group_name = sb_input['gui']['group']
 
         if group_name is None:
             group_name = "$UNGROUPED$"
         group_obj = ensure_group(group_name, group_map, group_tree)
         input_info = {
-            'mIdentifier': sb_input.mIdentifier,
-            'prop': uid_prop(sb_input.mUID),
+            'identifier': sb_input['identifier'],
+            'prop': sb_input['prop'],
             'label': sbsar_name_to_label.get(
-                sb_input.mIdentifier, sb_input.mIdentifier),
+                sb_input['identifier'], sb_input['identifier']),
         }
-        if input_info['mIdentifier'] == "$randomseed":
+        if input_info['identifier'] == "$randomseed":
             input_info['prop'] = "$randomseed"
-        gui_input: SBSARInputGui = sb_input.getInputGui()
+        gui_input = sb_input.get('gui')
         if gui_input is not None:
-            if gui_input.mLabel is not None:
-                input_info['label'] = gui_input.mLabel
-            if gui_input.mVisibleIf is not None:
-                input_info['mVisibleIf'] = gui_input.mVisibleIf
-            if gui_input.mWidget == 'togglebutton':
+            if gui_input['label'] is not None:
+                input_info['label'] = gui_input['label']
+            if gui_input['visibleIf'] is not None:
+                input_info['visibleIf'] = gui_input['visibleIf']
+            if gui_input['widget'] == 'togglebutton':
                 input_info['togglebutton'] = True
         group_obj['inputs'].append(input_info)
     return group_tree, group_map
-
-
-def parse_sbsar_input(graph_inputs: List[SBSARInput]):
-    input_list = []
-    for sbsar_graph_input in graph_inputs:
-        gui: SBSARInputGui = sbsar_graph_input.getInputGui()
-        input_info = {
-            'mIdentifier': sbsar_graph_input.mIdentifier,
-            'mType': sbsar_graph_input.mType,
-            'default': sbsar_graph_input.getDefaultValue(),
-            'prop': uid_prop(sbsar_graph_input.mUID)
-        }
-        if sbsar_graph_input.mIdentifier == "$randomseed":
-            input_info['prop'] = "$randomseed"
-        if gui is not None:
-            if gui.mWidget in ['togglebutton', 'combobox', 'color']:
-                input_info['mWidget'] = gui.mWidget
-            if gui.mWidget == 'combobox':
-                combobox_box: SBSARGuiComboBox = gui.mGuiComboBox
-                drop_down_list = combobox_box.getDropDownList()
-                if drop_down_list is not None:
-                    drop_down_keys = list(drop_down_list.keys())
-                    drop_down_keys.sort()
-                    enum_items = []
-                    for key in drop_down_keys:
-                        enum_items.append(
-                            ("$NUM:{0}".format(key), drop_down_list[key], drop_down_list[key]))
-                    input_info['enum_items'] = enum_items
-                    input_info['drop_down_list'] = enum_items
-                    # assign default value to string here,
-                    if input_info.get('default') is not None:
-                        input_info['default'] = "$NUM:{0}".format(input_info['default'])
-
-        if sbsar_graph_input.getMaxValue() is not None:
-            input_info['max'] = sbsar_graph_input.getMaxValue()
-        if sbsar_graph_input.getMinValue() is not None:
-            input_info['min'] = sbsar_graph_input.getMinValue()
-        if sbsar_graph_input.getStep() is not None:
-            input_info['step'] = int(sbsar_graph_input.getStep() * 100)
-        input_list.append(input_info)
-    return input_list
