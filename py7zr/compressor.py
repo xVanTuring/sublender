@@ -68,7 +68,7 @@ class AESCompressor(ISevenZipCompressor):
     AES_CBC_BLOCKSIZE = 16
 
     def __init__(self, password: str) -> None:
-        self.cycles = 19  # FIXME
+        self.cycles = 19
         self.iv = get_random_bytes(16)
         self.salt = b''
         self.method = CompressionMethod.CRYPT_AES256_SHA256
@@ -82,7 +82,7 @@ class AESCompressor(ISevenZipCompressor):
         # cycles = secrets.SystemRandom().randint(1, 23)
         saltsize = len(self.salt)
         ivsize = len(self.iv)
-        ivfirst = 1  # FIXME: it should always 1
+        ivfirst = 1
         saltfirst = 1 if len(self.salt) > 0 else 0
         firstbyte = (self.cycles + (ivfirst << 6) + (saltfirst << 7)).to_bytes(1, 'little')
         secondbyte = (((ivsize - 1) & 0x0f) + (((saltsize - saltfirst) << 4) & 0xf0)).to_bytes(1, 'little')

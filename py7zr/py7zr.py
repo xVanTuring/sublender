@@ -332,7 +332,7 @@ class SevenZipFile(contextlib.AbstractContextManager):
                 self.sig_header._write_skelton(self.fp)
                 self.afterheader = self.fp.tell()
                 self.header = Header.build_header([folder])
-                self.header.main_streams.packinfo.enable_digests = not self.password_protected  # FIXME
+                self.header.main_streams.packinfo.enable_digests = not self.password_protected
                 self.fp.seek(self.afterheader)
                 self.worker = Worker(self.files, self.afterheader, self.header)
             elif mode in 'x':
@@ -665,14 +665,12 @@ class SevenZipFile(contextlib.AbstractContextManager):
         fnames = []  # type: List[str]  # check duplicated filename in one archive?
         self.q.put(('pre', None, None))
         for f in self.files:
-            # TODO: sanity check
             # check whether f.filename with invalid characters: '../'
             if f.filename.startswith('../'):
                 raise Bad7zFile
             # When archive has a multiple files which have same name
             # To guarantee order of archive, multi-thread decompression becomes off.
             # Currently always overwrite by latter archives.
-            # TODO: provide option to select overwrite or skip.
             if f.filename not in fnames:
                 outname = f.filename
             else:
@@ -889,7 +887,7 @@ class SevenZipFile(contextlib.AbstractContextManager):
         for f in self.files:
             self.worker.register_filelike(f.id, None)
         try:
-            self.worker.extract(self.fp, parallel=(not self.password_protected))  # TODO: print progress
+            self.worker.extract(self.fp, parallel=(not self.password_protected))
         except CrcError as crce:
             return str(crce)
         else:
@@ -1063,7 +1061,6 @@ class Worker:
         member = None
         for j in range(len(self.files)):
             if linkname == self.files[j].origin.as_posix():
-                # FIXME: when API user specify arcname, it will break
                 member = os.path.relpath(linkname, os.path.dirname(targetname))
                 break
         if member is None:

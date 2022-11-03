@@ -478,7 +478,6 @@ class UnpackInfo:
         for folder in self.folders:
             for s in folder.unpacksizes:
                 write_uint64(file, s)
-        # FIXME: write CRCs here.
         write_byte(file, Property.END)
 
 
@@ -810,7 +809,6 @@ class FilesInfo:
         self._write_times(file, Property.LAST_ACCESS_TIME, 'lastaccesstime')
         self._write_times(file, Property.LAST_WRITE_TIME, 'lastwritetime')
         # start_pos
-        # FIXME: TBD
         # attribute
         self._write_attributes(file)
         write_byte(file, Property.END)
