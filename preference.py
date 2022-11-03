@@ -10,7 +10,7 @@ def output_size_x_updated(self, context):
         self.output_size_y = self.output_size_x
 
 
-thank_list = ["kalish"]
+thank_list = ["kalish", "miurahr", "martinblech"]
 
 
 # noinspection PyTypeChecker
