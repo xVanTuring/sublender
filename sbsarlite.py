@@ -1,11 +1,9 @@
-import py7zr
 import os
-import xmltodict
 from collections import OrderedDict
 
 import tempfile
 
-from . import (parser)
+from . import (parser, py7zr, xmltodict)
 
 
 def parse_sbsar_raw(raw: OrderedDict):

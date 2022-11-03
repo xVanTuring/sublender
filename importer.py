@@ -120,8 +120,6 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     sbsar_path: StringProperty()
 
     async def async_execute(self, context):
-        print("Sublender_Import_Sbsar")
-        print("self.filepath {0}".format(self.sbsar_path))
         loop = asyncio.get_event_loop()
         self.report({"INFO"}, "Parsing package: {0}".format(self.sbsar_path))
         sbs_pkg = await loop.run_in_executor(None, utils.load_sbsar_package, self.sbsar_path)

@@ -300,13 +300,10 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
 
 
 def load_sbsar_package(filepath: str):
-    try:
-        if not os.path.exists(filepath):
-            return None
-        sbs_pkg = sbsarlite.parse_doc(filepath)
-        return sbs_pkg
-    except Exception as e:
+    if not os.path.exists(filepath):
         return None
+    sbs_pkg = sbsarlite.parse_doc(filepath)
+    return sbs_pkg
 
 
 async def load_and_assign(filepath: str, report=None):
