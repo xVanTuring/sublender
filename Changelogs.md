@@ -1,3 +1,5 @@
+## v1.0.4
+* add sbsarlite as default support for parsing sublender
 ## v1.0.3
 * fix: changing/applying workflow does not update the output state 
 * add material parameters to panel
