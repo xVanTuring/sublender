@@ -546,8 +546,6 @@ class SupportedMethods:
                 'filter_id': FILTER_ZSTD, 'type': MethodsType.compressor},
                {'id': CompressionMethod.CRYPT_AES256_SHA256, 'name': '7zAES', 'native': False,
                 'filter_id': FILTER_CRYPTO_AES256_SHA256, 'type': MethodsType.crypto},
-               {'id': b'', 'name': 'COPY', 'native': False,
-                'filter_id': FILTER_COPY, 'type': MethodsType.compressor},
                ]
 
     @classmethod
