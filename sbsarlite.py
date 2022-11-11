@@ -123,6 +123,8 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
 
             parsed_input['step'] = parse_str_value(
                 raw.get('guislider')['@step'], type_num)
+            if parsed_input['step']:
+                parsed_input['step'] = parsed_input['step'] * 100
             if raw.get('guislider').get('@clamp') == "on":
                 parsed_input['clamp'] = True
             else:
