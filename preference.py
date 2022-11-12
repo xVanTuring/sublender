@@ -52,7 +52,9 @@ class SublenderPreferences(AddonPreferences):
         name="Substance Render Engine"
     )
     custom_engine: StringProperty(name="Custom Engine", default='')
-    sbs_render: StringProperty(name="Sbsrender Path", default='', subtype='FILE_PATH')
+    sbs_render: StringProperty(name="Sbsrender Path",
+                               default="C:\\Program Files\\Allegorithmic\\Substance Designer\\sbsrender.exe",
+                               subtype='FILE_PATH')
     memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
     hide_channels: BoolProperty(name="Hide Channels Group", default=False)
 
