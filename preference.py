@@ -79,7 +79,7 @@ class SublenderPreferences(AddonPreferences):
         if self.engine_enum == consts.CUSTOM:
             layout.prop(self, 'custom_engine')
         layout.label(text="Special Thanks to YOU and: ")
-        layout.label(text=' '.join(thank_list))
+        layout.label(text=', '.join(thank_list))
 
 
 def register():

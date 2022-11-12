@@ -1,3 +1,6 @@
+## v1.0.5
+* fix slider step
+* remove packaged py7zr
 ## v1.0.4
 * add sbsarlite as default support for parsing sublender
 ## v1.0.3
