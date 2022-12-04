@@ -89,3 +89,18 @@ usage_to_label = {
     'ambientOcclusion': 'Ambient Occlusion',
     'height': 'Height'
 }
+
+format_list = [
+    ("png", "PNG", "PNG"),
+    ("jpg", "JPG", "JPG"),
+    ("tiff", "TIFF", "TIFF"),
+    ("hdr", "HDR", "HDR"),
+    ("exr", "EXR", "EXR"),
+]
+output_bit_depth = [
+    ("0", "Default", "Default"),
+    ("8", "Int 8", "Int 8"),
+    ("16", "Int 16", "Int 16"),
+    ("16f", "Float 16", "Float 16"),
+    ("32f", "Float 32", "Float 32"),
+]

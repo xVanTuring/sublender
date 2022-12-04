@@ -110,7 +110,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         self.material_name = material_inst.name
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
-    async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict):
+    async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict, format: str):
         sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
         process = await asyncio.create_subprocess_exec(
             sbs_render_path,
@@ -120,7 +120,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         await process.wait()
         self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
         texture_path = bpy.path.relpath(os.path.join(
-            output_dir, "{0}.png".format(output_id)))
+            output_dir, "{0}.{1}".format(output_id, format)))
         output_info = output_dict.get(output_id)
         bl_img_name = utils.gen_image_name(self.material_name, output_info)
         texture_image = bpy.data.images.get(bl_img_name)
@@ -170,13 +170,33 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                     per_output_cmd = param_list[:]
                     per_output_cmd.append("--input-graph-output")
                     per_output_cmd.append(output)
+                    dep_name = utils.sb_output_dep_to_prop(output)
+                    bit_depth = getattr(graph_setting, dep_name, "0")
+                    if bit_depth != "0":
+                        per_output_cmd.append("--output-bit-depth"),
+                        per_output_cmd.append(bit_depth)
+                    format_name = utils.sb_output_format_to_prop(output)
+                    output_format = getattr(graph_setting, format_name, "png")
+                    per_output_cmd.append("--output-format"),
+                    per_output_cmd.append(output_format)
                     worker_list.append(
-                        self.render_map(per_output_cmd, output, target_dir, clss_info['output_info']['dict']))
+                        self.render_map(per_output_cmd, output, target_dir, clss_info['output_info']['dict'],
+                                        output_format))
                 await asyncio.gather(*worker_list)
             else:
                 param_list.append("--input-graph-output")
                 param_list.append(self.texture_name)
-                await self.render_map(param_list, self.texture_name, target_dir, clss_info['output_info']['dict'])
+                dep_name = utils.sb_output_dep_to_prop(self.texture_name)
+                bit_depth = getattr(graph_setting, dep_name, "0")
+                if bit_depth != "0":
+                    param_list.append("--output-bit-depth"),
+                    param_list.append(bit_depth)
+                format_name = utils.sb_output_format_to_prop(self.texture_name)
+                output_format = getattr(graph_setting, format_name, "png")
+                param_list.append("--output-format"),
+                param_list.append(output_format)
+                await self.render_map(param_list, self.texture_name, target_dir, clss_info['output_info']['dict'],
+                                      output_format)
             end = datetime.datetime.now()
             self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
                 (end - start).total_seconds()))

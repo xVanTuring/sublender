@@ -37,6 +37,9 @@ class SublenderPreferences(AddonPreferences):
     enable_visible_if: BoolProperty(
         name="Enable Visible If"
     )
+    enable_output_params: BoolProperty(
+        name="Enable Output Params"
+    )
 
     engine_enum: EnumProperty(
         items=[
@@ -73,8 +76,10 @@ class SublenderPreferences(AddonPreferences):
             row.prop(self,
                      'output_size_y', text='')
         row = layout.row()
+        row.prop(self, 'enable_output_params', toggle=1)
         row.prop(self, 'enable_visible_if',
                  toggle=1, icon="HIDE_OFF")
+        row = layout.row()
         row.prop(self, 'memory_budget')
         row.prop(self, 'hide_channels', toggle=1)
         layout.prop(self, 'engine_enum')

@@ -123,6 +123,14 @@ def sb_output_to_prop(uid: str):
     return "sbo_{0}".format(uid)
 
 
+def sb_output_format_to_prop(uid: str):
+    return "sbo_format_{0}".format(uid)
+
+
+def sb_output_dep_to_prop(uid: str):
+    return "sbo_dep_{0}".format(uid)
+
+
 def gen_clss_name(graph_url: str):
     return "sb" + graph_url.replace("pkg://", "_")
 
@@ -220,6 +228,16 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 'name': output['label'],
                 'default': False,
                 'update': sbsar_output_updated_name(output['identifier'])
+            })
+            _anno_obj[sb_output_format_to_prop(output['identifier'])] = (EnumProperty, {
+                'name': 'Format',
+                'items': consts.format_list,
+                'default': 'png'
+            })
+            _anno_obj[sb_output_dep_to_prop(output['identifier'])] = (EnumProperty, {
+                'name': 'Bit Depth',
+                'items': consts.output_bit_depth,
+                'default': '0'
             })
             usages = output['usages']
             output_graph = {

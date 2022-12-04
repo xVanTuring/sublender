@@ -187,11 +187,17 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         open_texture_dir = self.layout.operator("wm.path_open", text="Open Texture Folder", icon="VIEWZOOM")
         material_output_folder = utils.texture_output_dir(active_mat.name)
         open_texture_dir.filepath = material_output_folder
+        display_output_params = context.preferences.addons[__package__].preferences.enable_output_params
 
         for output_info in globalvar.graph_clss.get(clss_name)['output_info']['list']:
             sbo_prop_name = utils.sb_output_to_prop(output_info['name'])
+            sbo_format_name = utils.sb_output_format_to_prop(output_info['name'])
+            sbo_dep_name = utils.sb_output_dep_to_prop(output_info['name'])
             row = self.layout.row()
             row.prop(graph_setting, sbo_prop_name)
+            if display_output_params:
+                row.prop(graph_setting, sbo_format_name, text="")
+                row.prop(graph_setting, sbo_dep_name, text="")
             bl_img_name = utils.gen_image_name(active_mat.name, output_info)
             bpy_image = bpy.data.images.get(bl_img_name)
             if getattr(graph_setting, sbo_prop_name):
@@ -215,7 +221,9 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
                 delete_image.filepath = bpy.path.abspath(bpy_image.filepath)
                 delete_image.bl_img_name = bl_img_name
             else:
-                image_file_path = os.path.join(material_output_folder, "{0}.png".format(output_info['name']))
+                output_format = getattr(graph_setting, utils.sb_output_format_to_prop(output_info['name']), "png")
+                image_file_path = os.path.join(material_output_folder,
+                                               "{0}.{1}".format(output_info['name'], output_format))
                 if globalvar.file_existence_dict.get(image_file_path) is None:
                     globalvar.file_existence_dict[image_file_path] = os.path.exists(image_file_path)
                 if globalvar.file_existence_dict.get(image_file_path, False):
