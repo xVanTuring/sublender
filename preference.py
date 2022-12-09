@@ -1,8 +1,16 @@
 import bpy
+import platform
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import AddonPreferences
 
 from . import consts
+
+if platform.system() == "Linux":
+    default_sbsrender_path = "/opt/Allegorithmic/Substance_Designer/sbsrender"
+elif platform.system() == "Windows":
+    default_sbsrender_path = "C:\\Program Files\\Allegorithmic\\Substance Designer\\sbsrender.exe"
+else:
+    default_sbsrender_path = "C:\\Program Files\\Allegorithmic\\Substance Designer\\sbsrender.exe"
 
 
 def output_size_x_updated(self, context):
@@ -56,7 +64,7 @@ class SublenderPreferences(AddonPreferences):
     )
     custom_engine: StringProperty(name="Custom Engine", default='')
     sbs_render: StringProperty(name="Sbsrender Path",
-                               default="C:\\Program Files\\Allegorithmic\\Substance Designer\\sbsrender.exe",
+                               default=default_sbsrender_path,
                                subtype='FILE_PATH')
     memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
     hide_channels: BoolProperty(name="Hide Channels Group", default=False)
