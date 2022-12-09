@@ -187,6 +187,10 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
     bl_label = "Init Sublender"
     bl_description = "Init Sublender"
 
+    @classmethod
+    def poll(cls, context):
+        return not bpy.data.filepath == ""
+
     async def async_execute(self, context):
         sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
         if sublender_settings.uuid == "":

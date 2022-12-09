@@ -80,12 +80,11 @@ class SUBLENDER_PT_Main(Panel):
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
         if globalvar.current_uuid == "" or globalvar.current_uuid != sublender_settings.uuid:
-            self.layout.operator("sublender.init_async")
             if bpy.data.filepath == "":
+                self.layout.operator("wm.save_mainfile")
                 self.layout.label(
-                    text="You will need to save current blender before importing,")
-                self.layout.label(
-                    text="otherwise all texture will be saved to a temp dir")
+                    text="Please save your file first.")
+            self.layout.operator("sublender.init_async")
         else:
             if sublender_settings.active_instance != "$DUMMY$":
                 target_mat = utils.find_active_mat(context)
