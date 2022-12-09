@@ -69,6 +69,11 @@ class Sublender_Import_Graph(Operator):
                 if output_info_usage.get(template_texture) is not None:
                     name = output_info_usage.get(template_texture)[0]
                     setattr(graph_setting, utils.sb_output_to_prop(name), True)
+                # compatibility
+                # elif template_texture == "height":
+                #     if output_info_usage.get("displacement") is not None:
+                #         name = output_info_usage.get("displacement")[0]
+                #         setattr(graph_setting, utils.sb_output_to_prop(name), True)
             template.inflate_template(material, self.material_template, True)
         else:
             for output_info in clss_info['output_info']['list']:
@@ -80,7 +85,7 @@ class Sublender_Import_Graph(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=400)
+        return wm.invoke_props_dialog(self, width=450)
 
     def draw(self, context):
         self.layout.label(text="Import " + self.graph_url, icon="IMPORT")
