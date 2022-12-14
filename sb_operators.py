@@ -207,6 +207,10 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
             bpy.context.scene['sublender_settings']['active_instance'] = 0
         bpy.app.handlers.undo_post.append(on_blender_undo)
         bpy.app.handlers.redo_post.append(on_blender_undo)
+        for region in context.area.regions:
+            if region.type == "UI":
+                region.tag_redraw()
+                break
 
 
 class Sublender_New_Instance(Sublender_Base_Operator, Operator):

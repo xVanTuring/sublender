@@ -29,6 +29,28 @@ def on_load_pre(_):
     globalvar.clear()
 
 
+saved = False
+
+
+@persistent
+def on_save_pre(_):
+    global saved
+    if bpy.data.filepath == "":
+        saved = False
+
+
+@persistent
+def on_save_post(_):
+    global saved
+    if saved:
+        return
+    saved = True
+    for region in bpy.context.area.regions:
+        if region.type == "UI":
+            region.tag_redraw()
+            break
+
+
 def register():
     log.debug('Sublender@register: Starting')
     import sys
@@ -73,6 +95,8 @@ def register():
     sb_operators.register()
     ui.register()
     bpy.app.handlers.load_pre.append(on_load_pre)
+    bpy.app.handlers.save_pre.append(on_save_pre)
+    bpy.app.handlers.save_post.append(on_save_post)
     log.debug('Sublender@register: Done')
 
 
@@ -99,3 +123,5 @@ def unregister():
     globalvar.instance_map.clear()
 
     bpy.app.handlers.load_pre.remove(on_load_pre)
+    bpy.app.handlers.save_post.remove(on_save_post)
+    bpy.app.handlers.save_pre.remove(on_save_pre)
