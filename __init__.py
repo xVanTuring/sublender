@@ -5,7 +5,7 @@ from bpy.app.handlers import persistent
 
 bl_info = {
     "name": "Sublender",
-    "author": "xVanTuring(@outlook.com)",
+    "author": "xVanTuring(@foxmail.com)",
     "blender": (2, 80, 0),
     "version": (1, 0, 5),
     "location": "View3D > Properties > Sublender",
