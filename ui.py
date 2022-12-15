@@ -176,8 +176,10 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         if active_mat is None or active_graph is None:
             return False
         clss_name = utils.gen_clss_name(active_graph)
-        graph_setting = getattr(active_mat, clss_name, None)
-        return graph_setting is not None
+        if globalvar.graph_clss.get(clss_name) is None:
+            # class removed
+            return False
+        return True
 
     def draw(self, context):
         active_mat, active_graph = utils.find_active_graph(context)

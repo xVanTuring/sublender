@@ -20,6 +20,8 @@ log.setLevel(logging.DEBUG)
 def on_load_pre(_):
     """Remove all register clss, global var generate previously"""
     from . import (globalvar)
+    if globalvar.current_uuid == "":
+        return
     for clss in globalvar.sub_panel_clss_list:
         bpy.utils.unregister_class(clss)
     globalvar.sub_panel_clss_list.clear()
@@ -27,6 +29,12 @@ def on_load_pre(_):
         class_info = globalvar.graph_clss.get(class_name)
         bpy.utils.unregister_class(class_info['clss'])
     globalvar.clear()
+
+
+@persistent
+def on_load_post(_):
+    if bpy.data.filepath != "" and bpy.context.scene.sublender_settings.uuid != "":
+        bpy.ops.sublender.init_async()
 
 
 saved = False
@@ -97,6 +105,7 @@ def register():
     bpy.app.handlers.load_pre.append(on_load_pre)
     bpy.app.handlers.save_pre.append(on_save_pre)
     bpy.app.handlers.save_post.append(on_save_post)
+    bpy.app.handlers.load_post.append(on_load_post)
     log.debug('Sublender@register: Done')
 
 
@@ -125,3 +134,4 @@ def unregister():
     bpy.app.handlers.load_pre.remove(on_load_pre)
     bpy.app.handlers.save_post.remove(on_save_post)
     bpy.app.handlers.save_pre.remove(on_save_pre)
+    bpy.app.handlers.load_post.remove(on_load_post)

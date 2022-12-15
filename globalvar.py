@@ -22,11 +22,11 @@ file_existence_dict = {}
 
 
 def clear():
-    global current_uuid
-    # global aContext
+    global current_uuid, async_task
     current_uuid = ""
     graph_clss.clear()
     sbsar_dict.clear()
     # aContext = None
     instance_map.clear()
     file_existence_dict.clear()
+    async_task = None
