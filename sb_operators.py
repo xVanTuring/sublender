@@ -1,6 +1,7 @@
 import asyncio
 import random
 import uuid
+import os
 
 import bpy
 from bpy.props import (StringProperty)
@@ -93,9 +94,6 @@ class Sublender_Render_All(Operator):
 
     def execute(self, context):
         return {'FINISHED'}
-
-
-import os
 
 
 class SUBLENDER_OT_Delete_Image(Operator):
@@ -207,11 +205,7 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
             bpy.context.scene['sublender_settings']['active_instance'] = 0
         bpy.app.handlers.undo_post.append(on_blender_undo)
         bpy.app.handlers.redo_post.append(on_blender_undo)
-        if context.area is not None:
-            for region in context.area.regions:
-                if region.type == "UI":
-                    region.tag_redraw()
-                    break
+        utils.refresh_panel(context)
 
 
 class Sublender_New_Instance(Sublender_Base_Operator, Operator):

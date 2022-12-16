@@ -403,3 +403,22 @@ def find_active_graph(context):
     if target_mat is not None:
         return target_mat, target_mat.sublender.graph_url
     return None, None
+
+
+def refresh_panel(context):
+    if context.area is not None:
+        for region in context.area.regions:
+            if region.type == "UI":
+                region.tag_redraw()
+                break
+    else:
+        print("Context.Area is None, Forcing updating all VIEW_3D-UI")
+        for window in context.window_manager.windows:
+            screen = window.screen
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    for region in area.regions:
+                        if region.type == "UI":
+                            region.tag_redraw()
+                            break
+                    break

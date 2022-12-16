@@ -49,14 +49,12 @@ def on_save_pre(_):
 
 @persistent
 def on_save_post(_):
+    from . import (utils)
     global saved
     if saved:
         return
     saved = True
-    for region in bpy.context.area.regions:
-        if region.type == "UI":
-            region.tag_redraw()
-            break
+    utils.refresh_panel(bpy.context)
 
 
 def register():
