@@ -92,6 +92,7 @@ def inflate_template(mat, template_name: str, clear_nodes=False):
 def load_material_templates():
     template_path = consts.TEMPLATE_PATH
     files = os.listdir(template_path)
+    files.sort()
 
     globalvar.material_template_enum.clear()
     globalvar.material_templates.clear()
