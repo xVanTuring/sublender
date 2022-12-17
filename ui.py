@@ -58,7 +58,7 @@ def draw_texture_item(self, context, target_mat):
     row = self.layout.row()
     render_ops = row.operator(
         "sublender.render_texture_async", icon='TEXTURE')
-    render_ops.material_name = ""
+    render_ops.importing_graph = False
     render_ops.texture_name = ""
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
@@ -204,6 +204,7 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
             if getattr(graph_setting, sbo_prop_name):
                 render_texture = row.operator("sublender.render_texture_async", text="", icon="RENDER_STILL")
                 render_texture.texture_name = output_info['name']
+                render_texture.importing_graph = False
             if bpy_image is not None:
                 if len(output_info['usages']) > 0:
                     apply_image_node_name = output_info['usages'][0]

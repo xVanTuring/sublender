@@ -5,7 +5,7 @@ import pathlib
 from typing import List
 
 import bpy
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 
 from . import globalvar, settings, utils, consts, async_loop, sbsarlite
@@ -88,26 +88,32 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
     bl_idname = "sublender.render_texture_async"
     bl_label = "Render Texture"
     bl_description = "Render Texture"
-    material_name: StringProperty(
-        name="Target Material Name, Optional", default="")
+
+    importing_graph: BoolProperty(default=False)
+    package_path: StringProperty()
+
     texture_name: StringProperty(default="")
+
     process_list = list()
+    material_name = ""
 
     def clean(self, context):
         while self.process_list:
             process: asyncio.subprocess.Process = self.process_list.pop()
             if process.returncode is None:
+                print("{} Cancel Task!!!!!!!!".format(self.task_id))
                 process.terminate()
 
     def invoke(self, context, event):
-        if self.material_name != "":
-            material_inst = bpy.data.materials.get(self.material_name)
+        if self.importing_graph:
+            self.task_id = self.package_path
         else:
             material_inst = utils.find_active_mat(context)
-        if material_inst is None:
-            self.report({"WARNING"}, "No material is selected or given")
-            return {"CANCELLED"}
-        self.material_name = material_inst.name
+            if material_inst is None:
+                self.report({"WARNING"}, "No material is selected or given")
+                return {"CANCELLED"}
+            self.material_name = material_inst.name
+            self.task_id = self.material_name
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict, format: str):
@@ -118,6 +124,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
             stdout=asyncio.subprocess.PIPE)
         self.process_list.append(process)
         await process.wait()
+        print("Texture {0} Render done!".format(output_id))
         self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
         texture_path = bpy.path.relpath(os.path.join(
             output_dir, "{0}.{1}".format(output_id, format)))
@@ -145,9 +152,47 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         image_node.image = texture_image
 
     async def async_execute(self, context):
-        if self.material_name != "":
+        if self.importing_graph:
+            importing_graph_items = context.scene.sublender_settings.importing_graphs
+            for import_graph in importing_graph_items:
+                material_name = import_graph.material_name
+                self.material_name = material_name
+                print("Render/Import Texture for {}".format(material_name))
+                material_inst: bpy.types.Material = bpy.data.materials.get(
+                    import_graph.material_name)
+                m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
+                clss_name = utils.gen_clss_name(m_sublender.graph_url)
+                clss_info = globalvar.graph_clss.get(clss_name)
+                graph_setting = getattr(material_inst, clss_name)
+                param_list = generate_cmd_list(context, material_name,
+                                               m_sublender, clss_info, graph_setting)
+                target_dir = utils.texture_output_dir(material_name)
+                build_list = []
+                output_info_list = clss_info['output_info']['list']
+                for output in output_info_list:
+                    if getattr(graph_setting, utils.sb_output_to_prop(output['name'])):
+                        build_list.append(output['name'])
+                worker_list = []
+                for output in build_list:
+                    per_output_cmd = param_list[:]
+                    per_output_cmd.append("--input-graph-output")
+                    per_output_cmd.append(output)
+                    dep_name = utils.sb_output_dep_to_prop(output)
+                    bit_depth = getattr(graph_setting, dep_name, "0")
+                    if bit_depth != "0":
+                        per_output_cmd.append("--output-bit-depth"),
+                        per_output_cmd.append(bit_depth)
+                    format_name = utils.sb_output_format_to_prop(output)
+                    output_format = getattr(graph_setting, format_name, "png")
+                    per_output_cmd.append("--output-format"),
+                    per_output_cmd.append(output_format)
+                    worker_list.append(
+                        self.render_map(per_output_cmd, output, target_dir, clss_info['output_info']['dict'],
+                                        output_format))
+                await asyncio.gather(*worker_list)
+        else:
             if self.texture_name == "":
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(0.2)
             start = datetime.datetime.now()
             material_inst: bpy.types.Material = bpy.data.materials.get(
                 self.material_name)

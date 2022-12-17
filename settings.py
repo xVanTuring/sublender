@@ -51,6 +51,25 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
     package_loaded: BoolProperty(default=False)
 
 
+class ImportingGraphItem(bpy.types.PropertyGroup):
+    graph_url: StringProperty(name="Graph Url")
+    enable: BoolProperty(name="Import", default=True)
+    material_template: EnumProperty(
+        items=globalvar.material_template_enum,
+        name='Template'
+    )
+    material_name: StringProperty(
+        name='Material Name')
+    use_fake_user: BoolProperty(
+        name="Fake User",
+        default=True
+    )
+    assign_to_selection: BoolProperty(
+        name='Append to selected mesh',
+        default=False
+    )
+
+
 class SublenderSetting(bpy.types.PropertyGroup):
     show_preview: BoolProperty(name="Show Preview")
     active_graph: EnumProperty(
@@ -64,9 +83,11 @@ class SublenderSetting(bpy.types.PropertyGroup):
     live_update: BoolProperty(
         name="Live Update", description="Live Update")
     follow_selection: BoolProperty(name="Follow Selection", default=False)
+    importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
 
 
 def register():
+    bpy.utils.register_class(ImportingGraphItem)
     bpy.utils.register_class(Sublender_Material_MT_Setting)
     bpy.utils.register_class(SublenderSetting)
     bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(
@@ -78,3 +99,4 @@ def register():
 def unregister():
     bpy.utils.unregister_class(Sublender_Material_MT_Setting)
     bpy.utils.unregister_class(SublenderSetting)
+    bpy.utils.unregister_class(ImportingGraphItem)

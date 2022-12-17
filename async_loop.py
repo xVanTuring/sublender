@@ -50,7 +50,7 @@ def kick_async_loop() -> bool:
             except asyncio.CancelledError:
                 pass
             except Exception:
-                print('{}: resulted in exception'.format(task))
+                log.warning('{}: resulted in exception'.format(task))
                 traceback.print_exc()
     loop.stop()
     loop.run_forever()
@@ -105,6 +105,7 @@ class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
 
 
 class AsyncModalOperatorMixin:
+    task_id = None
     async_task = None  # asyncio task for fetching thumbnails
     # asyncio future for signalling that we want to cancel everything.
     stop_upon_exception = False
@@ -134,7 +135,7 @@ class AsyncModalOperatorMixin:
     def modal(self, context, event):
         task = self.async_task
         if task and (task.done() or task.cancelled()):
-            self.log.debug('Previous task was cancelled')
+            self.log.info('Task was cancelled/done {}/{}'.format(task.cancelled(), task.done()))
             context.window_manager.event_timer_remove(self.timer)
             try:
                 self.async_task.result()
@@ -151,22 +152,26 @@ class AsyncModalOperatorMixin:
         self._stop_prev_async_task()
 
         self.async_task = asyncio.ensure_future(async_task)
-        globalvar.async_task = self.async_task
+        self.log.info("Running task id {}".format(self.task_id))
+        globalvar.async_task_map[self.task_id] = self.async_task
 
         ensure_async_loop()
 
     def _stop_prev_async_task(self):
-        async_task = globalvar.async_task
+        async_task = globalvar.async_task_map.get(self.task_id)
         if async_task is None:
             return
-
-        async_task.cancel()
+        cancelled = async_task.cancel()
+        if not cancelled:
+            self.log.info("Previous Task had Completed with id {}".format(self.task_id))
+        else:
+            self.log.info("Canceling task with id {}".format(self.task_id))
 
         # Wait until the asynchronous task is done.
         if not async_task.done():
-            # print("blocking until async task is done.")
             loop = asyncio.get_event_loop()
             try:
+                self.log.info("Wait task to complete, id {}".format(self.task_id))
                 loop.run_until_complete(async_task)
             except asyncio.CancelledError:
                 self.log.info('Asynchronous task was cancelled')

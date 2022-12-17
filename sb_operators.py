@@ -46,7 +46,7 @@ class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
             for output_info in clss_info['output_info']['list']:
                 setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
         setattr(graph_setting, consts.SBS_CONFIGURED, True)
-        bpy.ops.sublender.render_texture_async()
+        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
         return {'FINISHED'}
 
 
@@ -157,7 +157,7 @@ def on_blender_undo(scene):
     sublender_settings = scene.sublender_settings
     if sublender_settings.live_update and sublender_settings.catch_undo:
         print("sublender_settings.catch_undo is On,re-render texture now")
-        bpy.ops.sublender.render_texture_async()
+        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
 
 
 class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
@@ -166,6 +166,7 @@ class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     bl_description = "Load Sbsar"
     sbsar_path: StringProperty()
     force_reload: bpy.props.BoolProperty(default=False)
+    task_id = "Sublender_Load_Sbsar"
 
     async def async_execute(self, context):
         loop = asyncio.get_event_loop()
@@ -184,6 +185,7 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.init_async"
     bl_label = "Init Sublender"
     bl_description = "Init Sublender"
+    task_id = "Sublender_Init_Async"
 
     @classmethod
     def poll(cls, context):

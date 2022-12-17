@@ -15,14 +15,14 @@ from .parser import parse_sbsar_group
 
 def sbsar_input_updated(_, context):
     if context.scene.sublender_settings.live_update:
-        bpy.ops.sublender.render_texture_async()
+        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
 
 
 def sbsar_output_updated_name(sbs_id: str):
     def sbsar_output_updated(self, _):
         prop_name = sb_output_to_prop(sbs_id)
         if getattr(self, consts.SBS_CONFIGURED) and getattr(self, prop_name):
-            bpy.ops.sublender.render_texture_async(texture_name=sbs_id)
+            bpy.ops.sublender.render_texture_async(texture_name=sbs_id, importing_graph=False)
 
     return sbsar_output_updated
 
@@ -309,7 +309,7 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         graph_setting = getattr(material, clss_name)
         setattr(graph_setting, consts.SBS_CONFIGURED, True)
         if report is not None:
-            report({'INFO'}, "Package {0} is loaded".format(m_sublender.package_path))
+            report({'INFO'}, "Graph {0} is loaded".format(m_sublender.graph_url))
     else:
         m_sublender.package_missing = True
         if report is not None:

@@ -13,7 +13,8 @@ bl_info = {
     "category": "Material"
 }
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.WARN,
+                    format='%(name)s %(message)s')
 
 
 @persistent
@@ -58,7 +59,7 @@ def on_save_post(_):
 
 
 def register():
-    log.debug('Sublender@register: Starting')
+    log.info('Sublender@register: Starting')
     import sys
 
     # Support reloading
@@ -104,7 +105,7 @@ def register():
     bpy.app.handlers.save_pre.append(on_save_pre)
     bpy.app.handlers.save_post.append(on_save_post)
     bpy.app.handlers.load_post.append(on_load_post)
-    log.debug('Sublender@register: Done')
+    log.info('Sublender@register: Done')
 
 
 def unregister():
