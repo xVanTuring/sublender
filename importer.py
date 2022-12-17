@@ -25,12 +25,12 @@ class Sublender_Import_Graph(Operator):
         default=True
     )
     assign_to_selection: BoolProperty(
-        name='Assign to Selected(append)',
+        name='Append to selected mesh',
         default=False
     )
     material_template: EnumProperty(
         items=globalvar.material_template_enum,
-        name='Material Template'
+        name='Template'
     )
 
     def execute(self, context):
@@ -85,16 +85,15 @@ class Sublender_Import_Graph(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=450)
+        return wm.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
         self.layout.label(text="Import " + self.graph_url, icon="IMPORT")
-        col = self.layout.column()
-        col.alignment = 'CENTER'
-        col.prop(self, "material_name")
-        col.prop(self, "use_fake_user", icon='FAKE_USER_ON')
-        col.prop(self, "assign_to_selection")
-        col.prop(self, "material_template")
+        self.layout.prop(self, "material_name")
+        row = self.layout.row()
+        row.prop(self, "use_fake_user", icon='FAKE_USER_ON')
+        row.prop(self, "assign_to_selection", toggle=1)
+        self.layout.prop(self, "material_template")
 
 
 class Sublender_Sbsar_Selector(Operator, ImportHelper):
