@@ -155,11 +155,13 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
         if self.importing_graph:
             start = datetime.datetime.now()
             importing_graph_items = context.scene.sublender_settings.importing_graphs
-            for import_graph in importing_graph_items:
-                material_name = import_graph.material_name
+            for importing_graph in importing_graph_items:
+                if not importing_graph.enable:
+                    continue
+                material_name = importing_graph.material_name
                 self.material_name = material_name
                 material_inst: bpy.types.Material = bpy.data.materials.get(
-                    import_graph.material_name)
+                    importing_graph.material_name)
                 m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
                 clss_name = utils.gen_clss_name(m_sublender.graph_url)
                 clss_info = globalvar.graph_clss.get(clss_name)

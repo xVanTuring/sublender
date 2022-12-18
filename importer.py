@@ -33,6 +33,8 @@ class Sublender_Import_Graph(Operator):
     def execute(self, context):
         importing_graph_items = context.scene.sublender_settings.importing_graphs
         for importing_graph in importing_graph_items:
+            if not importing_graph.enable:
+                continue
             material_name = new_material_name(importing_graph.material_name)
             active_material_template = self.material_template if self.use_same_config \
                 else importing_graph.material_template
