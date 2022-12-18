@@ -126,9 +126,9 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
             if raw.get('guislider').get('@step'):
                 parsed_input['step'] = parse_str_value(
                     raw.get('guislider')['@step'], type_num)
-
-                if parsed_input['step']:
-                    parsed_input['step'] = parsed_input['step'] * 100
+                if type_num < SBSARTypeEnum.INTEGER1:
+                    if parsed_input['step']:
+                        parsed_input['step'] = parsed_input['step'] * 100
 
             if raw.get('guislider').get('@clamp') == "on":
                 parsed_input['clamp'] = True

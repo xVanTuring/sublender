@@ -153,11 +153,11 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
 
     async def async_execute(self, context):
         if self.importing_graph:
+            start = datetime.datetime.now()
             importing_graph_items = context.scene.sublender_settings.importing_graphs
             for import_graph in importing_graph_items:
                 material_name = import_graph.material_name
                 self.material_name = material_name
-                print("Render/Import Texture for {}".format(material_name))
                 material_inst: bpy.types.Material = bpy.data.materials.get(
                     import_graph.material_name)
                 m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
@@ -190,6 +190,9 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
                         self.render_map(per_output_cmd, output, target_dir, clss_info['output_info']['dict'],
                                         output_format))
                 await asyncio.gather(*worker_list)
+                end = datetime.datetime.now()
+                self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
+                    (end - start).total_seconds()))
         else:
             if self.texture_name == "":
                 await asyncio.sleep(0.2)
