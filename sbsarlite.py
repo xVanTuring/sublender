@@ -139,7 +139,6 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
             # parsed_input['label2'] = raw.get('guislider').get('@label2')
             # parsed_input['label3'] = raw.get('guislider').get('@label3')
     elif parsed_input['widget'] == 'togglebutton':
-        # TODO better toggle button
         if raw.get('guibutton') is not None:
             parsed_input['label0'] = raw.get('guibutton').get('@label0')
             parsed_input['label1'] = raw.get('guibutton').get('@label1')
