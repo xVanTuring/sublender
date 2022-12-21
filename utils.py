@@ -465,6 +465,11 @@ async def init_sublender_async(self, context):
     refresh_panel(context)
 
 
+def inited(context):
+    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    return globalvar.current_uuid != "" and globalvar.current_uuid == sublender_settings.uuid
+
+
 def on_blender_undo(scene):
     sublender_settings = scene.sublender_settings
     if sublender_settings.live_update and sublender_settings.catch_undo:

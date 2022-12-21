@@ -80,7 +80,7 @@ class SUBLENDER_PT_Main(Panel):
 
     def draw(self, context):
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-        if globalvar.current_uuid == "" or globalvar.current_uuid != sublender_settings.uuid:
+        if not utils.inited(context):
             if bpy.data.filepath == "":
                 self.layout.operator("wm.save_mainfile")
                 self.layout.label(
@@ -336,7 +336,6 @@ class SUBLENDER_PT_Library_Panel(Panel):
             row = self.layout.row()
             import_sbsar_operator = row.operator("sublender.import_sbsar")
             import_sbsar_operator.from_library = True
-            import_sbsar_operator.to_library = False
             row.operator("sublender.remove_material", icon="PANEL_CLOSE")
 
 
