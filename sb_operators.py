@@ -1,10 +1,9 @@
 import asyncio
 import random
-import uuid
 import os
 
 import bpy
-from bpy.props import (StringProperty)
+from bpy.props import (StringProperty, BoolProperty)
 from bpy.types import Operator
 
 from . import settings, utils, globalvar, consts, template, async_loop
@@ -153,13 +152,6 @@ class SUBLENDER_OT_Apply_Image(Operator):
         return {'FINISHED'}
 
 
-def on_blender_undo(scene):
-    sublender_settings = scene.sublender_settings
-    if sublender_settings.live_update and sublender_settings.catch_undo:
-        print("sublender_settings.catch_undo is On,re-render texture now")
-        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
-
-
 class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.load_sbsar"
     bl_label = "Load Sbsar"
@@ -183,31 +175,19 @@ class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
 
 class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.init_async"
-    bl_label = "Init Sublender"
+    bl_label = "Init & Import"
     bl_description = "Init Sublender"
     task_id = "Sublender_Init_Async"
+    pop_import: BoolProperty(default=False, name="Pop Import")
 
     @classmethod
     def poll(cls, context):
         return not bpy.data.filepath == ""
 
     async def async_execute(self, context):
-        sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
-        if sublender_settings.uuid == "":
-            sublender_settings.uuid = str(uuid.uuid4())
-        globalvar.current_uuid = sublender_settings.uuid
-        await utils.load_sbsars_async(self.report)
-        if sublender_settings.active_graph == '':
-            print(
-                "No graph with given index {0} founded here, reset to 0".format(sublender_settings['active_graph']))
-            bpy.context.scene['sublender_settings']['active_graph'] = 0
-            bpy.context.scene['sublender_settings']['active_instance'] = 0
-        if sublender_settings.active_instance == '':
-            print("Selected instance is missing, reset to 0")
-            bpy.context.scene['sublender_settings']['active_instance'] = 0
-        bpy.app.handlers.undo_post.append(on_blender_undo)
-        bpy.app.handlers.redo_post.append(on_blender_undo)
-        utils.refresh_panel(context)
+        await utils.init_sublender_async(self, context)
+        if self.pop_import:
+            bpy.ops.sublender.select_sbsar('INVOKE_DEFAULT', to_library=False)
 
 
 class Sublender_New_Instance(Sublender_Base_Operator, Operator):

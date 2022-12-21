@@ -85,8 +85,8 @@ class SUBLENDER_PT_Main(Panel):
                 self.layout.operator("wm.save_mainfile")
                 self.layout.label(
                     text="Please save your file first.")
-            # TODO: make init to import
-            self.layout.operator("sublender.init_async")
+            operator = self.layout.operator("sublender.init_async")
+            operator.pop_import = True
         else:
             if sublender_settings.active_instance != "$DUMMY$":
                 target_mat = utils.find_active_mat(context)

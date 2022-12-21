@@ -8,7 +8,7 @@ import bpy
 import mathutils
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
-
+import uuid
 from . import globalvar, consts, settings, parser, ui, sbsarlite
 from .parser import parse_sbsar_group
 
@@ -444,3 +444,29 @@ def refresh_panel(context):
                             region.tag_redraw()
                             break
                     break
+
+
+async def init_sublender_async(self, context):
+    sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
+    if sublender_settings.uuid == "":
+        sublender_settings.uuid = str(uuid.uuid4())
+    globalvar.current_uuid = sublender_settings.uuid
+    await load_sbsars_async(self.report)
+    if sublender_settings.active_graph == '':
+        print(
+            "No graph with given index {0} founded here, reset to 0".format(sublender_settings['active_graph']))
+        bpy.context.scene['sublender_settings']['active_graph'] = 0
+        bpy.context.scene['sublender_settings']['active_instance'] = 0
+    if sublender_settings.active_instance == '':
+        print("Selected instance is missing, reset to 0")
+        bpy.context.scene['sublender_settings']['active_instance'] = 0
+    bpy.app.handlers.undo_post.append(on_blender_undo)
+    bpy.app.handlers.redo_post.append(on_blender_undo)
+    refresh_panel(context)
+
+
+def on_blender_undo(scene):
+    sublender_settings = scene.sublender_settings
+    if sublender_settings.live_update and sublender_settings.catch_undo:
+        print("sublender_settings.catch_undo is On,re-render texture now")
+        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
