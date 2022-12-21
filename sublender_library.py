@@ -141,7 +141,9 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                 "sbsar_path": copied_sbsar,
                 "preview": copied_img,
                 "pkg_url": current_graph['pkgUrl'],
-                "ar_uid": package_info["asmuid"]
+                "ar_uid": package_info["asmuid"],
+                "category": current_graph["category"],
+                "description": current_graph["description"]
             }
             sync_library()
             generate_preview()
@@ -202,6 +204,10 @@ def generate_preview():
     if globalvar.preview_collections is None:
         globalvar.preview_collections = previews.new()
     globalvar.library_preview_enum.clear()
+    globalvar.library_category_enum.clear()
+    for key in globalvar.library_category_material_map:
+        globalvar.library_category_material_map[key].clear()
+    category_set = set()
     for i, uu_key in enumerate(globalvar.library["materials"]):
         material = globalvar.library["materials"][uu_key]
         img = material['preview']
@@ -211,6 +217,19 @@ def generate_preview():
         else:
             thumb = globalvar.preview_collections[img]
         globalvar.library_preview_enum.append((uu_key, label, label, thumb.icon_id, i))
+        if material.get("category") is not None:
+            category_set.add(material.get("category"))
+            if globalvar.library_category_material_map.get(material.get("category")) is None:
+                globalvar.library_category_material_map[material.get("category")] = []
+            globalvar.library_category_material_map[material.get("category")].append(
+                (uu_key, label, label, thumb.icon_id, i))
+        else:
+            globalvar.library_category_material_map["$OTHER$"].append((uu_key, label, label, thumb.icon_id, i))
+
+    globalvar.library_category_enum.append(("$ALL$", "All", "All"))
+    for cat in category_set:
+        globalvar.library_category_enum.append((cat, cat, cat))
+    globalvar.library_category_enum.append(("$OTHER$", "Other", "Other"))
 
 
 def sync_library():

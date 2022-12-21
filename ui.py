@@ -332,7 +332,13 @@ class SUBLENDER_PT_Library_Panel(Panel):
                                           icon='IMPORT', text='Import to Library', )
         select_btn.to_library = True
         if len(globalvar.library_preview_enum) > 0:
-            self.layout.template_icon_view(context.scene.sublender_library, "library_preview", show_labels=True)
+            properties = context.scene.sublender_library
+            self.layout.prop(properties, "mode", expand=True)
+            if properties.mode == "CATEGORIES":
+                self.layout.prop(properties, "categories", text="")
+            else:
+                self.layout.label(text="Working on")
+            self.layout.template_icon_view(properties, "library_preview", show_labels=True)
             row = self.layout.row()
             import_sbsar_operator = row.operator("sublender.import_sbsar")
             import_sbsar_operator.from_library = True

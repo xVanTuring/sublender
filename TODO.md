@@ -18,6 +18,7 @@ Workflow:
 
 Library:
 * category/search
+* category update operation
 * instance/preset
 
 

@@ -70,10 +70,6 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
     )
 
 
-def mat_previews(self, context):
-    return globalvar.library_preview_enum
-
-
 class SublenderSetting(bpy.types.PropertyGroup):
     show_preview: BoolProperty(name="Show Preview")
     active_graph: EnumProperty(
@@ -90,9 +86,47 @@ class SublenderSetting(bpy.types.PropertyGroup):
     importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
 
 
+def get_materials(self, context):
+    if self.mode == "CATEGORIES":
+        if self.categories == "$ALL$":
+            return globalvar.library_preview_enum
+        else:
+            return globalvar.library_category_material_map[self.categories]
+    else:
+        return globalvar.library_preview_enum
+
+
+def get_categories(self, context):
+    return globalvar.library_category_enum
+
+
+def category_selected(self, context):
+    current_materials = get_materials(self, context)
+    if len(current_materials) > 0:
+        self.library_preview = current_materials[0][0]
+
+
+def search_materials(self, search_string):
+    pass
+    # self.info_type = material_library.rpr_material_library.search_materials(search_string)
+
+
 class SublenderLibrary(bpy.types.PropertyGroup):
-    library_preview: EnumProperty(items=mat_previews)
+    library_preview: EnumProperty(items=get_materials)
     importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
+    categories: EnumProperty(items=get_categories, update=category_selected)
+    mode: EnumProperty(
+        name="Library browsing mode",
+        items=(
+            ('CATEGORIES', "Categories", "Browse materials by category"),
+            ('SEARCH', "Search", "Search for materials by name"),
+        ),
+        default='CATEGORIES',
+    )
+    search: StringProperty(
+        name="Search",
+        set=search_materials,
+    )
 
 
 def register():

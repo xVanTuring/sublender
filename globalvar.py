@@ -25,6 +25,10 @@ library = {
 preview_collections = None
 
 library_preview_enum = []
+library_category_enum = []
+library_category_material_map = {
+    "$OTHER$": []
+}
 
 
 def clear():

@@ -27,8 +27,12 @@ def parse_graph(raw: OrderedDict):
         'pkgUrl': raw['@pkgurl'],
         'label': raw['@label'],
         'inputs': [],
-        'outputs': []
+        'outputs': [],
+        'category': raw.get("@category", None),
+        'description': raw.get("@description", None)
     }
+    if parsed_graph["category"] is not None:
+        parsed_graph["category"] = parsed_graph["category"].split("/")[-1]
     xml_inputs = raw['inputs']
     input_count = int(xml_inputs['@count'])
     if input_count > 1:
