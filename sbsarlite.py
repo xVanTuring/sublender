@@ -2,6 +2,7 @@ import os
 from collections import OrderedDict
 import py7zr
 import tempfile
+import xml
 
 from . import (parser, xmltodict)
 
@@ -179,8 +180,13 @@ def parse_doc(file_path: str):
             sbsar_xml_path = os.path.join(unzip_dir, file_name)
             archive.extract(unzip_dir, targets=file_name)
     if sbsar_xml_path is not None:
-        raw_xml_str = open(sbsar_xml_path, 'r').read()
-        raw_sbs_xml = xmltodict.parse(raw_xml_str)
+        # https://stackoverflow.com/a/16375153
+        with open(sbsar_xml_path, 'r') as f:
+            raw_xml_str = f.read()
+            try:
+                raw_sbs_xml = xmltodict.parse(raw_xml_str)
+            except xml.parsers.expat.ExpatError as e:
+                raise Exception("Failed to parsed file {} as it's empty".format(sbsar_xml_path))
         return parse_sbsar_raw(raw_sbs_xml)
     return None
 
