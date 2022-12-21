@@ -21,8 +21,6 @@ def generate_cmd_list(context, target_dir: str,
                   "--output-path"]
     pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
     param_list.append(target_dir)
-    param_list.append("--output-name")
-    param_list.append("{outputNodeName}")
 
     engine_value = context.preferences.addons[__package__].preferences.engine_enum
     if engine_value != "$default$":
@@ -94,13 +92,19 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                 _, _, output_usage_dict = utils.graph_output_parse(graph['outputs'])
                 for usage in output_usage_dict:
                     if usage in default_usage_list:
-                        build_list.append(output_usage_dict[usage][0])
+                        build_list.append((output_usage_dict[usage][0], usage))
                 break
-
+        worker_list = []
         for output in build_list:
-            param_list.append("--input-graph-output")
-            param_list.append(output)
-        await self.render_map(param_list)
+            per_output_cmd = param_list[:]
+            per_output_cmd.append("--input-graph-output")
+            per_output_cmd.append(output[0])
+            per_output_cmd.append("--output-name")
+            per_output_cmd.append(output[1])
+            worker_list.append(
+                self.render_map(per_output_cmd))
+
+        await asyncio.gather(*worker_list)
         preview_cmd = ["-b",
                        consts.sublender_library_render_template_file,
                        "-o",
@@ -121,7 +125,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
             "sbsar_path": copied_sbsar,
             "preview": copied_img
         })
-        sync_library()
+        # sync_library()
         generate_preview()
         end = datetime.datetime.now()
         # https://blender.stackexchange.com/questions/30488/require-blender-to-update-n-or-t-panel
