@@ -87,10 +87,11 @@ def register():
         texture_render = reload_mod('texture_render')
         sb_operators = reload_mod('sb_operators')
         ui = reload_mod('ui')
+        preview_render = reload_mod('preview_render')
     else:
-        from . import (template, utils, settings,
+        from . import (template, settings,
                        importer, preference, async_loop, texture_render,
-                       sb_operators, ui)
+                       sb_operators, ui, preview_render)
 
     template.load_material_templates()
     preference.register()
@@ -101,6 +102,9 @@ def register():
     settings.register()
     sb_operators.register()
     ui.register()
+    preview_render.register()
+    preview_render.ensure_library()
+    preview_render.load_library()
     bpy.app.handlers.load_pre.append(on_load_pre)
     bpy.app.handlers.save_pre.append(on_save_pre)
     bpy.app.handlers.save_post.append(on_save_post)
@@ -111,7 +115,7 @@ def register():
 def unregister():
     from . import (settings,
                    importer, preference, async_loop, texture_render,
-                   sb_operators, ui, globalvar)
+                   sb_operators, ui, globalvar, preview_render)
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
@@ -119,6 +123,7 @@ def unregister():
     importer.unregister()
     settings.unregister()
     sb_operators.unregister()
+    preview_render.unregister()
 
     for clss in globalvar.sub_panel_clss_list:
         bpy.utils.unregister_class(clss)

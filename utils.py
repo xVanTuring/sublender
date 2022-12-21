@@ -222,6 +222,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
         output_list = []
         output_list_dict = {}
         output_usage_dict: typing.Dict[str, typing.List[str]] = {}
+        # TODO: convert to graph_output_parse
         for output in all_outputs:
             _anno_obj[sb_output_to_prop(output['identifier'])] = (BoolProperty, {
                 'name': output['label'],
@@ -281,6 +282,29 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 bpy.props.PointerProperty(type=clss))
 
     return clss_name, globalvar.graph_clss.get(clss_name)
+
+
+def graph_output_parse(outputs, exec_per=None):
+    output_list_dict = {}
+    output_list = []
+    output_usage_dict = {}
+    for output in outputs:
+        if exec_per is not None:
+            exec_per(output)
+        usages = output['usages']
+        output_graph = {
+            'name': output['identifier'],
+            'usages': usages,
+            'label': output['label'],
+            'uid': output['uid']
+        }
+        output_list_dict[output['identifier']] = output_graph
+        output_list.append(output_graph)
+        for usage in usages:
+            if output_usage_dict.get(usage) is None:
+                output_usage_dict[usage] = []
+            output_usage_dict[usage].append(output['identifier'])
+    return output_list_dict, output_list, output_usage_dict
 
 
 async def load_sbsar_gen(loop, preferences, material, force=False, report=None):

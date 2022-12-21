@@ -9,9 +9,7 @@ from . import (parser, xmltodict)
 
 def parse_sbsar_raw(raw: OrderedDict):
     xml_graphs = raw['sbsdescription']['graphs']
-    parsed_sbsar = {
-        "graphs": []
-    }
+    parsed_sbsar = {"graphs": [], "asmuid": raw["sbsdescription"]["@asmuid"]}
     graph_count = int(xml_graphs['@count'])
     if graph_count > 1:
         graph_list = xml_graphs['graph']
@@ -178,7 +176,7 @@ def parse_doc(file_path: str):
     for file_name in allfiles:
         if file_name.endswith("xml"):
             sbsar_xml_path = os.path.join(unzip_dir, file_name)
-            archive.extract(unzip_dir, targets=file_name)
+            archive.extract(unzip_dir, targets=[file_name])
     if sbsar_xml_path is not None:
         # https://stackoverflow.com/a/16375153
         with open(sbsar_xml_path, 'r') as f:

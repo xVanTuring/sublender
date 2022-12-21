@@ -315,13 +315,28 @@ class Sublender_Prop_BasePanel(Panel):
                 layout.prop(graph_setting, prop_info['prop'], text=prop_info['label'], toggle=toggle)
 
 
+class Sublender_Library_Panel(Panel):
+    bl_label = "Library"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = 'Sublender'
+
+    def draw(self, context):
+        select_btn = self.layout.operator('sublender.select_sbsar',
+                                          icon='IMPORT', text='Import to Library', )
+        select_btn.to_library = True
+        self.layout.template_icon_view(context.scene.sublender_library, "library_preview")
+
+
 def register():
     bpy.utils.register_class(SUBLENDER_PT_Main)
     bpy.utils.register_class(SUBLENDER_PT_SB_Output_Panel)
     bpy.utils.register_class(SUBLENDER_PT_Material_Prop_Panel)
+    bpy.utils.register_class(Sublender_Library_Panel)
 
 
 def unregister():
     bpy.utils.unregister_class(SUBLENDER_PT_Main)
     bpy.utils.unregister_class(SUBLENDER_PT_SB_Output_Panel)
     bpy.utils.unregister_class(SUBLENDER_PT_Material_Prop_Panel)
+    bpy.utils.unregister_class(Sublender_Library_Panel)

@@ -70,6 +70,10 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
     )
 
 
+def mat_previews(self, context):
+    return globalvar.library_preview_enum
+
+
 class SublenderSetting(bpy.types.PropertyGroup):
     show_preview: BoolProperty(name="Show Preview")
     active_graph: EnumProperty(
@@ -86,17 +90,25 @@ class SublenderSetting(bpy.types.PropertyGroup):
     importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
 
 
+class SublenderLibrary(bpy.types.PropertyGroup):
+    library_preview: EnumProperty(items=mat_previews)
+
+
 def register():
     bpy.utils.register_class(ImportingGraphItem)
     bpy.utils.register_class(Sublender_Material_MT_Setting)
     bpy.utils.register_class(SublenderSetting)
+    bpy.utils.register_class(SublenderLibrary)
     bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(
         type=SublenderSetting, name="Sublender")
     bpy.types.Material.sublender = bpy.props.PointerProperty(
         type=Sublender_Material_MT_Setting)
+    bpy.types.Scene.sublender_library = bpy.props.PointerProperty(
+        type=SublenderLibrary, name="Sublender Library")
 
 
 def unregister():
     bpy.utils.unregister_class(Sublender_Material_MT_Setting)
     bpy.utils.unregister_class(SublenderSetting)
     bpy.utils.unregister_class(ImportingGraphItem)
+    bpy.utils.unregister_class(SublenderLibrary)

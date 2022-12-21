@@ -104,3 +104,12 @@ output_bit_depth = [
     ("16f", "Float 16", "Float 16"),
     ("32f", "Float 32", "Float 32"),
 ]
+sublender_library_dir = os.path.expanduser("~/Documents/Sublender")
+sublender_library_config_file = os.path.join(sublender_library_dir, "config.json")
+sublender_library_render_dir = os.path.join(sublender_library_dir, "template")
+sublender_library_render_template_file = os.path.join(sublender_library_render_dir, "preview_template.blend")
+
+sublender_preview_img_template_file = os.path.join(sublender_library_render_dir, "out#.png")
+sublender_preview_img_file = os.path.join(sublender_library_render_dir, "out1.png")
+
+packed_sublender_template_file = os.path.join(ADDON_DIR, 'resources', 'preview_template.blend')
