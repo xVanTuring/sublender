@@ -1,12 +1,17 @@
+import datetime
+import json
+import pathlib
+import shutil
 from typing import List
-import bpy, os, sys, pathlib, asyncio
+
+import asyncio
+import bpy
+import os
+import sys
 from bpy.props import StringProperty
 from bpy.types import Operator
-import pathlib
-import datetime
-import shutil
-import json
 from bpy.utils import previews
+
 from . import consts, async_loop, utils, globalvar
 
 default_usage_list = ["baseColor",
@@ -156,6 +161,14 @@ class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
     bl_description = "Remove selected material"
 
     def execute(self, context):
+        selected_uid = context.scene.sublender_library.library_preview
+        del globalvar.library["materials"][selected_uid]
+        sync_library()
+        generate_preview()
+        if context.scene['sublender_library']['library_preview'] >= len(globalvar.library_preview_enum) and len(
+                globalvar.library_preview_enum) > 0:
+            context.scene['sublender_library']['library_preview'] = len(globalvar.library_preview_enum) - 1
+        shutil.rmtree(os.path.join(consts.sublender_library_dir, selected_uid))
         return {'FINISHED'}
 
 

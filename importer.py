@@ -160,8 +160,8 @@ class Sublender_Import_Sbsar_To_Library(async_loop.AsyncModalOperatorMixin, Oper
 
 class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.import_sbsar"
-    bl_label = "Import Sbsar"
-    bl_description = "Import Sbsar"
+    bl_label = "Import"
+    bl_description = "Import"
     sbsar_path: StringProperty()
     task_id = "Sublender_Import_Sbsar"
     from_library: BoolProperty(default=False)
