@@ -298,7 +298,7 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
     if not force:
         sbs_package = globalvar.sbsar_dict.get(m_sublender.package_path)
     if sbs_package is None:
-        sbs_package = await loop.run_in_executor(None, load_sbsar_package, m_sublender.package_path)
+        sbs_package = await loop.run_in_executor(None, load_and_assign, m_sublender.package_path)
         globalvar.sbsar_dict[m_sublender.package_path] = sbs_package
 
     if sbs_package is not None:
@@ -377,15 +377,14 @@ def texture_output_dir(material_name: str):
 def find_active_mat(context):
     scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
-        if bpy.context.view_layer.objects.active is None or len(
+        if context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
             return None
-        active_mat = bpy.context.view_layer.objects.active.active_material
-        if active_mat is not None:
-            mat_setting: settings.Sublender_Material_MT_Setting = active_mat.sublender
-            if mat_setting.package_path != '' and mat_setting.graph_url != '':
-                return active_mat
-        return None
+        active_material_enum = settings.get_object_active_instance_items(bpy.context.scene.sublender_settings, context)
+        if len(active_material_enum) == 0:
+            return None
+        mat_name = context.scene.sublender_settings.object_active_instance
+        return bpy.data.materials.get(mat_name, None)
 
     mats = bpy.data.materials
     target_mat = mats.get(scene_sb_settings.active_instance)
@@ -395,15 +394,15 @@ def find_active_mat(context):
 def find_active_graph(context):
     scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
-        if bpy.context.view_layer.objects.active is None or len(
+        if context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
             return None, None
-        active_mat = bpy.context.view_layer.objects.active.active_material
-        if active_mat is not None:
-            mat_setting: settings.Sublender_Material_MT_Setting = active_mat.sublender
-            if mat_setting.package_path != '' and mat_setting.graph_url != '':
-                return active_mat, active_mat.sublender.graph_url
-        return None, None
+        active_material_enum = settings.get_object_active_instance_items(bpy.context.scene.sublender_settings, context)
+        if len(active_material_enum) == 0:
+            return None, None
+        mat_name = context.scene.sublender_settings.object_active_instance
+        active_mat = bpy.data.materials.get(mat_name, None)
+        return active_mat, active_mat.sublender.graph_url
 
     mats = bpy.data.materials
     target_mat = mats.get(scene_sb_settings.active_instance)

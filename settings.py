@@ -35,6 +35,38 @@ def instance_list(self, context):
                                       [("$DUMMY$", "No Instance", "Dummy")])
 
 
+def get_object_active_instance_items(self, context):
+    if context.view_layer.objects.active is None or len(
+            context.view_layer.objects.active.material_slots) == 0:
+        return []
+    instances_enum = []
+    for i, mat_slot in enumerate(context.view_layer.objects.active.material_slots):
+        mat = mat_slot.material
+        if mat is None:
+            continue
+        mat_setting: Sublender_Material_MT_Setting = mat.sublender
+        if mat_setting.package_path != '' and mat_setting.graph_url != '':
+            instances_enum.append((mat.name, mat.name, mat.name, mat.preview.icon_id, i))
+    return instances_enum
+
+
+def get_object_active_instance(self):
+    len_active_instance_items = len(get_object_active_instance_items(self, bpy.context))
+    if "object_active_instance" in self:
+        if len_active_instance_items <= self["object_active_instance"]:
+            if len_active_instance_items > 0:
+                return 0
+            return -1
+        return self["object_active_instance"]
+    elif len_active_instance_items > 0:
+        return 0
+    return -1
+
+
+def set_object_active_instance(self, value):
+    self['object_active_instance'] = value
+
+
 def package_path_updated(self, context):
     if self.package_missing:
         bpy.ops.sublender.load_sbsar(sbsar_path=self.package_path)
@@ -76,6 +108,12 @@ class SublenderSetting(bpy.types.PropertyGroup):
         items=graph_list, name="Graph", update=active_graph_updated)
     active_instance: EnumProperty(
         items=instance_list, name="Instance")
+    object_active_instance: EnumProperty(
+        items=get_object_active_instance_items,
+        name="Object Active Instance",
+        get=get_object_active_instance,
+        set=set_object_active_instance
+    )
     catch_undo: BoolProperty(name="Catch Undo",
                              default=False,
                              description="Tender texture after undo/redo")

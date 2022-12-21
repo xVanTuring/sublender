@@ -7,20 +7,20 @@ from . import settings, utils, globalvar, consts
 
 
 def draw_instance_item(self, context, target_mat):
-    # TODO follow selection instance list
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     row = self.layout.row()
     instance_info_column = row.column()
     if sublender_settings.follow_selection:
-        instance_info_column.prop(target_mat, "name", text="Instance")
+        instance_info_column.prop(sublender_settings, "object_active_instance", text="Instance")
     else:
         instance_info_column.prop(
             sublender_settings, "active_instance", text="Instance")
-    row.prop(target_mat, 'use_fake_user',
-             icon_only=True)
-    dup_op = row.operator(
-        "sublender.new_instance", icon='DUPLICATE', text="")
-    dup_op.target_material = target_mat.name
+    if target_mat is not None:
+        row.prop(target_mat, 'use_fake_user',
+                 icon_only=True)
+        dup_op = row.operator(
+            "sublender.new_instance", icon='DUPLICATE', text="")
+        dup_op.target_material = target_mat.name
 
 
 def draw_graph_item(self, context, target_mat):
@@ -91,8 +91,9 @@ class SUBLENDER_PT_Main(Panel):
             if sublender_settings.active_instance != "$DUMMY$":
                 target_mat = utils.find_active_mat(context)
                 draw_graph_item(self, context, target_mat)
-                if target_mat is not None:
+                if sublender_settings.follow_selection or target_mat is not None:
                     draw_instance_item(self, context, target_mat)
+                if target_mat is not None:
                     draw_workflow_item(self, context, target_mat)
                     draw_texture_item(self, context, target_mat)
                     mat_setting = target_mat.sublender
@@ -102,7 +103,7 @@ class SUBLENDER_PT_Main(Panel):
                     elif not mat_setting.package_loaded:
                         self.layout.label(text="Loading...")
                 else:
-                    self.layout.label(text="No substance material founded on this object")
+                    self.layout.label(text="No material is selected")
             else:
                 operator = self.layout.operator("sublender.select_sbsar", icon='IMPORT')
                 operator.to_library = False
