@@ -139,20 +139,29 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     sbsar_path: StringProperty()
     task_id = "Sublender_Import_Sbsar"
     to_library: BoolProperty(default=False)
+    from_library: BoolProperty(default=False)
+    pkg_url = ""
 
     async def async_execute(self, context):
         loop = asyncio.get_event_loop()
+        if self.from_library:
+            selected_label = context.scene.sublender_library.library_preview
+            sbs_graph_info = globalvar.library["materials"].get(selected_label)
+            self.sbsar_path = sbs_graph_info["sbsar_path"]
+            self.pkg_url = sbs_graph_info["pkg_url"]
         self.report({"INFO"}, "Parsing package: {0}".format(self.sbsar_path))
         sbs_pkg = await loop.run_in_executor(None, utils.load_sbsar_package, self.sbsar_path)
         if sbs_pkg is not None:
             globalvar.sbsar_dict[self.sbsar_path] = sbs_pkg
 
             if self.to_library:
-                for graph in sbs_pkg['graphs']:
-                    if self.to_library:
-                        bpy.ops.sublender.import_graph_to_library(
-                            'INVOKE_DEFAULT', package_path=self.sbsar_path,
-                            graph_url=graph['pkgUrl'])
+                importing_graphs = context.scene.sublender_library.importing_graphs
+                importing_graphs.clear()
+                for graph_info in sbs_pkg['graphs']:
+                    adding_graph = importing_graphs.add()
+                    adding_graph.graph_url = graph_info["pkgUrl"]
+                bpy.ops.sublender.import_graph_to_library(
+                    'INVOKE_DEFAULT', package_path=self.sbsar_path, )
             else:
                 importing_graph_items = context.scene.sublender_settings.importing_graphs
                 importing_graph_items.clear()
@@ -163,19 +172,20 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
 
                 bpy.ops.sublender.import_graph(
                     'INVOKE_DEFAULT', package_path=self.sbsar_path)
+
+
 class Sublender_Import_Graph_To_Library(Operator):
     bl_idname = "sublender.import_graph_to_library"
-    bl_label = "Import Graph"
-    graph_url: StringProperty(
-        name='Current Graph')
+    bl_label = "Import Package"
+    # graph_url: StringProperty(
+    #     name='Current Graph')
     package_path: StringProperty(
         name='Current Graph')
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Preview Engine")
 
     def execute(self, context):
-        print("Import {} {}".format(self.package_path, self.graph_url))
-        bpy.ops.sublender.render_preview_async(package_path=self.package_path
-                                               , graph_url=self.graph_url)
+        # print("Import {} {}".format(self.package_path, self.graph_url))
+        bpy.ops.sublender.render_preview_async(package_path=self.package_path)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -183,9 +193,10 @@ class Sublender_Import_Graph_To_Library(Operator):
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
-        self.layout.label(text="Import " + self.graph_url, icon="IMPORT")
+        # self.layout.label(text="Importing {}".format(os.path.basename(self.package_path)), icon="IMPORT")
+        for graph in context.scene.sublender_library.importing_graphs:
+            self.layout.prop(graph, "enable", text="Import {}".format(graph.graph_url))
         self.layout.prop(self, 'engine')
-
 
 
 def register():

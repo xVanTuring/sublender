@@ -49,7 +49,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
     bl_label = "Render Preview"
     bl_description = "Render Preview"
     package_path: StringProperty(default="")
-    graph_url: StringProperty(default="")
+    # graph_url: StringProperty(default="")
     process_list = list()
 
     def clean(self, context):
@@ -59,12 +59,13 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                 process.terminate()
 
     def invoke(self, context, event):
-        if self.graph_url == "" or self.package_path == "":
+        if self.package_path == "":
             self.report({"WARNING"}, "No Graph is selected or given")
             return {"CANCELLED"}
+        self.task_id = self.package_path
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
-    async def render_map(self, cmd_list: List[str], ):
+    async def render_map(self, cmd_list: List[str]):
         sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
         await self.run_async(sbs_render_path, cmd_list)
 
@@ -80,58 +81,67 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
         ensure_library()
         start = datetime.datetime.now()
         target_dir = consts.sublender_library_render_dir
+        for importing_graph in context.scene.sublender_library.importing_graphs:
+            if not importing_graph.enable:
+                continue
 
-        param_list = generate_cmd_list(context, target_dir,
-                                       self.package_path, self.graph_url)
-        package_info = globalvar.sbsar_dict.get(self.package_path)
-        current_graph = None
-        build_list = []
-        for graph in package_info['graphs']:
-            if graph['pkgUrl'] == self.graph_url:
-                current_graph = graph
-                _, _, output_usage_dict = utils.graph_output_parse(graph['outputs'])
-                for usage in output_usage_dict:
-                    if usage in default_usage_list:
-                        build_list.append((output_usage_dict[usage][0], usage))
-                break
-        label = current_graph['label']
-        if label == "":
-            label = bpy.utils.escape_identifier(current_graph['pkgUrl']).replace("://", "")
-        if globalvar.library["materials"].get(label) is not None:
-            self.report({"WARNING"}, "Package Imported")
-            return
-        worker_list = []
-        for output in build_list:
-            per_output_cmd = param_list[:]
-            per_output_cmd.append("--input-graph-output")
-            per_output_cmd.append(output[0])
-            per_output_cmd.append("--output-name")
-            per_output_cmd.append(output[1])
-            worker_list.append(
-                self.render_map(per_output_cmd))
+            param_list = generate_cmd_list(context, target_dir,
+                                           self.package_path, importing_graph.graph_url)
+            package_info = globalvar.sbsar_dict.get(self.package_path)
+            current_graph = None
+            build_list = []
+            for graph in package_info['graphs']:
+                if graph['pkgUrl'] == importing_graph.graph_url:
+                    current_graph = graph
+                    _, _, output_usage_dict = utils.graph_output_parse(graph['outputs'])
+                    for usage in output_usage_dict:
+                        if usage in default_usage_list:
+                            build_list.append((output_usage_dict[usage][0], usage))
+                    break
+            label = current_graph['label']
+            if label == "":
+                label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
+            existed_material = globalvar.library["materials"].get(label)
+            if existed_material is not None:
+                if existed_material['ar_uid'] == package_info["asmuid"]:
+                    self.report({"WARNING"}, "Package Imported")
+                    return
+                else:
+                    label = safe_name(label, globalvar.library["materials"].keys())
 
-        await asyncio.gather(*worker_list)
-        preview_cmd = ["-b",
-                       consts.sublender_library_render_template_file,
-                       "-o",
-                       consts.sublender_preview_img_template_file,
-                       "-f",
-                       "1"]
-        await self.run_async(sys.executable, preview_cmd)
+            worker_list = []
+            for output in build_list:
+                per_output_cmd = param_list[:]
+                per_output_cmd.append("--input-graph-output")
+                per_output_cmd.append(output[0])
+                per_output_cmd.append("--output-name")
+                per_output_cmd.append(output[1])
+                worker_list.append(
+                    self.render_map(per_output_cmd))
 
-        preview_folder = os.path.join(consts.sublender_library_dir, label, "default")
-        pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
-        copied_img = shutil.copy(consts.sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
-        copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
+            await asyncio.gather(*worker_list)
+            preview_cmd = ["-b",
+                           consts.sublender_library_render_template_file,
+                           "-o",
+                           consts.sublender_preview_img_template_file,
+                           "-f",
+                           "1"]
+            await self.run_async(sys.executable, preview_cmd)
 
-        globalvar.library["materials"][label] = {
-            "name": label,
-            "sbsar_path": copied_sbsar,
-            "preview": copied_img,
-            "pkg_url": current_graph['pkgUrl']
-        }
-        sync_library()
-        generate_preview()
+            preview_folder = os.path.join(consts.sublender_library_dir, label, "default")
+            pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
+            copied_img = shutil.copy(consts.sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
+            copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
+
+            globalvar.library["materials"][label] = {
+                "name": label,
+                "sbsar_path": copied_sbsar,
+                "preview": copied_img,
+                "pkg_url": current_graph['pkgUrl'],
+                "ar_uid": package_info["asmuid"]
+            }
+            sync_library()
+            generate_preview()
         end = datetime.datetime.now()
         # https://blender.stackexchange.com/questions/30488/require-blender-to-update-n-or-t-panel
         for region in context.area.regions:
@@ -140,6 +150,13 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                 break
         self.report({"INFO"}, "Render Done! Time spent: {0}s.".format(
             (end - start).total_seconds()))
+
+
+def safe_name(name, existed):
+    i = 2
+    while "{} {}".format(name, i) in existed:
+        i += 1
+    return "{} {}".format(name, i)
 
 
 # blender -b ./template.blend -o ~/Desktop/out_cycles# -E BLENDER_EEVEE -f 1
@@ -190,9 +207,11 @@ def sync_library():
 
 def register():
     bpy.utils.register_class(SUBLENDER_OT_Render_Preview_Async)
+    # bpy.utils.register_class(SUBLENDER_OT_load_sbs_graph)
 
 
 def unregister():
     previews.remove(globalvar.preview_collections)
     globalvar.preview_collections = None
     bpy.utils.unregister_class(SUBLENDER_OT_Render_Preview_Async)
+    # bpy.utils.unregister_class(SUBLENDER_OT_load_sbs_graph)

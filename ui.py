@@ -39,8 +39,9 @@ def draw_graph_item(self, context, target_mat):
 
     row.prop(sublender_settings,
              'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
-    row.operator('sublender.select_sbsar',
-                 icon='IMPORT', text='')
+    operator = row.operator('sublender.select_sbsar',
+                            icon='IMPORT', text='')
+    operator.to_library = False
 
 
 def draw_workflow_item(self, context, target_mat):
@@ -84,6 +85,7 @@ class SUBLENDER_PT_Main(Panel):
                 self.layout.operator("wm.save_mainfile")
                 self.layout.label(
                     text="Please save your file first.")
+            # TODO: make init to import
             self.layout.operator("sublender.init_async")
         else:
             if sublender_settings.active_instance != "$DUMMY$":
@@ -102,7 +104,8 @@ class SUBLENDER_PT_Main(Panel):
                 else:
                     self.layout.label(text="No substance material founded on this object")
             else:
-                self.layout.operator("sublender.select_sbsar", icon='IMPORT')
+                operator = self.layout.operator("sublender.select_sbsar", icon='IMPORT')
+                operator.to_library = False
 
 
 def calc_prop_visibility(eval_delegate, input_info: dict):
@@ -140,6 +143,7 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = 'Sublender'
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -169,6 +173,7 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = 'Sublender'
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -315,28 +320,32 @@ class Sublender_Prop_BasePanel(Panel):
                 layout.prop(graph_setting, prop_info['prop'], text=prop_info['label'], toggle=toggle)
 
 
-class Sublender_Library_Panel(Panel):
+class SUBLENDER_PT_Library_Panel(Panel):
     bl_label = "Library"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = 'Sublender'
+    bl_order = 1
 
     def draw(self, context):
         select_btn = self.layout.operator('sublender.select_sbsar',
                                           icon='IMPORT', text='Import to Library', )
         select_btn.to_library = True
-        self.layout.template_icon_view(context.scene.sublender_library, "library_preview", show_labels=True)
+        if len(globalvar.library_preview_enum) > 0:
+            self.layout.template_icon_view(context.scene.sublender_library, "library_preview", show_labels=True)
+            import_sbsar_operator = self.layout.operator("sublender.import_sbsar")
+            import_sbsar_operator.from_library = True
 
 
 def register():
+    bpy.utils.register_class(SUBLENDER_PT_Library_Panel)
     bpy.utils.register_class(SUBLENDER_PT_Main)
     bpy.utils.register_class(SUBLENDER_PT_SB_Output_Panel)
     bpy.utils.register_class(SUBLENDER_PT_Material_Prop_Panel)
-    bpy.utils.register_class(Sublender_Library_Panel)
 
 
 def unregister():
     bpy.utils.unregister_class(SUBLENDER_PT_Main)
     bpy.utils.unregister_class(SUBLENDER_PT_SB_Output_Panel)
     bpy.utils.unregister_class(SUBLENDER_PT_Material_Prop_Panel)
-    bpy.utils.unregister_class(Sublender_Library_Panel)
+    bpy.utils.unregister_class(SUBLENDER_PT_Library_Panel)

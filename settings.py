@@ -92,6 +92,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
 
 class SublenderLibrary(bpy.types.PropertyGroup):
     library_preview: EnumProperty(items=mat_previews)
+    importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
 
 
 def register():
