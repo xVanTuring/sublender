@@ -96,6 +96,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin,
 
     process_list = list()
     material_name = ""
+    single_task = True
 
     def clean(self, context):
         while self.process_list:

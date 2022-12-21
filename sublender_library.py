@@ -54,7 +54,6 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
     bl_label = "Render Preview"
     bl_description = "Render Preview"
     package_path: StringProperty(default="")
-    # graph_url: StringProperty(default="")
     process_list = list()
 
     def clean(self, context):

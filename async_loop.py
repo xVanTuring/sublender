@@ -111,6 +111,7 @@ class AsyncModalOperatorMixin:
     stop_upon_exception = False
     timer = None
     log = logging.getLogger('%s.AsyncModalOperatorMixin' % __name__)
+    single_task = False
 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
@@ -149,11 +150,13 @@ class AsyncModalOperatorMixin:
         return {'PASS_THROUGH'}
 
     def _new_async_task(self, async_task: typing.Coroutine):
-        self._stop_prev_async_task()
+        if self.single_task:
+            self._stop_prev_async_task()
 
         self.async_task = asyncio.ensure_future(async_task)
         self.log.info("Running task id {}".format(self.task_id))
-        globalvar.async_task_map[self.task_id] = self.async_task
+        if self.single_task:
+            globalvar.async_task_map[self.task_id] = self.async_task
 
         ensure_async_loop()
 
