@@ -333,8 +333,11 @@ class SUBLENDER_PT_Library_Panel(Panel):
         select_btn.to_library = True
         if len(globalvar.library_preview_enum) > 0:
             self.layout.template_icon_view(context.scene.sublender_library, "library_preview", show_labels=True)
-            import_sbsar_operator = self.layout.operator("sublender.import_sbsar")
+            row = self.layout.row()
+            import_sbsar_operator = row.operator("sublender.import_sbsar")
             import_sbsar_operator.from_library = True
+            import_sbsar_operator.to_library = False
+            row.operator("sublender.remove_material", icon="PANEL_CLOSE")
 
 
 def register():

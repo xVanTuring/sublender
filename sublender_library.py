@@ -101,13 +101,11 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
             label = current_graph['label']
             if label == "":
                 label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
-            existed_material = globalvar.library["materials"].get(label)
+            uu_key = "{}_{}".format(label, package_info["asmuid"])
+            existed_material = globalvar.library["materials"].get(uu_key)
             if existed_material is not None:
-                if existed_material['ar_uid'] == package_info["asmuid"]:
-                    self.report({"WARNING"}, "Package Imported")
-                    return
-                else:
-                    label = safe_name(label, globalvar.library["materials"].keys())
+                self.report({"WARNING"}, "Package has already been imported!")
+                return
 
             worker_list = []
             for output in build_list:
@@ -128,13 +126,13 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                            "1"]
             await self.run_async(sys.executable, preview_cmd)
 
-            preview_folder = os.path.join(consts.sublender_library_dir, label, "default")
+            preview_folder = os.path.join(consts.sublender_library_dir, uu_key, "default")
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
             copied_img = shutil.copy(consts.sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
             copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
 
-            globalvar.library["materials"][label] = {
-                "name": label,
+            globalvar.library["materials"][uu_key] = {
+                "label": label,
                 "sbsar_path": copied_sbsar,
                 "preview": copied_img,
                 "pkg_url": current_graph['pkgUrl'],
@@ -152,11 +150,13 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
             (end - start).total_seconds()))
 
 
-def safe_name(name, existed):
-    i = 2
-    while "{} {}".format(name, i) in existed:
-        i += 1
-    return "{} {}".format(name, i)
+class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
+    bl_idname = "sublender.remove_material"
+    bl_label = "Remove"
+    bl_description = "Remove selected material"
+
+    def execute(self, context):
+        return {'FINISHED'}
 
 
 # blender -b ./template.blend -o ~/Desktop/out_cycles# -E BLENDER_EEVEE -f 1
@@ -189,15 +189,15 @@ def generate_preview():
     if globalvar.preview_collections is None:
         globalvar.preview_collections = previews.new()
     globalvar.library_preview_enum.clear()
-    for i, material_label in enumerate(globalvar.library["materials"]):
-        material = globalvar.library["materials"][material_label]
+    for i, uu_key in enumerate(globalvar.library["materials"]):
+        material = globalvar.library["materials"][uu_key]
         img = material['preview']
-        name = material['name']
+        label = material['label']
         if not globalvar.preview_collections.get(img):
             thumb = globalvar.preview_collections.load(img, img, "IMAGE")
         else:
             thumb = globalvar.preview_collections[img]
-        globalvar.library_preview_enum.append((name, name, name, thumb.icon_id, i))
+        globalvar.library_preview_enum.append((uu_key, label, label, thumb.icon_id, i))
 
 
 def sync_library():
@@ -207,11 +207,11 @@ def sync_library():
 
 def register():
     bpy.utils.register_class(SUBLENDER_OT_Render_Preview_Async)
-    # bpy.utils.register_class(SUBLENDER_OT_load_sbs_graph)
+    bpy.utils.register_class(SUBLENDER_OT_REMOVE_MATERIAL)
 
 
 def unregister():
     previews.remove(globalvar.preview_collections)
     globalvar.preview_collections = None
     bpy.utils.unregister_class(SUBLENDER_OT_Render_Preview_Async)
-    # bpy.utils.unregister_class(SUBLENDER_OT_load_sbs_graph)
+    bpy.utils.unregister_class(SUBLENDER_OT_REMOVE_MATERIAL)

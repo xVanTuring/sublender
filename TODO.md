@@ -16,6 +16,10 @@ Workflow:
 * height workflow
 * subsurface workflow
 
+Library:
+* category/search
+* instance/preset
+
 
 ## Hack
 * pip install fake-bpy-module-2.82
