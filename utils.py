@@ -219,39 +219,24 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             else:
                 _anno_obj[input_info['prop']] = (prop_type, _anno_item)
 
-        output_list = []
-        output_list_dict = {}
-        output_usage_dict: typing.Dict[str, typing.List[str]] = {}
-        # TODO: convert to graph_output_parse
-        for output in all_outputs:
-            _anno_obj[sb_output_to_prop(output['identifier'])] = (BoolProperty, {
-                'name': output['label'],
+        def parse_output(_output):
+            _anno_obj[sb_output_to_prop(_output['identifier'])] = (BoolProperty, {
+                'name': _output['label'],
                 'default': False,
-                'update': sbsar_output_updated_name(output['identifier'])
+                'update': sbsar_output_updated_name(_output['identifier'])
             })
-            _anno_obj[sb_output_format_to_prop(output['identifier'])] = (EnumProperty, {
+            _anno_obj[sb_output_format_to_prop(_output['identifier'])] = (EnumProperty, {
                 'name': 'Format',
                 'items': consts.format_list,
                 'default': 'png'
             })
-            _anno_obj[sb_output_dep_to_prop(output['identifier'])] = (EnumProperty, {
+            _anno_obj[sb_output_dep_to_prop(_output['identifier'])] = (EnumProperty, {
                 'name': 'Bit Depth',
                 'items': consts.output_bit_depth,
                 'default': '0'
             })
-            usages = output['usages']
-            output_graph = {
-                'name': output['identifier'],
-                'usages': usages,
-                'label': output['label'],
-                'uid': output['uid']
-            }
-            output_list_dict[output['identifier']] = output_graph
-            output_list.append(output_graph)
-            for usage in usages:
-                if output_usage_dict.get(usage) is None:
-                    output_usage_dict[usage] = []
-                output_usage_dict[usage].append(output['identifier'])
+
+        output_list_dict, output_list, output_usage_dict = graph_output_parse(all_outputs, parse_output)
 
         group_tree, group_map = parse_sbsar_group(sbs_graph)
         generate_sub_panel(group_map, graph_url)
