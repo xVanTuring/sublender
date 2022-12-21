@@ -94,6 +94,12 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                     if usage in default_usage_list:
                         build_list.append((output_usage_dict[usage][0], usage))
                 break
+        label = current_graph['label']
+        if label == "":
+            label = bpy.utils.escape_identifier(current_graph['pkgUrl']).replace("://", "")
+        if globalvar.library["materials"].get(label) is not None:
+            self.report({"WARNING"}, "Package Imported")
+            return
         worker_list = []
         for output in build_list:
             per_output_cmd = param_list[:]
@@ -113,19 +119,18 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                        "1"]
         await self.run_async(sys.executable, preview_cmd)
 
-        label = current_graph['label']
-        if label == "":
-            label = bpy.utils.escape_identifier(current_graph['pkgUrl']).replace("://", "")
         preview_folder = os.path.join(consts.sublender_library_dir, label, "default")
         pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
         copied_img = shutil.copy(consts.sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
         copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
-        globalvar.library["materials"].append({
+
+        globalvar.library["materials"][label] = {
             "name": label,
             "sbsar_path": copied_sbsar,
-            "preview": copied_img
-        })
-        # sync_library()
+            "preview": copied_img,
+            "pkg_url": current_graph['pkgUrl']
+        }
+        sync_library()
         generate_preview()
         end = datetime.datetime.now()
         # https://blender.stackexchange.com/questions/30488/require-blender-to-update-n-or-t-panel
@@ -167,7 +172,8 @@ def generate_preview():
     if globalvar.preview_collections is None:
         globalvar.preview_collections = previews.new()
     globalvar.library_preview_enum.clear()
-    for i, material in enumerate(globalvar.library["materials"]):
+    for i, material_label in enumerate(globalvar.library["materials"]):
+        material = globalvar.library["materials"][material_label]
         img = material['preview']
         name = material['name']
         if not globalvar.preview_collections.get(img):

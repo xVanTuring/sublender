@@ -19,7 +19,7 @@ eval_delegate_map = {}
 load_status = -1
 file_existence_dict = {}
 library = {
-    "materials": [],
+    "materials": {},
     "version": "0.1.1"
 }
 preview_collections = None

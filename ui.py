@@ -325,7 +325,7 @@ class Sublender_Library_Panel(Panel):
         select_btn = self.layout.operator('sublender.select_sbsar',
                                           icon='IMPORT', text='Import to Library', )
         select_btn.to_library = True
-        self.layout.template_icon_view(context.scene.sublender_library, "library_preview")
+        self.layout.template_icon_view(context.scene.sublender_library, "library_preview", show_labels=True)
 
 
 def register():
