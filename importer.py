@@ -35,10 +35,11 @@ class Sublender_Import_Graph(Operator):
         for importing_graph in importing_graph_items:
             if not importing_graph.enable:
                 continue
-            material_name = new_material_name(importing_graph.material_name)
             active_material_template = self.material_template if self.use_same_config \
                 else importing_graph.material_template
-            material = bpy.data.materials.new(material_name)
+            material = bpy.data.materials.new(importing_graph.material_name)
+            # Reassign material name
+            importing_graph.material_name = material.name
             material.use_nodes = True
             material.use_fake_user = self.use_fake_user if self.use_same_config \
                 else importing_graph.use_fake_user
@@ -192,7 +193,7 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
                     continue
                 importing_graph = importing_graph_items.add()
                 importing_graph.graph_url = graph_info["pkgUrl"]
-                importing_graph.material_name = graph_info['label']
+                importing_graph.material_name = new_material_name(graph_info['label'])
             bpy.ops.sublender.import_graph(
                 'INVOKE_DEFAULT', package_path=self.sbsar_path)
 
