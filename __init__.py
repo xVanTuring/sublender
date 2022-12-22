@@ -115,7 +115,7 @@ def register():
 def unregister():
     from . import (settings,
                    importer, preference, async_loop, texture_render,
-                   sb_operators, ui, globalvar, sublender_library)
+                   sb_operators, ui, globalvar, sublender_library, utils)
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
@@ -124,6 +124,7 @@ def unregister():
     settings.unregister()
     sb_operators.unregister()
     sublender_library.unregister()
+    utils.unregister()
 
     for clss in globalvar.sub_panel_clss_list:
         bpy.utils.unregister_class(clss)
