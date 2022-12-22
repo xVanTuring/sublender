@@ -56,7 +56,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
     package_path: StringProperty(default="")
     process_list = list()
 
-    def clean(self, context):
+    def clean(self, _):
         while self.process_list:
             process: asyncio.subprocess.Process = self.process_list.pop()
             if process.returncode is None:

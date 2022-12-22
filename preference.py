@@ -13,7 +13,7 @@ else:
     default_sbsrender_path = "C:\\Program Files\\Allegorithmic\\Substance Designer\\sbsrender.exe"
 
 
-def output_size_x_updated(self, context):
+def output_size_x_updated(self, _):
     if self.output_size_lock and self.output_size_y != self.output_size_x:
         self.output_size_y = self.output_size_x
 
@@ -69,7 +69,7 @@ class SublenderPreferences(AddonPreferences):
     memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
     hide_channels: BoolProperty(name="Hide Channels Group", default=False)
 
-    def draw(self, context):
+    def draw(self, _):
         layout = self.layout
         layout.prop(self, 'sbs_render')
         row = layout.row()

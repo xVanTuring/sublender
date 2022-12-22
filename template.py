@@ -6,7 +6,7 @@ import bpy
 from . import globalvar, consts
 
 
-def isType(val, type_str: str):
+def is_type(val, type_str: str):
     return isinstance(val, getattr(bpy.types, type_str))
 
 
@@ -16,7 +16,7 @@ def ensure_nodes(mat: bpy.types.Material, template, clear_nodes: bool):
         node_list.clear()
     for node_info in template['nodes']:
         node_inst = node_list.get(node_info['name'])
-        if (node_inst is not None) and (isType(node_inst, node_info['type'])):
+        if (node_inst is not None) and (is_type(node_inst, node_info['type'])):
             # reset position here
             if node_info.get('location', None) is not None:
                 node_inst.location = node_info['location']

@@ -4,7 +4,7 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 from . import globalvar
 
 
-def graph_list(self, context):
+def graph_list(_, __):
     mats = bpy.data.materials.items()
     globalvar.instance_map.clear()
     for mat_name, mat in mats:
@@ -29,13 +29,13 @@ def active_graph_updated(self, context):
     context.scene.sublender_settings.active_instance = m_instance_list[0][0]
 
 
-def instance_list(self, context):
+def instance_list(_, context):
     # [(identifier, name, description, icon, number), ...]
     return globalvar.instance_map.get(context.scene.sublender_settings.active_graph,
                                       [("$DUMMY$", "No Instance", "Dummy")])
 
 
-def get_object_active_instance_items(self, context):
+def get_object_active_instance_items(_, context):
     if context.view_layer.objects.active is None or len(
             context.view_layer.objects.active.material_slots) == 0:
         return []
@@ -67,7 +67,7 @@ def set_object_active_instance(self, value):
     self['object_active_instance'] = value
 
 
-def package_path_updated(self, context):
+def package_path_updated(self, _):
     if self.package_missing:
         bpy.ops.sublender.load_sbsar(sbsar_path=self.package_path)
 
@@ -124,7 +124,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
     importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
 
 
-def get_materials(self, context):
+def get_materials(self, _):
     if self.mode == "CATEGORIES":
         if self.categories == "$ALL$":
             return globalvar.library_preview_enum
@@ -134,7 +134,7 @@ def get_materials(self, context):
         return globalvar.library_preview_enum
 
 
-def get_categories(self, context):
+def get_categories(_, __):
     return globalvar.library_category_enum
 
 
@@ -144,7 +144,7 @@ def category_selected(self, context):
         self.library_preview = current_materials[0][0]
 
 
-def search_materials(self, search_string):
+def search_materials(_, __):
     pass
     # self.info_type = material_library.rpr_material_library.search_materials(search_string)
 

@@ -2,13 +2,12 @@ import asyncio
 import os
 import pathlib
 import tempfile
-import typing
+import uuid
 
 import bpy
 import mathutils
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
-import uuid
 from . import globalvar, consts, settings, parser, ui, sbsarlite
 from .parser import parse_sbsar_group
 
@@ -306,7 +305,7 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         for graph in sbs_package['graphs']:
             if graph['pkgUrl'] == m_sublender.graph_url:
                 sbs_graph = graph
-        clss_name, clss_info = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
+        clss_name, _ = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
         m_sublender.package_missing = False
         if preferences.enable_visible_if:
             globalvar.eval_delegate_map[material.name] = EvalDelegate(

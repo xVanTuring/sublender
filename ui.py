@@ -44,7 +44,7 @@ def draw_graph_item(self, context, target_mat):
     operator.to_library = False
 
 
-def draw_workflow_item(self, context, target_mat):
+def draw_workflow_item(self, _, target_mat):
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
     row = self.layout.row()
     row.prop(mat_setting,
@@ -158,15 +158,15 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
 
         ao_intensity = active_mat.node_tree.nodes.get('AO Intensity')
         if ao_intensity is not None and isinstance(ao_intensity, bpy.types.ShaderNodeMixRGB):
-            self.layout.prop(ao_intensity.inputs['Fac'], 'default_value', text="AO Intensity")
+            self.layout.prop(ao_intensity.inputs.get('Fac'), 'default_value', text="AO Intensity")
 
         normal_node = active_mat.node_tree.nodes.get('Normal Map')
         if normal_node is not None and isinstance(normal_node, bpy.types.ShaderNodeNormalMap):
-            self.layout.prop(normal_node.inputs['Strength'], 'default_value', text="Normal Strength")
+            self.layout.prop(normal_node.inputs.get('Strength'), 'default_value', text="Normal Strength")
         displacement_node = active_mat.node_tree.nodes.get('Displacement')
         if displacement_node is not None and isinstance(displacement_node, bpy.types.ShaderNodeDisplacement):
-            self.layout.prop(displacement_node.inputs['Midlevel'], 'default_value', text="Displacement Midlevel")
-            self.layout.prop(displacement_node.inputs['Scale'], 'default_value', text="Displacement Scale")
+            self.layout.prop(displacement_node.inputs.get('Midlevel'), 'default_value', text="Displacement Midlevel")
+            self.layout.prop(displacement_node.inputs.get('Scale'), 'default_value', text="Displacement Scale")
 
 
 class SUBLENDER_PT_SB_Output_Panel(Panel):

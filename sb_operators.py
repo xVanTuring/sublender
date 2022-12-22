@@ -54,7 +54,7 @@ class Sublender_Select_Active(Operator):
     bl_label = "Select Active"
     bl_description = "Select Active"
 
-    def execute(self, context):
+    def execute(self, _):
         return {'FINISHED'}
 
 
@@ -79,7 +79,6 @@ class Sublender_Copy_Texture_Path(Sublender_Base_Operator, Operator):
 
     def execute(self, context):
         material_instance = utils.find_active_mat(context)
-        m_sublender: settings.Sublender_Material_MT_Setting = material_instance.sublender
         output_dir = utils.texture_output_dir(material_instance.name)
         bpy.context.window_manager.clipboard = output_dir
         self.report({"INFO"}, "Copied")
@@ -91,7 +90,7 @@ class Sublender_Render_All(Operator):
     bl_label = "Render All Texture"
     bl_description = ""
 
-    def execute(self, context):
+    def execute(self, _):
         return {'FINISHED'}
 
 
@@ -102,7 +101,7 @@ class SUBLENDER_OT_Delete_Image(Operator):
     filepath: StringProperty()
     bl_img_name: StringProperty()
 
-    def execute(self, context):
+    def execute(self, _):
         if self.bl_img_name != "":
             bl_image = bpy.data.images.get(self.bl_img_name)
             if bl_image is not None:
@@ -120,7 +119,7 @@ class SUBLENDER_OT_Load_Image(Operator):
     bl_img_name: StringProperty()
     usage: StringProperty()
 
-    def execute(self, context):
+    def execute(self, _):
         bl_img = bpy.data.images.load(self.filepath, check_existing=True)
         bl_img.name = self.bl_img_name
         globalvar.file_existence_dict[self.filepath] = True
@@ -137,7 +136,7 @@ class SUBLENDER_OT_Apply_Image(Operator):
     material_name: StringProperty()
     node_name: StringProperty()
 
-    def execute(self, context):
+    def execute(self, _):
         target_mat: bpy.types.Material = bpy.data.materials.get(self.material_name)
         if target_mat is not None:
             target_node: bpy.types.ShaderNodeTexImage = target_mat.node_tree.nodes.get(self.node_name)
@@ -160,7 +159,7 @@ class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     force_reload: bpy.props.BoolProperty(default=False)
     task_id = "Sublender_Load_Sbsar"
 
-    async def async_execute(self, context):
+    async def async_execute(self, _):
         loop = asyncio.get_event_loop()
         preferences = bpy.context.preferences.addons[__package__].preferences
 
@@ -181,7 +180,7 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
     pop_import: BoolProperty(default=False, name="Pop Import")
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _):
         return not bpy.data.filepath == ""
 
     async def async_execute(self, context):
@@ -229,6 +228,3 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Inflate_Material)
     bpy.utils.unregister_class(Sublender_Random_Seed)
     bpy.utils.unregister_class(SUBLENDER_OT_Apply_Image)
-    if on_blender_undo in bpy.app.handlers.undo_post:
-        bpy.app.handlers.undo_post.remove(on_blender_undo)
-        bpy.app.handlers.redo_post.remove(on_blender_undo)

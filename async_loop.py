@@ -44,6 +44,7 @@ def kick_async_loop() -> bool:
         for task_idx, task in enumerate(all_tasks):
             if not task.done():
                 continue
+            # noinspection PyBroadException
             try:
                 res = task.result()
                 log.debug('   task #%i: result=%r', task_idx, res)
@@ -72,7 +73,7 @@ class Sublender_AsyncLoopModalOperator(bpy.types.Operator):
     def execute(self, context):
         return self.invoke(context, None)
 
-    def invoke(self, context, event):
+    def invoke(self, context, _):
         global _loop_kicking_operator_running
         if _loop_kicking_operator_running:
             self.log.debug('Another loop-kicking operator is already running.')
@@ -133,11 +134,12 @@ class AsyncModalOperatorMixin:
     def execute(self, context):
         return self.invoke(context, None)
 
-    def modal(self, context, event):
+    def modal(self, context, _):
         task = self.async_task
         if task and (task.done() or task.cancelled()):
             self.log.info('Task was cancelled/done {}/{}'.format(task.cancelled(), task.done()))
             context.window_manager.event_timer_remove(self.timer)
+            # noinspection PyBroadException
             try:
                 self.async_task.result()
             except asyncio.CancelledError:

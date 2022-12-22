@@ -85,7 +85,7 @@ class Sublender_Import_Graph(Operator):
         bpy.ops.sublender.render_texture_async(importing_graph=True, package_path=self.package_path)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=350)
 
@@ -123,16 +123,16 @@ class Sublender_Sbsar_Selector(Operator, ImportHelper):
         maxlen=255
     )
 
-    def execute(self, context):
+    def execute(self, _):
         file_extension = pathlib.Path(self.filepath).suffix
-        if not file_extension == ".sbsar":
+        if file_extension != ".sbsar":
             self.report({'WARNING'}, "File extension doesn't match")
             return {'CANCELLED'}
+        
+        if self.to_library:
+            bpy.ops.sublender.import_sbsar_to_library(sbsar_path=self.filepath)
         else:
-            if self.to_library:
-                bpy.ops.sublender.import_sbsar_to_library(sbsar_path=self.filepath)
-            else:
-                bpy.ops.sublender.import_sbsar(sbsar_path=self.filepath, from_library=False)
+            bpy.ops.sublender.import_sbsar(sbsar_path=self.filepath, from_library=False)
         return {'FINISHED'}
 
 
@@ -169,7 +169,7 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     pkg_url = ""
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _):
         return not bpy.data.filepath == ""
 
     async def async_execute(self, context):
@@ -205,11 +205,11 @@ class Sublender_Import_Graph_To_Library(Operator):
         name='Current Graph')
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Preview Engine")
 
-    def execute(self, context):
+    def execute(self, _):
         bpy.ops.sublender.render_preview_async(package_path=self.package_path)
         return {'FINISHED'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
