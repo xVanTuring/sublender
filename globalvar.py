@@ -1,6 +1,4 @@
-instance_map = {
-}
-
+instance_map = {}
 sbsar_dict = {}
 
 graph_clss = {}
@@ -20,18 +18,18 @@ library = {
     "version": "0.1.1"
 }
 preview_collections = None
-
-library_preview_enum = []
 library_category_enum = []
+library_material_preset_map = {}
 library_category_material_map = {
-    "$OTHER$": []
+    "$OTHER$": [],
+    "$ALL$": []
 }
 
-
+# graph_enum = []
+# instance_of_graph = []
 def clear():
     global current_uuid
     current_uuid = ""
     graph_clss.clear()
     sbsar_dict.clear()
-    instance_map.clear()
     file_existence_dict.clear()

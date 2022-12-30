@@ -47,10 +47,11 @@ def draw_graph_item(self, context, target_mat):
 def draw_workflow_item(self, _, target_mat):
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
     row = self.layout.row()
-    row.prop(mat_setting,
-             'material_template', text='Workflow')
-    row.operator(
-        "sublender.apply_workflow", icon='MATERIAL', text="")
+    row.prop(mat_setting, 'material_template', text='Workflow')
+    row.operator("sublender.apply_workflow", icon='MATERIAL', text="")
+    if mat_setting.library_uid in globalvar.library["materials"]:
+        operator = row.operator("sublender.save_as_preset", icon='PRESET_NEW', text="")
+        operator.material_name = target_mat.name
     if mat_setting.package_missing or not mat_setting.package_loaded:
         row.enabled = False
 
@@ -88,6 +89,7 @@ class SUBLENDER_PT_Main(Panel):
             operator = self.layout.operator("sublender.init_async")
             operator.pop_import = True
         else:
+            # if len(globalvar.graph_enum) > 0:
             if sublender_settings.active_instance != "$DUMMY$":
                 target_mat = utils.find_active_mat(context)
                 draw_graph_item(self, context, target_mat)
@@ -332,14 +334,18 @@ class SUBLENDER_PT_Library_Panel(Panel):
         select_btn = self.layout.operator('sublender.select_sbsar',
                                           icon='IMPORT', text='Import to Library', )
         select_btn.to_library = True
-        if len(globalvar.library_preview_enum) > 0:
+        if len(globalvar.library_category_material_map["$ALL$"]) > 0:
             properties = context.scene.sublender_library
             self.layout.prop(properties, "mode", expand=True)
             if properties.mode == "CATEGORIES":
                 self.layout.prop(properties, "categories", text="")
             else:
                 self.layout.label(text="Working on")
-            self.layout.template_icon_view(properties, "library_preview", show_labels=True)
+            row = self.layout.row()
+            row.template_icon_view(properties, "active_material", show_labels=True)
+            active_material = context.scene.sublender_library.active_material
+            if len(globalvar.library_material_preset_map.get(active_material)) > 0:
+                row.template_icon_view(properties, "material_preset", show_labels=True)
             row = self.layout.row()
             import_sbsar_operator = row.operator("sublender.import_sbsar")
             import_sbsar_operator.from_library = True

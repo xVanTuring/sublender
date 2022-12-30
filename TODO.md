@@ -20,6 +20,7 @@ Library:
 * category/search
 * category update operation
 * instance/preset
+* load preset from package
 
 
 ## Hack

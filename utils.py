@@ -344,14 +344,20 @@ async def load_sbsars_async(report=None):
     preferences = bpy.context.preferences.addons[__package__].preferences
     sb_materials = []
     sbs_package_set = set()
+    # package_url_set = set()
+    # globalvar.graph_enum.clear()
+
     for material in bpy.data.materials:
         # filter material
-        m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
+        m_sublender = material.sublender
         if (m_sublender is not None) and (m_sublender.graph_url != "") \
                 and (m_sublender.package_path != ""):
             m_sublender.package_loaded = False
             sb_materials.append(material)
             sbs_package_set.add(m_sublender.package_path)
+    #         package_url_set.add(m_sublender.graph_url)
+    # for g_url in package_url_set:
+    #     globalvar.graph_enum.append((g_url, g_url, g_url))
     load_queue = []
     for fp in sbs_package_set:
         load_queue.append(load_and_assign(fp, report))
@@ -379,7 +385,7 @@ def find_active_mat(context):
         if context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
             return None
-        active_material_enum = settings.get_object_active_instance_items(bpy.context.scene.sublender_settings, context)
+        active_material_enum = settings.instance_list_of_object
         if len(active_material_enum) == 0:
             return None
         mat_name = context.scene.sublender_settings.object_active_instance
@@ -396,7 +402,7 @@ def find_active_graph(context):
         if context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
             return None, None
-        active_material_enum = settings.get_object_active_instance_items(bpy.context.scene.sublender_settings, context)
+        active_material_enum = settings.instance_list_of_object
         if len(active_material_enum) == 0:
             return None, None
         mat_name = context.scene.sublender_settings.object_active_instance
@@ -430,7 +436,7 @@ def refresh_panel(context):
 
 
 async def init_sublender_async(self, context):
-    sublender_settings: settings.SublenderSetting = bpy.context.scene.sublender_settings
+    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     if sublender_settings.uuid == "":
         sublender_settings.uuid = str(uuid.uuid4())
     globalvar.current_uuid = sublender_settings.uuid

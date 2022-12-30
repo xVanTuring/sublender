@@ -54,7 +54,18 @@ class Sublender_Import_Graph(Operator):
             m_sublender.package_path = self.package_path
             m_sublender.material_template = active_material_template
             m_sublender.package_loaded = True
+            # package_url_set = set()
+            # globalvar.graph_enum.clear()
+            # for material in bpy.data.materials:
+            #     m_sublender = material.sublender
+            #     if (m_sublender is not None) and (m_sublender.graph_url != "") \
+            #             and (m_sublender.package_path != ""):
+            #         package_url_set.add(m_sublender.graph_url)
+            # for g_url in package_url_set:
+            #     globalvar.graph_enum.append((g_url, g_url, g_url))
 
+            if importing_graph.library_uid != "":
+                m_sublender.library_uid = importing_graph.library_uid
             bpy.context.scene.sublender_settings.active_graph = importing_graph.graph_url
             sbs_package = None
             for graph in globalvar.sbsar_dict.get(self.package_path)['graphs']:
@@ -128,7 +139,7 @@ class Sublender_Sbsar_Selector(Operator, ImportHelper):
         if file_extension != ".sbsar":
             self.report({'WARNING'}, "File extension doesn't match")
             return {'CANCELLED'}
-        
+
         if self.to_library:
             bpy.ops.sublender.import_sbsar_to_library(sbsar_path=self.filepath)
         else:
@@ -177,8 +188,8 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
             await utils.init_sublender_async(self, context)
         loop = asyncio.get_event_loop()
         if self.from_library:
-            selected_label = context.scene.sublender_library.library_preview
-            sbs_graph_info = globalvar.library["materials"].get(selected_label)
+            active_material = context.scene.sublender_library.active_material
+            sbs_graph_info = globalvar.library["materials"].get(active_material)
             self.sbsar_path = sbs_graph_info["sbsar_path"]
             self.pkg_url = sbs_graph_info["pkg_url"]
         self.report({"INFO"}, "Parsing package: {0}".format(self.sbsar_path))
@@ -194,6 +205,11 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
                 importing_graph = importing_graph_items.add()
                 importing_graph.graph_url = graph_info["pkgUrl"]
                 importing_graph.material_name = new_material_name(graph_info['label'])
+                if self.from_library:
+                    label = graph_info['label']
+                    if label == "":
+                        label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
+                    importing_graph.library_uid = "{}_{}".format(label, sbs_pkg["asmuid"])
             bpy.ops.sublender.import_graph(
                 'INVOKE_DEFAULT', package_path=self.sbsar_path)
 

@@ -21,9 +21,17 @@ default_usage_list = ["baseColor",
 
 
 def generate_cmd_list(context, target_dir: str,
-                      package_path, graph_url):
-    param_list = ["render", "--input", package_path, "--input-graph", graph_url, "--set-value", "$outputsize@9,9",
-                  "--output-path"]
+                      package_path, graph_url, preset_params=None):
+    param_list = ["render", "--input", package_path, "--input-graph", graph_url]
+    if preset_params is None:
+        param_list.append("--set-value")
+        param_list.append("$outputsize@9,9")
+    else:
+        for p in preset_params:
+            param_list.append("--set-value")
+            param_list.append("{}@{}".format(p["identifier"], p["value"]))
+
+    param_list.append("--output-path")
     pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
     param_list.append(target_dir)
 
@@ -54,6 +62,8 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
     bl_label = "Render Preview"
     bl_description = "Render Preview"
     package_path: StringProperty(default="")
+    preset_name: StringProperty(default="")
+    library_uid: StringProperty(default="")
     process_list = list()
 
     def clean(self, _):
@@ -63,8 +73,8 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
                 process.terminate()
 
     def invoke(self, context, event):
-        if self.package_path == "":
-            self.report({"WARNING"}, "No Graph is selected or given")
+        if self.package_path == "" and self.preset_name == "":
+            self.report({"WARNING"}, "No Graph/Preset is selected or given")
             return {"CANCELLED"}
         self.task_id = self.package_path
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
@@ -72,6 +82,72 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
     async def render_map(self, cmd_list: List[str]):
         sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
         await self.run_async(sbs_render_path, cmd_list)
+
+    async def render_graph(self, param_list, pkg_url, is_preset=False):
+        package_info = globalvar.sbsar_dict.get(self.package_path)
+        current_graph = None
+        build_list = []
+        for graph in package_info['graphs']:
+            if graph['pkgUrl'] == pkg_url:
+                current_graph = graph
+                _, _, output_usage_dict = utils.graph_output_parse(graph['outputs'])
+                for usage in output_usage_dict:
+                    if usage in default_usage_list:
+                        build_list.append((output_usage_dict[usage][0], usage))
+                break
+        if not is_preset:
+            label = current_graph['label']
+            if label == "":
+                label = bpy.utils.escape_identifier(pkg_url).replace("://", "")
+            uu_key = "{}_{}".format(label, package_info["asmuid"])
+            existed_material = globalvar.library["materials"].get(uu_key)
+            if existed_material is not None:
+                self.report({"WARNING"}, "Package has already been imported!")
+                return
+        else:
+            uu_key = self.library_uid
+
+        worker_list = []
+        for output in build_list:
+            per_output_cmd = param_list[:]
+            per_output_cmd.append("--input-graph-output")
+            per_output_cmd.append(output[0])
+            per_output_cmd.append("--output-name")
+            per_output_cmd.append(output[1])
+            worker_list.append(
+                self.render_map(per_output_cmd))
+
+        await asyncio.gather(*worker_list)
+        preview_cmd = ["-b",
+                       consts.sublender_library_render_template_file,
+                       "-o",
+                       consts.sublender_preview_img_template_file,
+                       "-f",
+                       "1"]
+        await self.run_async(sys.executable, preview_cmd)
+        if not is_preset:
+            preview_folder = os.path.join(consts.sublender_library_dir, uu_key, "default")
+            pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
+            copied_img = shutil.copy(consts.sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
+            copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
+            globalvar.library["materials"][uu_key] = {
+                "label": label,
+                "sbsar_path": copied_sbsar,
+                "preview": copied_img,
+                "pkg_url": current_graph['pkgUrl'],
+                "ar_uid": package_info["asmuid"],
+                "category": current_graph["category"],
+                "description": current_graph["description"],
+                "presets": {}
+            }
+        else:
+            preview_folder = os.path.join(consts.sublender_library_dir, uu_key, self.preset_name)
+            pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
+            copied_img = shutil.copy(consts.sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
+            globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name]["preview"] = copied_img
+
+        sync_library()
+        generate_preview()
 
     async def run_async(self, exec_path: str, cmd_list: List[str], ):
         process = await asyncio.create_subprocess_exec(
@@ -85,69 +161,26 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin,
         ensure_library()
         start = datetime.datetime.now()
         target_dir = consts.sublender_library_render_dir
-        for importing_graph in context.scene.sublender_library.importing_graphs:
-            if not importing_graph.enable:
-                continue
+        if self.preset_name != "":
+            material_info = globalvar.library["materials"].get(self.library_uid)
+            self.package_path = material_info["sbsar_path"]
+            preset_info = material_info["presets"][self.preset_name]
+            preset_parameters = preset_info["values"]
+            # TODO file parameters support
+            param_list = generate_cmd_list(context, target_dir, self.package_path, material_info["pkg_url"],
+                                           preset_params=preset_parameters)
+            await self.render_graph(param_list, material_info["pkg_url"], is_preset=True)
+        else:
+            for importing_graph in context.scene.sublender_library.importing_graphs:
+                if not importing_graph.enable:
+                    continue
 
-            param_list = generate_cmd_list(context, target_dir,
-                                           self.package_path, importing_graph.graph_url)
-            package_info = globalvar.sbsar_dict.get(self.package_path)
-            current_graph = None
-            build_list = []
-            for graph in package_info['graphs']:
-                if graph['pkgUrl'] == importing_graph.graph_url:
-                    current_graph = graph
-                    _, _, output_usage_dict = utils.graph_output_parse(graph['outputs'])
-                    for usage in output_usage_dict:
-                        if usage in default_usage_list:
-                            build_list.append((output_usage_dict[usage][0], usage))
-                    break
-            label = current_graph['label']
-            if label == "":
-                label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
-            uu_key = "{}_{}".format(label, package_info["asmuid"])
-            existed_material = globalvar.library["materials"].get(uu_key)
-            if existed_material is not None:
-                self.report({"WARNING"}, "Package has already been imported!")
-                return
+                param_list = generate_cmd_list(context, target_dir,
+                                               self.package_path, importing_graph.graph_url)
+                await self.render_graph(param_list, importing_graph.graph_url)
 
-            worker_list = []
-            for output in build_list:
-                per_output_cmd = param_list[:]
-                per_output_cmd.append("--input-graph-output")
-                per_output_cmd.append(output[0])
-                per_output_cmd.append("--output-name")
-                per_output_cmd.append(output[1])
-                worker_list.append(
-                    self.render_map(per_output_cmd))
-
-            await asyncio.gather(*worker_list)
-            preview_cmd = ["-b",
-                           consts.sublender_library_render_template_file,
-                           "-o",
-                           consts.sublender_preview_img_template_file,
-                           "-f",
-                           "1"]
-            await self.run_async(sys.executable, preview_cmd)
-
-            preview_folder = os.path.join(consts.sublender_library_dir, uu_key, "default")
-            pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
-            copied_img = shutil.copy(consts.sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
-            copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
-
-            globalvar.library["materials"][uu_key] = {
-                "label": label,
-                "sbsar_path": copied_sbsar,
-                "preview": copied_img,
-                "pkg_url": current_graph['pkgUrl'],
-                "ar_uid": package_info["asmuid"],
-                "category": current_graph["category"],
-                "description": current_graph["description"]
-            }
-            sync_library()
-            generate_preview()
         end = datetime.datetime.now()
-        # https://blender.stackexchange.com/questions/30488/require-blender-to-update-n-or-t-panel
+        # https://blender.stackexchange.com/a/30613
         for region in context.area.regions:
             if region.type == "UI":
                 region.tag_redraw()
@@ -162,14 +195,113 @@ class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
     bl_description = "Remove selected material"
 
     def execute(self, context):
-        selected_uid = context.scene.sublender_library.library_preview
-        del globalvar.library["materials"][selected_uid]
+        active_material = context.scene.sublender_library.active_material
+        del globalvar.library["materials"][active_material]
         sync_library()
         generate_preview()
-        if context.scene['sublender_library']['library_preview'] >= len(globalvar.library_preview_enum) and len(
-                globalvar.library_preview_enum) > 0:
-            context.scene['sublender_library']['library_preview'] = len(globalvar.library_preview_enum) - 1
-        shutil.rmtree(os.path.join(consts.sublender_library_dir, selected_uid))
+        library_len = len(globalvar.library_category_material_map["$ALL$"])
+        if context.scene['sublender_library']['active_material'] >= library_len > 0:
+            context.scene['sublender_library']['active_material'] = library_len - 1
+        shutil.rmtree(os.path.join(consts.sublender_library_dir, active_material))
+        return {'FINISHED'}
+
+
+def safe_name(name: str, exists):
+    for existed_name in exists:
+        if existed_name == name:
+            try:
+                base, suffix = name.rsplit('.', 1)
+                num = int(suffix, 10)
+                name = base + "." + '%03d' % (num + 1)
+            except ValueError:
+                name = name + ".001"
+    return name
+
+
+def generate_preset(preset_name: str, material_name: str):
+    material_inst = bpy.data.materials.get(material_name)
+    m_sublender = material_inst.sublender
+    clss_name = utils.gen_clss_name(m_sublender.graph_url)
+
+    clss_info = globalvar.graph_clss.get(clss_name)
+    input_list = clss_info['input']
+    graph_setting = getattr(material_inst, clss_name)
+    preset_parameters = []
+    for input_info in input_list:
+        if input_info['identifier'] == '$outputsize':
+            locked = getattr(
+                graph_setting, consts.output_size_lock, True)
+            width = getattr(graph_setting, consts.output_size_x)
+            if locked:
+                preset_parameters.append({
+                    "identifier": input_info['identifier'],
+                    "value": "{0},{0}".format(width),
+                    "type": input_info['type']
+                })
+            else:
+                height = getattr(graph_setting, consts.output_size_x)
+                preset_parameters.append({
+                    "identifier": input_info['identifier'],
+                    "value": "{0},{1}".format(width, height),
+                    "type": input_info['type']
+                })
+        else:
+            is_image = input_info['type'] == 5
+            value = graph_setting.get(input_info['prop'])
+            if value is not None:
+                if input_info.get('enum_items') is not None:
+                    value = input_info.get('enum_items')[value][0]
+                if is_image and value == "":
+                    continue
+                to_list = getattr(value, 'to_list', None)
+                if to_list is not None:
+                    if isinstance(value[0], float):
+                        value = ','.join(
+                            map(lambda x: ("%0.3f" % x), to_list()))
+                    else:
+                        value = ','.join(map(str, to_list()))
+                if isinstance(value, float):
+                    value = ("%.3f" % value)
+                if input_info.get('widget') == 'combobox':
+                    value = getattr(graph_setting, input_info['prop']).replace("$NUM:", "")
+                preset_parameters.append({
+                    "identifier": input_info['identifier'],
+                    "value": value,
+                    "type": input_info['type']
+                })
+    preset_config = {
+        "name": preset_name,
+        "values": preset_parameters,
+        "preview": ""
+    }
+    return preset_config
+
+
+class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
+    bl_idname = "sublender.save_as_preset"
+    bl_label = "Save as Preset"
+    bl_description = "Save current material as a preset"
+    material_name: StringProperty()
+    preset_name: StringProperty(default="Preset", name="Preset Name")
+    library_uid = None
+
+    def invoke(self, context, _):
+        wm = context.window_manager
+        mat = bpy.data.materials.get(self.material_name)
+        self.library_uid = mat.sublender.library_uid
+        graph_source = globalvar.library["materials"].get(self.library_uid)
+
+        temp_name = "Preset {}".format(graph_source["label"])
+        self.preset_name = safe_name(temp_name, graph_source["presets"].keys())
+        return wm.invoke_props_dialog(self)
+
+    def draw(self, _):
+        self.layout.prop(self, "preset_name")
+
+    def execute(self, context):
+        globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name] \
+            = generate_preset(self.preset_name, self.material_name)
+        bpy.ops.sublender.render_preview_async(library_uid=self.library_uid, preset_name=self.preset_name)
         return {'FINISHED'}
 
 
@@ -202,7 +334,6 @@ def load_library():
 def generate_preview():
     if globalvar.preview_collections is None:
         globalvar.preview_collections = previews.new()
-    globalvar.library_preview_enum.clear()
     globalvar.library_category_enum.clear()
     for key in globalvar.library_category_material_map:
         globalvar.library_category_material_map[key].clear()
@@ -215,7 +346,21 @@ def generate_preview():
             thumb = globalvar.preview_collections.load(img, img, "IMAGE")
         else:
             thumb = globalvar.preview_collections[img]
-        globalvar.library_preview_enum.append((uu_key, label, label, thumb.icon_id, i))
+        globalvar.library_category_material_map["$ALL$"].append((uu_key, label, label, thumb.icon_id, i))
+        globalvar.library_material_preset_map[uu_key] = []
+        if len(material.get("presets", {})) > 0:
+            globalvar.library_material_preset_map[uu_key].append(("$DEFAULT", "Default", "Default", thumb.icon_id, 0))
+            p_i = 1
+            for p_key in material.get("presets", {}):
+                preset = material["presets"][p_key]
+                preset_img = preset["preview"]
+                if not globalvar.preview_collections.get(preset_img):
+                    preset_thumb = globalvar.preview_collections.load(preset_img, preset_img, "IMAGE")
+                else:
+                    preset_thumb = globalvar.preview_collections[preset_img]
+                globalvar.library_material_preset_map[uu_key].append((p_key, p_key, p_key, preset_thumb.icon_id, p_i))
+                p_i += 1
+
         if material.get("category") is not None:
             category_set.add(material.get("category"))
             if globalvar.library_category_material_map.get(material.get("category")) is None:
@@ -239,6 +384,7 @@ def sync_library():
 def register():
     bpy.utils.register_class(SUBLENDER_OT_Render_Preview_Async)
     bpy.utils.register_class(SUBLENDER_OT_REMOVE_MATERIAL)
+    bpy.utils.register_class(SUBLENDER_OT_SAVE_AS_PRESET)
 
 
 def unregister():
@@ -246,3 +392,4 @@ def unregister():
     globalvar.preview_collections = None
     bpy.utils.unregister_class(SUBLENDER_OT_Render_Preview_Async)
     bpy.utils.unregister_class(SUBLENDER_OT_REMOVE_MATERIAL)
+    bpy.utils.unregister_class(SUBLENDER_OT_SAVE_AS_PRESET)
