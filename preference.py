@@ -10,7 +10,7 @@ if platform.system() == "Linux":
 elif platform.system() == "Windows":
     default_sbsrender_path = "C:\\Program Files\\Allegorithmic\\Substance Designer\\sbsrender.exe"
 else:
-    default_sbsrender_path = "C:\\Program Files\\Allegorithmic\\Substance Designer\\sbsrender.exe"
+    default_sbsrender_path = "/Applications/Substance Designer.app/Contents/MacOS/sbsrender"
 
 
 def output_size_x_updated(self, _):
