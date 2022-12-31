@@ -19,11 +19,15 @@ library_material_preset_map = {}
 library_category_material_map = {"$OTHER$": [], "$ALL$": []}
 
 
-# graph_enum = []
-# instance_of_graph = []
+graph_enum = []
+instance_of_graph = []
+
+
 def clear():
     global current_uuid
     current_uuid = ""
     graph_clss.clear()
     sbsar_dict.clear()
     file_existence_dict.clear()
+    graph_enum.clear()
+    instance_of_graph.clear()

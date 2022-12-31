@@ -67,53 +67,58 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
 
 
 def get_graph_list(_, __):
-    mats = bpy.data.materials.items()
-    globalvar.instance_map.clear()
-    for mat_name, mat in mats:
-        m_sublender: Sublender_Material_MT_Setting = mat.sublender
-        if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path is not ""):
-            if not (m_sublender.graph_url in globalvar.instance_map):
-                globalvar.instance_map[m_sublender.graph_url] = []
-            globalvar.instance_map[m_sublender.graph_url].append((
-                mat_name, mat_name, mat_name, mat.preview.icon_id, len(globalvar.instance_map[m_sublender.graph_url])))
+    init_graph_items()
+    return globalvar.graph_enum
 
-    # [(identifier, name, description, icon, number), ...]
-    m_graph_list = list(
-        map(lambda x: (x, x, ""), globalvar.instance_map.keys()))
-    if (len(m_graph_list)) > 0:
-        return list(map(lambda x: (x, x, ""), globalvar.instance_map.keys()))
-    else:
-        return [("$DUMMY$", "No Graph", "Dummy")]
-    # return globalvar.graph_enum
+
+def init_graph_items():
+    globalvar.graph_enum.clear()
+    package_url_set = set()
+    i = 0
+    for material in bpy.data.materials:
+        m_sublender = material.sublender
+        if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path
+                                                                            is not ""):
+            if m_sublender.graph_url not in package_url_set:
+                package_url_set.add(m_sublender.graph_url)
+                globalvar.graph_enum.append(
+                    (m_sublender.graph_url, m_sublender.graph_url, m_sublender.graph_url))
+                i += 1
 
 
 def active_graph_updated(self, context):
-    m_instance_list = get_instance_list(self, context)
-    context.scene.sublender_settings.active_instance = m_instance_list[0][0]
-    # get_instance_list(self, context)
+    # manually update
+    init_instance_of_graph(self)
 
 
-def get_instance_list(_, context):
-    return globalvar.instance_map.get(context.scene.sublender_settings.active_graph,
-                                      [("$DUMMY$", "No Instance", "Dummy")])
+def init_instance_of_graph(self):
+    globalvar.instance_of_graph.clear()
+    if len(globalvar.graph_enum) == 0:
+        return
+    i = 0
+    active_graph = self.active_graph
+    for material in bpy.data.materials:
+        m_sublender = material.sublender
+        if m_sublender is not None and m_sublender.graph_url == active_graph:
+            mat_name = material.name
+            globalvar.instance_of_graph.append((mat_name, mat_name, mat_name, material.preview.icon_id, i))
+            i += 1
 
-    # mats = bpy.data.materials.items()
-    # globalvar.instance_of_graph.clear()
-    # i = 0
-    # for mat_name, mat in mats:
-    #     m_sublender: Sublender_Material_MT_Setting = mat.sublender
-    #     if (m_sublender is not None) and (m_sublender.graph_url == self.active_graph) and (
-    #             m_sublender.package_path is not ""):
-    #         globalvar.instance_of_graph.append((
-    #             mat_name, mat_name, mat_name, mat.preview.icon_id, i))
-    #         i += 1
-    # return globalvar.instance_of_graph
+
+def get_instance_of_graph(self, context):
+    init_instance_of_graph(self)
+    return globalvar.instance_of_graph
 
 
 instance_list_of_object = []
 
 
 def get_instance_list_of_object(_, context):
+    init_instance_list_of_object(context)
+    return instance_list_of_object
+
+
+def init_instance_list_of_object(context):
     instance_list_of_object.clear()
     if context.view_layer.objects.active is None or len(
             context.view_layer.objects.active.material_slots) == 0:
@@ -123,32 +128,29 @@ def get_instance_list_of_object(_, context):
         mat = mat_slot.material
         if mat is None:
             continue
-        mat_setting: Sublender_Material_MT_Setting = mat.sublender
+        mat_setting = mat.sublender
         if mat_setting.package_path != '' and mat_setting.graph_url != '':
             mat_name = mat.name
             instance_list_of_object.append((mat_name, mat_name, mat_name, mat.preview.icon_id, i))
-    return instance_list_of_object
 
 
 class SublenderSetting(bpy.types.PropertyGroup):
     show_preview: BoolProperty(name="Show Preview")
     active_graph: EnumProperty(items=get_graph_list,
                                name="Graph",
-                               # get=get_idx(get_graph_list, "active_graph"),
-                               # set=set_idx("active_graph"),
+                               get=get_idx(globalvar.graph_enum, "active_graph"),
+                               set=set_idx("active_graph"),
                                update=active_graph_updated)
-    active_instance: EnumProperty(items=get_instance_list, name="Instance")
-    # get = get_idx(globalvar.instance_of_graph, "active_instance"),
-    # set = set_idx("active_instance")
-    object_active_instance: EnumProperty(
-        items=get_instance_list_of_object,
-        name="Object Active Instance",
-        get=get_idx(instance_list_of_object, "object_active_instance"),
-        set=set_idx("object_active_instance")
-    )
-    catch_undo: BoolProperty(name="Catch Undo",
-                             default=False,
-                             description="Tender texture after undo/redo")
+    active_instance: EnumProperty(items=get_instance_of_graph,
+                                  name="Instance",
+                                  get=get_idx(globalvar.instance_of_graph, "active_instance"),
+                                  set=set_idx("active_instance"))
+    # BUG: enum display error
+    object_active_instance: EnumProperty(items=get_instance_list_of_object,
+                                         name="Object Active Instance",
+                                         get=get_idx(instance_list_of_object, "object_active_instance"),
+                                         set=set_idx("object_active_instance"))
+    catch_undo: BoolProperty(name="Catch Undo", default=False, description="Tender texture after undo/redo")
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(name="Live Update", description="Live Update")
     follow_selection: BoolProperty(name="Follow Selection", default=False)

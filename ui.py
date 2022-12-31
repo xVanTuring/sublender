@@ -135,6 +135,8 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
+        if not utils.inited(context) or len(globalvar.graph_enum) == 0:
+            return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
@@ -169,6 +171,8 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
+        if not utils.inited(context) or len(globalvar.graph_enum) == 0:
+            return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
@@ -251,6 +255,8 @@ class Sublender_Prop_BasePanel(Panel):
 
     @classmethod
     def poll(cls, context):
+        if not utils.inited(context) or len(globalvar.graph_enum) == 0:
+            return False
         preferences = context.preferences.addons[__package__].preferences
         if preferences.hide_channels and cls.bl_label == "Channels":
             return False

@@ -258,6 +258,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
         globalvar.graph_clss[clss_name] = {
             'clss': clss,
             'input': all_inputs,
+            'prop_input_map': prop_input_map,
             'group_info': {
                 'tree': group_tree,
                 'map': group_map
@@ -400,6 +401,8 @@ def find_active_graph(context):
         if context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
             return None, None
+        if context.scene.sublender_settings.object_active_instance == "":
+            settings.init_instance_list_of_object(context)
         active_material_enum = settings.instance_list_of_object
         if len(active_material_enum) == 0:
             return None, None
@@ -435,20 +438,14 @@ def refresh_panel(context):
 
 async def init_sublender_async(self, context):
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    await load_sbsars_async(self.report)
+    settings.init_graph_items()
+    settings.init_instance_of_graph(sublender_settings)
+    bpy.app.handlers.undo_post.append(on_blender_undo)
+    bpy.app.handlers.redo_post.append(on_blender_undo)
     if sublender_settings.uuid == "":
         sublender_settings.uuid = str(uuid.uuid4())
     globalvar.current_uuid = sublender_settings.uuid
-    await load_sbsars_async(self.report)
-    if sublender_settings.active_graph == '':
-        print(
-            "No graph with given index {0} founded here, reset to 0".format(sublender_settings['active_graph']))
-        bpy.context.scene['sublender_settings']['active_graph'] = 0
-        bpy.context.scene['sublender_settings']['active_instance'] = 0
-    if sublender_settings.active_instance == '':
-        print("Selected instance is missing, reset to 0")
-        bpy.context.scene['sublender_settings']['active_instance'] = 0
-    bpy.app.handlers.undo_post.append(on_blender_undo)
-    bpy.app.handlers.redo_post.append(on_blender_undo)
     refresh_panel(context)
 
 
