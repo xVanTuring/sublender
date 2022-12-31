@@ -116,8 +116,7 @@ class AsyncModalOperatorMixin:
 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
-        self.timer = context.window_manager.event_timer_add(
-            1 / 15, window=context.window)
+        self.timer = context.window_manager.event_timer_add(1 / 15, window=context.window)
         self._new_async_task(self.async_execute(context))
         return {'RUNNING_MODAL'}
 

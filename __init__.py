@@ -13,8 +13,7 @@ bl_info = {
     "category": "Material"
 }
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.WARN,
-                    format='%(name)s %(message)s')
+logging.basicConfig(level=logging.WARN, format='%(name)s %(message)s')
 
 
 @persistent
@@ -89,9 +88,8 @@ def register():
         ui = reload_mod('ui')
         sublender_library = reload_mod('sublender_library')
     else:
-        from . import (template, settings,
-                       importer, preference, async_loop, texture_render,
-                       sb_operators, ui, sublender_library)
+        from . import (template, settings, importer, preference, async_loop, texture_render, sb_operators, ui,
+                       sublender_library)
 
     template.load_material_templates()
     preference.register()
@@ -113,9 +111,8 @@ def register():
 
 
 def unregister():
-    from . import (settings,
-                   importer, preference, async_loop, texture_render,
-                   sb_operators, ui, globalvar, sublender_library, utils)
+    from . import (settings, importer, preference, async_loop, texture_render, sb_operators, ui, globalvar,
+                   sublender_library, utils)
     ui.unregister()
     preference.unregister()
     async_loop.unregister()

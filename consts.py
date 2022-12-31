@@ -2,32 +2,40 @@ import os
 
 from bpy.props import (StringProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
-type_dict = ['FLOAT1',
-             'FLOAT2',
-             'FLOAT3',
-             'FLOAT4',
-             'INTEGER1',
-             'IMAGE',
-             'STRING',
-             'FONT',
-             'INTEGER2',
-             'INTEGER3',
-             'INTEGER4', ]
+type_dict = [
+    'FLOAT1',
+    'FLOAT2',
+    'FLOAT3',
+    'FLOAT4',
+    'INTEGER1',
+    'IMAGE',
+    'STRING',
+    'FONT',
+    'INTEGER2',
+    'INTEGER3',
+    'INTEGER4',
+]
 UNGROUPED = '$UNGROUPED$'
 SBS_CONFIGURED = "$CONFIGURED"
-sbsar_name_prop = {
-    '$outputsize': 'output_size',
-    '$randomseed': 'random_seed'
-}
-sbsar_name_to_label = {
-    '$outputsize': 'Output Size',
-    '$randomseed': 'Random Seed'
-}
+sbsar_name_prop = {'$outputsize': 'output_size', '$randomseed': 'random_seed'}
+sbsar_name_to_label = {'$outputsize': 'Output Size', '$randomseed': 'Random Seed'}
 sbsar_type_to_property = [
-    (FloatProperty, None,),
-    (FloatVectorProperty, 2,),
-    (FloatVectorProperty, 3,),
-    (FloatVectorProperty, 4,),
+    (
+        FloatProperty,
+        None,
+    ),
+    (
+        FloatVectorProperty,
+        2,
+    ),
+    (
+        FloatVectorProperty,
+        3,
+    ),
+    (
+        FloatVectorProperty,
+        4,
+    ),
     (IntProperty, None),
     (StringProperty, None),
     (StringProperty, None),
@@ -37,22 +45,10 @@ sbsar_type_to_property = [
     (IntVectorProperty, 4),
 ]
 CUSTOM = "$CUSTOM$"
-output_size_one_enum = [
-    ("0", "1", "1"),
-    ("1", "2", "2"),
-    ("2", "4", "4"),
-    ("3", "8", "8"),
-    ("4", "16", "16"),
-    ("5", "32", "32"),
-    ("6", "64", "64"),
-    ("7", "128", "128"),
-    ("8", "256", "256"),
-    ("9", "512", "512"),
-    ("10", "1024", "1024"),
-    ("11", "2048", "2048"),
-    ("12", "4096", "4096"),
-    ("13", "8192", "8192")
-]
+output_size_one_enum = [("0", "1", "1"), ("1", "2", "2"), ("2", "4", "4"), ("3", "8", "8"), ("4", "16", "16"),
+                        ("5", "32", "32"), ("6", "64", "64"), ("7", "128", "128"), ("8", "256", "256"),
+                        ("9", "512", "512"), ("10", "1024", "1024"), ("11", "2048", "2048"),
+                        ("12", "4096", "4096"), ("13", "8192", "8192")]
 output_size_enum = [
     ("1", "1x1", "1x1"),
     ("2", "2x2", "2x2"),
@@ -79,8 +75,7 @@ output_size_x = "$sb_output_size_x"
 output_size_y = "$sb_output_size_y"
 output_size_lock = "$sb_output_size_lock"
 update_when_sizing = "$update_when_sizing"
-usage_color_dict = ['baseColor',
-                    'ambientOcclusion']
+usage_color_dict = ['baseColor', 'ambientOcclusion']
 usage_to_label = {
     'baseColor': 'Base Color',
     'metallic': 'Metallic',

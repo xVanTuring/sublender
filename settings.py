@@ -33,6 +33,7 @@ def set_idx(name):
 
 # endregion
 
+
 # region Sublender_Material_MT_Setting
 def package_path_updated(self, _):
     if self.package_missing:
@@ -43,8 +44,7 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
     package_path: StringProperty(name="Package Path", subtype="FILE_PATH", update=package_path_updated)
     graph_url: StringProperty(name="Graph URL")
     show_setting: BoolProperty(name="Show Params", default=True)
-    material_template: EnumProperty(
-        name="Material Template", items=globalvar.material_template_enum)
+    material_template: EnumProperty(name="Material Template", items=globalvar.material_template_enum)
     uuid: StringProperty(name="UUID of this material", default="")
     package_missing: BoolProperty()
     package_loaded: BoolProperty(default=False)
@@ -56,24 +56,16 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
 class ImportingGraphItem(bpy.types.PropertyGroup):
     graph_url: StringProperty(name="Graph Url")
     enable: BoolProperty(name="Import", default=True)
-    material_template: EnumProperty(
-        items=globalvar.material_template_enum,
-        name='Template'
-    )
-    material_name: StringProperty(
-        name='Material Name')
-    use_fake_user: BoolProperty(
-        name="Fake User",
-        default=True
-    )
-    assign_to_selection: BoolProperty(
-        name='Append to selected mesh',
-        default=False
-    )
+    material_template: EnumProperty(items=globalvar.material_template_enum, name='Template')
+    material_name: StringProperty(name='Material Name')
+    use_fake_user: BoolProperty(name="Fake User", default=True)
+    assign_to_selection: BoolProperty(name='Append to selected mesh', default=False)
     library_uid: StringProperty(default="")
 
 
 # region SublenderSetting
+
+
 def get_graph_list(_, __):
     mats = bpy.data.materials.items()
     globalvar.instance_map.clear()
@@ -165,6 +157,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
 
 # endregion
 
+
 # region SublenderLibrary
 def get_library_material_list(self, _):
     if self.mode == "CATEGORIES":
@@ -196,8 +189,7 @@ class SublenderLibrary(bpy.types.PropertyGroup):
     active_material: EnumProperty(items=get_library_material_list)
     material_preset: EnumProperty(items=get_material_preset,
                                   get=get_idx(get_material_preset, "material_preset"),
-                                  set=set_idx("material_preset")
-                                  )
+                                  set=set_idx("material_preset"))
     importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
     categories: EnumProperty(items=get_category_list, update=category_selected)
     mode: EnumProperty(
@@ -216,17 +208,16 @@ class SublenderLibrary(bpy.types.PropertyGroup):
 
 # endregion
 
+
 def register():
     bpy.utils.register_class(ImportingGraphItem)
     bpy.utils.register_class(Sublender_Material_MT_Setting)
     bpy.utils.register_class(SublenderSetting)
     bpy.utils.register_class(SublenderLibrary)
-    bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(
-        type=SublenderSetting, name="Sublender")
-    bpy.types.Material.sublender = bpy.props.PointerProperty(
-        type=Sublender_Material_MT_Setting)
-    bpy.types.Scene.sublender_library = bpy.props.PointerProperty(
-        type=SublenderLibrary, name="Sublender Library")
+    bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(type=SublenderSetting, name="Sublender")
+    bpy.types.Material.sublender = bpy.props.PointerProperty(type=Sublender_Material_MT_Setting)
+    bpy.types.Scene.sublender_library = bpy.props.PointerProperty(type=SublenderLibrary,
+                                                                  name="Sublender Library")
 
 
 def unregister():

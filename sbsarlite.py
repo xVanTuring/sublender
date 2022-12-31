@@ -115,20 +115,17 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
     if parsed_input['widget'] == 'slider':
         if raw.get('guislider') is not None:
             if raw.get('guislider').get('@min'):
-                parsed_input['min'] = parse_str_value(
-                    raw.get('guislider')['@min'], type_num)
+                parsed_input['min'] = parse_str_value(raw.get('guislider')['@min'], type_num)
                 if isinstance(parsed_input['min'], list):
                     parsed_input['min'] = parsed_input['min'][0]
 
             if raw.get('guislider').get('@max'):
-                parsed_input['max'] = parse_str_value(
-                    raw.get('guislider')['@max'], type_num)
+                parsed_input['max'] = parse_str_value(raw.get('guislider')['@max'], type_num)
                 if isinstance(parsed_input['max'], list):
                     parsed_input['max'] = parsed_input['max'][0]
 
             if raw.get('guislider').get('@step'):
-                parsed_input['step'] = parse_str_value(
-                    raw.get('guislider')['@step'], type_num)
+                parsed_input['step'] = parse_str_value(raw.get('guislider')['@step'], type_num)
                 if type_num < SBSARTypeEnum.INTEGER1:
                     if parsed_input['step']:
                         parsed_input['step'] = parsed_input['step'] * 100
@@ -175,8 +172,7 @@ def parse_doc(file_path: str):
     archive = py7zr.SevenZipFile(file_path, mode='r')
     allfiles = archive.getnames()
     sbsar_xml_path = None
-    unzip_dir = os.path.join(tempfile.gettempdir(
-    ), "sublender", os.path.basename(file_path))
+    unzip_dir = os.path.join(tempfile.gettempdir(), "sublender", os.path.basename(file_path))
     for file_name in allfiles:
         if file_name.endswith("xml"):
             sbsar_xml_path = os.path.join(unzip_dir, file_name)

@@ -13,13 +13,10 @@ def draw_instance_item(self, context, target_mat):
     if sublender_settings.follow_selection:
         instance_info_column.prop(sublender_settings, "object_active_instance", text="Instance")
     else:
-        instance_info_column.prop(
-            sublender_settings, "active_instance", text="Instance")
+        instance_info_column.prop(sublender_settings, "active_instance", text="Instance")
     if target_mat is not None:
-        row.prop(target_mat, 'use_fake_user',
-                 icon_only=True)
-        dup_op = row.operator(
-            "sublender.new_instance", icon='DUPLICATE', text="")
+        row.prop(target_mat, 'use_fake_user', icon_only=True)
+        dup_op = row.operator("sublender.new_instance", icon='DUPLICATE', text="")
         dup_op.target_material = target_mat.name
 
 
@@ -31,16 +28,12 @@ def draw_graph_item(self, context, target_mat):
         graph_info_column.enabled = False
     if sublender_settings.follow_selection and target_mat is not None:
         mat_setting = target_mat.sublender
-        graph_info_column.prop(mat_setting,
-                               'graph_url', text="Graph")
+        graph_info_column.prop(mat_setting, 'graph_url', text="Graph")
     else:
-        graph_info_column.prop(sublender_settings,
-                               'active_graph')
+        graph_info_column.prop(sublender_settings, 'active_graph')
 
-    row.prop(sublender_settings,
-             'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
-    operator = row.operator('sublender.select_sbsar',
-                            icon='IMPORT', text='')
+    row.prop(sublender_settings, 'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
+    operator = row.operator('sublender.select_sbsar', icon='IMPORT', text='')
     operator.to_library = False
 
 
@@ -58,17 +51,14 @@ def draw_workflow_item(self, _, target_mat):
 
 def draw_texture_item(self, context, target_mat):
     row = self.layout.row()
-    render_ops = row.operator(
-        "sublender.render_texture_async", icon='TEXTURE')
+    render_ops = row.operator("sublender.render_texture_async", icon='TEXTURE')
     render_ops.importing_graph = False
     render_ops.texture_name = ""
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
-    row.prop(sublender_settings,
-             'live_update', icon='FILE_REFRESH', icon_only=True)
+    row.prop(sublender_settings, 'live_update', icon='FILE_REFRESH', icon_only=True)
     if sublender_settings.live_update:
-        row.prop(sublender_settings,
-                 'catch_undo', icon='PROP_CON', icon_only=True)
+        row.prop(sublender_settings, 'catch_undo', icon='PROP_CON', icon_only=True)
     if mat_setting.package_missing or not mat_setting.package_loaded:
         row.enabled = False
 
@@ -84,13 +74,11 @@ class SUBLENDER_PT_Main(Panel):
         if not utils.inited(context):
             if bpy.data.filepath == "":
                 self.layout.operator("wm.save_mainfile")
-                self.layout.label(
-                    text="Please save your file first.")
+                self.layout.label(text="Please save your file first.")
             operator = self.layout.operator("sublender.init_async")
             operator.pop_import = True
         else:
-            # if len(globalvar.graph_enum) > 0:
-            if sublender_settings.active_instance != "$DUMMY$":
+            if len(globalvar.graph_enum) > 0:
                 target_mat = utils.find_active_mat(context)
                 draw_graph_item(self, context, target_mat)
                 if sublender_settings.follow_selection or target_mat is not None:
@@ -114,14 +102,11 @@ class SUBLENDER_PT_Main(Panel):
 def calc_prop_visibility(eval_delegate, input_info: dict):
     if input_info.get('visibleIf') is None:
         return True
-    eval_str: str = input_info.get('visibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
+    eval_str: str = input_info.get('visibleIf').replace("&&", " and ").replace("||",
+                                                                               " or ").replace("!", " not ")
     if eval_delegate is None:
         return False
-    eval_result = eval(eval_str, {
-        'input': eval_delegate,
-        'true': True,
-        'false': False
-    })
+    eval_result = eval(eval_str, {'input': eval_delegate, 'true': True, 'false': False})
     if eval_result:
         return True
     return False
@@ -167,8 +152,12 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
             self.layout.prop(normal_node.inputs.get('Strength'), 'default_value', text="Normal Strength")
         displacement_node = active_mat.node_tree.nodes.get('Displacement')
         if displacement_node is not None and isinstance(displacement_node, bpy.types.ShaderNodeDisplacement):
-            self.layout.prop(displacement_node.inputs.get('Midlevel'), 'default_value', text="Displacement Midlevel")
-            self.layout.prop(displacement_node.inputs.get('Scale'), 'default_value', text="Displacement Scale")
+            self.layout.prop(displacement_node.inputs.get('Midlevel'),
+                             'default_value',
+                             text="Displacement Midlevel")
+            self.layout.prop(displacement_node.inputs.get('Scale'),
+                             'default_value',
+                             text="Displacement Scale")
 
 
 class SUBLENDER_PT_SB_Output_Panel(Panel):
@@ -231,7 +220,8 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
                 delete_image.filepath = bpy.path.abspath(bpy_image.filepath)
                 delete_image.bl_img_name = bl_img_name
             else:
-                output_format = getattr(graph_setting, utils.sb_output_format_to_prop(output_info['name']), "png")
+                output_format = getattr(graph_setting, utils.sb_output_format_to_prop(output_info['name']),
+                                        "png")
                 image_file_path = os.path.join(material_output_folder,
                                                "{0}.{1}".format(output_info['name'], output_format))
                 if globalvar.file_existence_dict.get(image_file_path) is None:
@@ -272,15 +262,13 @@ class Sublender_Prop_BasePanel(Panel):
                 clss_name = utils.gen_clss_name(cls.graph_url)
                 if globalvar.eval_delegate_map.get(active_mat.name) is None:
                     globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
-                        active_mat.name,
-                        clss_name
-                    )
+                        active_mat.name, clss_name)
                 else:
                     # assign again, undo/redo will change the memory address
-                    globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
-                visible = calc_group_visibility(
-                    globalvar.eval_delegate_map.get(active_mat.name),
-                    cls.group_info)
+                    globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(
+                        active_mat, clss_name)
+                visible = calc_group_visibility(globalvar.eval_delegate_map.get(active_mat.name),
+                                                cls.group_info)
                 return visible
             return True
         return False
@@ -296,18 +284,18 @@ class Sublender_Prop_BasePanel(Panel):
         for prop_info in self.group_info['inputs']:
             if prop_info.get('identifier') == '$outputsize':
                 row = layout.row()
-                row.prop(graph_setting,
-                         consts.output_size_x, text='Size')
-                row.prop(graph_setting, consts.output_size_lock,
-                         toggle=1, icon_only=True, icon="LINKED")
+                row.prop(graph_setting, consts.output_size_x, text='Size')
+                row.prop(graph_setting, consts.output_size_lock, toggle=1, icon_only=True, icon="LINKED")
                 if getattr(graph_setting, consts.output_size_lock):
-                    row.prop(graph_setting,
-                             consts.output_size_x, text='')
+                    row.prop(graph_setting, consts.output_size_x, text='')
                 else:
-                    row.prop(graph_setting,
-                             consts.output_size_y, text='')
+                    row.prop(graph_setting, consts.output_size_y, text='')
                 if context.scene.sublender_settings.live_update:
-                    row.prop(graph_setting, consts.update_when_sizing, toggle=1, icon_only=True, icon="UV_SYNC_SELECT")
+                    row.prop(graph_setting,
+                             consts.update_when_sizing,
+                             toggle=1,
+                             icon_only=True,
+                             icon="UV_SYNC_SELECT")
             elif prop_info.get('identifier') == "$randomseed":
                 row = layout.row()
                 row.prop(graph_setting, prop_info['prop'], text=prop_info['label'])
@@ -331,8 +319,11 @@ class SUBLENDER_PT_Library_Panel(Panel):
     bl_order = 1
 
     def draw(self, context):
-        select_btn = self.layout.operator('sublender.select_sbsar',
-                                          icon='IMPORT', text='Import to Library', )
+        select_btn = self.layout.operator(
+            'sublender.select_sbsar',
+            icon='IMPORT',
+            text='Import to Library',
+        )
         select_btn.to_library = True
         if len(globalvar.library_category_material_map["$ALL$"]) > 0:
             properties = context.scene.sublender_library

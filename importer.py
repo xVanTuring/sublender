@@ -14,21 +14,11 @@ from .utils import new_material_name, EvalDelegate
 class Sublender_Import_Graph(Operator):
     bl_idname = "sublender.import_graph"
     bl_label = "Import Graph"
-    package_path: StringProperty(
-        name='Current Graph')
+    package_path: StringProperty(name='Current Graph')
     use_same_config: BoolProperty(default=True, name="Use Same Config")
-    use_fake_user: BoolProperty(
-        name="Fake User",
-        default=True
-    )
-    assign_to_selection: BoolProperty(
-        name='Append to selected mesh',
-        default=False
-    )
-    material_template: EnumProperty(
-        items=globalvar.material_template_enum,
-        name='Template'
-    )
+    use_fake_user: BoolProperty(name="Fake User", default=True)
+    assign_to_selection: BoolProperty(name='Append to selected mesh', default=False)
+    material_template: EnumProperty(items=globalvar.material_template_enum, name='Template')
 
     def execute(self, context):
         importing_graph_items = context.scene.sublender_settings.importing_graphs
@@ -54,15 +44,6 @@ class Sublender_Import_Graph(Operator):
             m_sublender.package_path = self.package_path
             m_sublender.material_template = active_material_template
             m_sublender.package_loaded = True
-            # package_url_set = set()
-            # globalvar.graph_enum.clear()
-            # for material in bpy.data.materials:
-            #     m_sublender = material.sublender
-            #     if (m_sublender is not None) and (m_sublender.graph_url != "") \
-            #             and (m_sublender.package_path != ""):
-            #         package_url_set.add(m_sublender.graph_url)
-            # for g_url in package_url_set:
-            #     globalvar.graph_enum.append((g_url, g_url, g_url))
 
             if importing_graph.library_uid != "":
                 m_sublender.library_uid = importing_graph.library_uid
@@ -75,10 +56,7 @@ class Sublender_Import_Graph(Operator):
             clss_name, clss_info = utils.dynamic_gen_clss_graph(sbs_package, importing_graph.graph_url)
             preferences = context.preferences.addons[__package__].preferences
             if preferences.enable_visible_if:
-                globalvar.eval_delegate_map[material.name] = EvalDelegate(
-                    material.name,
-                    clss_name
-                )
+                globalvar.eval_delegate_map[material.name] = EvalDelegate(material.name, clss_name)
 
             graph_setting = getattr(material, clss_name)
             if active_material_template != consts.CUSTOM:
@@ -106,7 +84,9 @@ class Sublender_Import_Graph(Operator):
             self.layout.prop(self, "use_same_config", toggle=1)
         if self.use_same_config:
             for importing_graph in importing_graph_items:
-                self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
+                self.layout.prop(importing_graph,
+                                 "enable",
+                                 text="Import {}".format(importing_graph.graph_url))
                 self.layout.prop(importing_graph, "material_name")
             self.layout.prop(self, "material_template")
             row = self.layout.row()
@@ -114,7 +94,9 @@ class Sublender_Import_Graph(Operator):
             row.prop(self, "assign_to_selection", toggle=1)
         else:
             for importing_graph in importing_graph_items:
-                self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
+                self.layout.prop(importing_graph,
+                                 "enable",
+                                 text="Import {}".format(importing_graph.graph_url))
                 self.layout.prop(importing_graph, "material_name")
                 self.layout.prop(importing_graph, "material_template")
                 row = self.layout.row()
@@ -128,11 +110,7 @@ class Sublender_Sbsar_Selector(Operator, ImportHelper):
     bl_description = "Import Sbsar"
     filename_ext = ".sbsar"
     to_library: BoolProperty(default=False, name="Import To Library")
-    filter_glob: StringProperty(
-        default="*.sbsar",
-        options={'HIDDEN'},
-        maxlen=255
-    )
+    filter_glob: StringProperty(default="*.sbsar", options={'HIDDEN'}, maxlen=255)
 
     def execute(self, _):
         file_extension = pathlib.Path(self.filepath).suffix

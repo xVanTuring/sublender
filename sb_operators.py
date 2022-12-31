@@ -10,7 +10,6 @@ from . import settings, utils, globalvar, consts, template, async_loop
 
 
 class Sublender_Base_Operator(object):
-
     @classmethod
     def poll(cls, context):
         return utils.find_active_mat(context) is not None
@@ -143,7 +142,8 @@ class SUBLENDER_OT_Apply_Image(Operator):
             if target_node is not None and isinstance(target_node, bpy.types.ShaderNodeTexImage):
                 target_node.image = bpy.data.images.get(self.bl_img_name)
             else:
-                bl_texture_node: bpy.types.ShaderNodeTexImage = target_mat.node_tree.nodes.new('ShaderNodeTexImage')
+                bl_texture_node: bpy.types.ShaderNodeTexImage = target_mat.node_tree.nodes.new(
+                    'ShaderNodeTexImage')
                 bl_texture_node.name = self.node_name
                 bl_texture_node.image = bpy.data.images.get(self.bl_img_name)
                 bl_texture_node.label = consts.usage_to_label.get(self.node_name, self.node_name)
@@ -165,8 +165,8 @@ class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
 
         for material in bpy.data.materials:
             m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
-            if (m_sublender is not None) and (m_sublender.graph_url is not "") and (
-                    m_sublender.package_path == self.sbsar_path):
+            if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path
+                                                                                    == self.sbsar_path):
                 m_sublender.package_loaded = False
                 await utils.load_sbsar_gen(loop, preferences, material, self.force_reload, self.report)
                 m_sublender.package_loaded = True

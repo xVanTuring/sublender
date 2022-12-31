@@ -69,11 +69,15 @@ class EvalDelegate(object):
         graph_setting = getattr(bpy.data.materials.get(self.material_name), self.clss_name)
         if identifier == "$outputsize":
             if getattr(graph_setting, consts.output_size_lock):
-                return VectorWrapper([int(getattr(graph_setting, consts.output_size_x)),
-                                      int(getattr(graph_setting, consts.output_size_x))])
+                return VectorWrapper([
+                    int(getattr(graph_setting, consts.output_size_x)),
+                    int(getattr(graph_setting, consts.output_size_x))
+                ])
             else:
-                return VectorWrapper([int(getattr(graph_setting, consts.output_size_x)),
-                                      int(getattr(graph_setting, consts.output_size_y))])
+                return VectorWrapper([
+                    int(getattr(graph_setting, consts.output_size_x)),
+                    int(getattr(graph_setting, consts.output_size_y))
+                ])
         prop_name = None
 
         for i in sbs_graph['inputs']:
@@ -146,13 +150,13 @@ def generate_sub_panel(group_map, graph_url):
         bl_parent_id = ''
         if parent_name != '':
             bl_parent_id = sub_panel_name(parent_name, graph_url)
-        p_clss = type(sub_panel_name(group_key, graph_url),
-                      (ui.Sublender_Prop_BasePanel,), {
-                          'bl_label': displace_name,
-                          'bl_parent_id': bl_parent_id,
-                          'graph_url': graph_url,
-                          'group_info': cur_group
-                      })
+        p_clss = type(
+            sub_panel_name(group_key, graph_url), (ui.Sublender_Prop_BasePanel,), {
+                'bl_label': displace_name,
+                'bl_parent_id': bl_parent_id,
+                'graph_url': graph_url,
+                'group_info': cur_group
+            })
         register_class(p_clss)
         globalvar.sub_panel_clss_list.append(p_clss)
 
@@ -202,11 +206,13 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                     'default': addon_prefs.output_size_x,
                     'update': output_size_x_updated,
                 })
-                _anno_obj[consts.output_size_y] = (EnumProperty, {
-                    'items': consts.output_size_one_enum,
-                    'default': addon_prefs.output_size_x,
-                    # 'update': output_size_x_updated,
-                })
+                _anno_obj[consts.output_size_y] = (
+                    EnumProperty,
+                    {
+                        'items': consts.output_size_one_enum,
+                        'default': addon_prefs.output_size_x,
+                        # 'update': output_size_x_updated,
+                    })
                 _anno_obj[consts.output_size_lock] = (BoolProperty, {
                     'default': addon_prefs.output_size_lock,
                     'update': output_size_x_updated
@@ -220,9 +226,12 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
 
         def parse_output(_output):
             _anno_obj[sb_output_to_prop(_output['identifier'])] = (BoolProperty, {
-                'name': _output['label'],
-                'default': False,
-                'update': sbsar_output_updated_name(_output['identifier'])
+                'name':
+                    _output['label'],
+                'default':
+                    False,
+                'update':
+                    sbsar_output_updated_name(_output['identifier'])
             })
             _anno_obj[sb_output_format_to_prop(_output['identifier'])] = (EnumProperty, {
                 'name': 'Format',
@@ -243,9 +252,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             'name': "SBS Configured",
             'default': False,
         })
-        clss = type(clss_name, (bpy.types.PropertyGroup,), {
-            '__annotations__': _anno_obj
-        })
+        clss = type(clss_name, (bpy.types.PropertyGroup,), {'__annotations__': _anno_obj})
         register_class(clss)
 
         globalvar.graph_clss[clss_name] = {
@@ -262,8 +269,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             },
             'sbs_graph': sbs_graph,
         }
-        setattr(bpy.types.Material, clss_name,
-                bpy.props.PointerProperty(type=clss))
+        setattr(bpy.types.Material, clss_name, bpy.props.PointerProperty(type=clss))
 
     return clss_name, globalvar.graph_clss.get(clss_name)
 
@@ -308,10 +314,7 @@ async def load_sbsar_gen(loop, preferences, material, force=False, report=None):
         clss_name, _ = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
         m_sublender.package_missing = False
         if preferences.enable_visible_if:
-            globalvar.eval_delegate_map[material.name] = EvalDelegate(
-                material.name,
-                clss_name
-            )
+            globalvar.eval_delegate_map[material.name] = EvalDelegate(material.name, clss_name)
         graph_setting = getattr(material, clss_name)
         setattr(graph_setting, consts.SBS_CONFIGURED, True)
         if report is not None:
@@ -344,8 +347,6 @@ async def load_sbsars_async(report=None):
     preferences = bpy.context.preferences.addons[__package__].preferences
     sb_materials = []
     sbs_package_set = set()
-    # package_url_set = set()
-    # globalvar.graph_enum.clear()
 
     for material in bpy.data.materials:
         # filter material
@@ -355,9 +356,6 @@ async def load_sbsars_async(report=None):
             m_sublender.package_loaded = False
             sb_materials.append(material)
             sbs_package_set.add(m_sublender.package_path)
-    #         package_url_set.add(m_sublender.graph_url)
-    # for g_url in package_url_set:
-    #     globalvar.graph_enum.append((g_url, g_url, g_url))
     load_queue = []
     for fp in sbs_package_set:
         load_queue.append(load_and_assign(fp, report))
@@ -375,8 +373,8 @@ def texture_output_dir(material_name: str):
         file_name = bpy.path.clean_name(current_file.name)
         return str(parent_dir.joinpath(file_name, "mat_{0}".format(bpy.path.clean_name(material_name))))
     temp_dir = tempfile.gettempdir()
-    return os.path.join(
-        temp_dir, "sublender", globalvar.current_uuid, "mat_{0}".format(bpy.path.clean_name(material_name)))
+    return os.path.join(temp_dir, "sublender", globalvar.current_uuid,
+                        "mat_{0}".format(bpy.path.clean_name(material_name)))
 
 
 def find_active_mat(context):

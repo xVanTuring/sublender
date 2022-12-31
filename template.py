@@ -52,8 +52,7 @@ def ensure_link(mat, template):
         to_name, to_socket = to_info.split('.')
         from_node = node_list.get(from_name)
         to_node = node_list.get(to_name)
-        node_links.new(
-            from_node.outputs[from_socket], to_node.inputs[to_socket])
+        node_links.new(from_node.outputs[from_socket], to_node.inputs[to_socket])
 
 
 def ensure_options(mat, template):
@@ -110,6 +109,5 @@ def load_material_templates():
                         material_temp.get('name', file_name),
                         material_temp.get('description', file_name_full),
                     ))
-    globalvar.material_template_enum.append((
-        consts.CUSTOM, "Custom", "Custom Workflow, empty material will be generated."
-    ))
+    globalvar.material_template_enum.append(
+        (consts.CUSTOM, "Custom", "Custom Workflow, empty material will be generated."))

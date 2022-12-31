@@ -1,6 +1,3 @@
-import typing
-from typing import List
-
 import bpy
 from .consts import sbsar_name_to_label
 
@@ -26,16 +23,9 @@ def ensure_group(group_name: str, group_map, group_tree):
     for group in group_path:
         current_group = combine_group(parent_group, group)
         if group_map.get(current_group) is None:
-            group_info = {
-                'identifier': current_group,
-                'sub_group': [],
-                "inputs": [],
-                "nameInShort": group
-            }
+            group_info = {'identifier': current_group, 'sub_group': [], "inputs": [], "nameInShort": group}
             if parent_group == "":
-                group_tree.append(
-                    group_info
-                )
+                group_tree.append(group_info)
             else:
                 group_map.get(parent_group)['sub_group'].append(group_info)
             group_map[current_group] = group_info
@@ -47,7 +37,7 @@ def ensure_group(group_name: str, group_map, group_tree):
 def parse_sbsar_group(graph):
     group_tree = []
     group_map = {}
-    for sb_input in typing.cast(List[dict], graph['inputs']):
+    for sb_input in graph['inputs']:
         group_name = sb_input.get('group')
         if group_name is None:
             group_name = "$UNGROUPED$"
@@ -55,8 +45,7 @@ def parse_sbsar_group(graph):
         input_info = {
             'identifier': sb_input['identifier'],
             'prop': sb_input['prop'],
-            'label': sbsar_name_to_label.get(
-                sb_input['identifier'], sb_input['identifier']),
+            'label': sbsar_name_to_label.get(sb_input['identifier'], sb_input['identifier']),
         }
         if input_info['identifier'] == "$randomseed":
             input_info['prop'] = "$randomseed"
