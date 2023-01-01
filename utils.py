@@ -184,15 +184,15 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             assign(input_info, _anno_item, 'min')
             assign(input_info, _anno_item, 'max')
             assign(input_info, _anno_item, 'step')
-            if input_info['type'] == sbsarlite.SBSARTypeEnum.INTEGER1:
+            if input_info['type'] == consts.SBSARTypeEnum.INTEGER1:
                 if input_info.get('widget') == 'togglebutton':
                     prop_type = BoolProperty
                 if input_info.get('widget') == 'combobox' and input_info.get('combo_items') is not None:
                     prop_type = EnumProperty
                     _anno_item['items'] = input_info.get('combo_items')
-            if input_info['type'] == sbsarlite.SBSARTypeEnum.IMAGE:
+            if input_info['type'] == consts.SBSARTypeEnum.IMAGE:
                 _anno_item['subtype'] = 'FILE_PATH'
-            if input_info['type'] in [sbsarlite.SBSARTypeEnum.FLOAT3, sbsarlite.SBSARTypeEnum.FLOAT4]:
+            if input_info['type'] in [consts.SBSARTypeEnum.FLOAT3, consts.SBSARTypeEnum.FLOAT4]:
                 if input_info.get('widget') == 'color':
                     _anno_item['min'] = 0
                     _anno_item['max'] = 1

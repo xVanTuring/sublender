@@ -108,3 +108,17 @@ sublender_preview_img_template_file = os.path.join(sublender_library_render_dir,
 sublender_preview_img_file = os.path.join(sublender_library_render_dir, "out1.png")
 
 packed_sublender_template_file = os.path.join(ADDON_DIR, 'resources', 'preview_template.blend')
+
+
+class SBSARTypeEnum:
+    FLOAT1 = 0
+    FLOAT2 = 1
+    FLOAT3 = 2
+    FLOAT4 = 3
+    INTEGER1 = 4
+    IMAGE = 5
+    STRING = 6
+    FONT = 7
+    INTEGER2 = 8
+    INTEGER3 = 9
+    INTEGER4 = 10

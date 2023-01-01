@@ -4,7 +4,7 @@ import py7zr
 import tempfile
 import xml
 
-from . import (parser, xmltodict)
+from . import (parser, xmltodict, consts)
 
 
 def parse_sbsar_raw(raw: OrderedDict):
@@ -65,10 +65,7 @@ def parse_graph(raw: OrderedDict):
 
 
 def parse_preset(raw: OrderedDict):
-    preset = {
-        "preset_name": raw.get("@label"),
-        "inputs": []
-    }
+    preset = {"preset_name": raw.get("@label"), "inputs": []}
     inputs: list = raw.get("presetinput")
     if not isinstance(inputs, list):
         inputs = [inputs]
@@ -158,7 +155,7 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
 
             if raw.get('guislider').get('@step'):
                 parsed_input['step'] = parse_str_value(raw.get('guislider')['@step'], type_num)
-                if type_num < SBSARTypeEnum.INTEGER1:
+                if type_num < consts.SBSARTypeEnum.INTEGER1:
                     if parsed_input['step']:
                         parsed_input['step'] = parsed_input['step'] * 100
 
@@ -219,17 +216,3 @@ def parse_doc(file_path: str):
                 raise Exception("Failed to parsed file {} as it's empty".format(sbsar_xml_path))
         return parse_sbsar_raw(raw_sbs_xml)
     return None
-
-
-class SBSARTypeEnum:
-    FLOAT1 = 0
-    FLOAT2 = 1
-    FLOAT3 = 2
-    FLOAT4 = 3
-    INTEGER1 = 4
-    IMAGE = 5
-    STRING = 6
-    FONT = 7
-    INTEGER2 = 8
-    INTEGER3 = 9
-    INTEGER4 = 10

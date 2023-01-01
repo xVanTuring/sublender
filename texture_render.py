@@ -8,7 +8,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 
-from . import globalvar, settings, utils, consts, async_loop, sbsarlite
+from . import globalvar, settings, utils, consts, async_loop
 
 
 def generate_cmd_list(context, target_material_name: str, m_sublender, clss_info, graph_setting):
@@ -25,7 +25,7 @@ def generate_cmd_list(context, target_material_name: str, m_sublender, clss_info
                 height = getattr(graph_setting, consts.output_size_x)
                 param_list.append("{0}@{1},{2}".format(input_info['identifier'], width, height))
         else:
-            is_image = input_info['type'] == sbsarlite.SBSARTypeEnum.IMAGE
+            is_image = input_info['type'] == consts.SBSARTypeEnum.IMAGE
             value = graph_setting.get(input_info['prop'])
             if value is not None:
                 if input_info.get('enum_items') is not None:

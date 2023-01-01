@@ -2,6 +2,7 @@ import logging
 
 import bpy
 from bpy.app.handlers import persistent
+from . import install_lib
 
 bl_info = {
     "name": "Sublender",
@@ -58,6 +59,7 @@ def on_save_post(_):
 
 
 def register():
+    install_lib.ensure_py7zr()
     log.info('Sublender@register: Starting')
     import sys
 

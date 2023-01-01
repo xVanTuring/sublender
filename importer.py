@@ -6,7 +6,7 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
-from . import globalvar, utils, async_loop, consts, template, sbsarlite
+from . import globalvar, utils, async_loop, consts, template
 from .settings import Sublender_Material_MT_Setting
 from .utils import new_material_name, EvalDelegate
 

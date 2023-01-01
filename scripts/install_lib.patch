@@ -1,0 +1,16 @@
+diff --git a/install_lib.py b/install_lib.py
+index 5d97b26..ef0ecc0 100644
+--- a/install_lib.py
++++ b/install_lib.py
+@@ -37,8 +37,8 @@ def ensure_py7zr():
+         try:
+             if IS_MAC or IS_LINUX:
+                 run_module_call("ensurepip", '--upgrade')
+-            run_pip("--upgrade", "pip")
+-            run_pip("wheel")
+-            run_pip("py7zr")
++            run_pip("--upgrade", "pip", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")
++            run_pip("wheel", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")
++            run_pip("py7zr", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")
+         except subprocess.SubprocessError as e:
+             print("Something went wrong, unable to install py7zr", e)
