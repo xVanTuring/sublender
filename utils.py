@@ -167,16 +167,17 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
         all_inputs = sbs_graph['inputs']
         all_outputs = sbs_graph['outputs']
         _anno_obj = {}
+        prop_input_map = {}
 
         def assign(obj_from, obj_to, m_prop_name: str):
             if obj_from.get(m_prop_name) is not None:
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
         for input_info in all_inputs:
-            (prop_type,
-             prop_size) = consts.sbsar_type_to_property[input_info['type']]
-            _anno_item = {
-            }
+            (prop_type, prop_size) = consts.sbsar_type_to_property[input_info['type']]
+            _anno_item = {}
+
+            prop_input_map[input_info["prop"]] = input_info
             if prop_size is not None:
                 _anno_item['size'] = prop_size
             assign(input_info, _anno_item, 'default')

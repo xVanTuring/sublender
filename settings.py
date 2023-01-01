@@ -53,6 +53,12 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
 
 # endregion
 
+
+class ImportingPreset(bpy.types.PropertyGroup):
+    name: StringProperty(default="")
+    enable: BoolProperty(default=True)
+
+
 class ImportingGraphItem(bpy.types.PropertyGroup):
     graph_url: StringProperty(name="Graph Url")
     enable: BoolProperty(name="Import", default=True)
@@ -61,6 +67,8 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
     use_fake_user: BoolProperty(name="Fake User", default=True)
     assign_to_selection: BoolProperty(name='Append to selected mesh', default=False)
     library_uid: StringProperty(default="")
+    preset_name: StringProperty(default="")
+    importing_presets: bpy.props.CollectionProperty(type=ImportingPreset)
 
 
 # region SublenderSetting
@@ -212,6 +220,7 @@ class SublenderLibrary(bpy.types.PropertyGroup):
 
 
 def register():
+    bpy.utils.register_class(ImportingPreset)
     bpy.utils.register_class(ImportingGraphItem)
     bpy.utils.register_class(Sublender_Material_MT_Setting)
     bpy.utils.register_class(SublenderSetting)
@@ -226,4 +235,5 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Material_MT_Setting)
     bpy.utils.unregister_class(SublenderSetting)
     bpy.utils.unregister_class(ImportingGraphItem)
+    bpy.utils.unregister_class(ImportingPreset)
     bpy.utils.unregister_class(SublenderLibrary)

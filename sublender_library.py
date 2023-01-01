@@ -143,6 +143,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
 
         sync_library()
         generate_preview()
+        return uu_key, current_graph
 
     async def run_async(self, exec_path: str, cmd_list: List[str]):
         process = await asyncio.create_subprocess_exec(exec_path, *cmd_list, stdout=asyncio.subprocess.PIPE)
@@ -170,9 +171,27 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                 if not importing_graph.enable:
                     continue
 
-                param_list = generate_cmd_list(context, target_dir,
-                                               self.package_path, importing_graph.graph_url)
-                await self.render_graph(param_list, importing_graph.graph_url)
+                param_list = generate_cmd_list(context, target_dir, self.package_path,
+                                               importing_graph.graph_url)
+                uu_key, current_graph = await self.render_graph(param_list, importing_graph.graph_url)
+
+                for preset in importing_graph.importing_presets:
+                    if not preset.enable:
+                        continue
+                    self.preset_name = preset.name
+                    self.library_uid = uu_key
+                    preset_params = current_graph['presets'].get(preset.name)['inputs']
+                    globalvar.library["materials"].get(uu_key)["presets"][preset.name] = {
+                        "name": preset.name,
+                        "values": preset_params,
+                        "preview": ""
+                    }
+                    param_list = generate_cmd_list(context,
+                                                   target_dir,
+                                                   self.package_path,
+                                                   importing_graph.graph_url,
+                                                   preset_params=preset_params)
+                    await self.render_graph(param_list, importing_graph.graph_url, is_preset=True)
 
         end = datetime.datetime.now()
         # https://blender.stackexchange.com/a/30613
@@ -261,13 +280,15 @@ def generate_preset(preset_name: str, material_name: str):
                 preset_parameters.append({
                     "identifier": input_info['identifier'],
                     "value": value,
-                    "type": input_info['type']
+                    "type": input_info['type'],
+                    "prop": input_info['prop']
                 })
     preset_config = {"name": preset_name, "values": preset_parameters, "preview": ""}
     return preset_config
 
 
 class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
+    # TODO: preset name
     bl_idname = "sublender.save_as_preset"
     bl_label = "Save as Preset"
     bl_description = "Save current material as a preset"
@@ -281,7 +302,7 @@ class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
         self.library_uid = mat.sublender.library_uid
         graph_source = globalvar.library["materials"].get(self.library_uid)
 
-        temp_name = "Preset {}".format(graph_source["label"])
+        temp_name = "Preset"
         self.preset_name = safe_name(temp_name, graph_source["presets"].keys())
         return wm.invoke_props_dialog(self)
 

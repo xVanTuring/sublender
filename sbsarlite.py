@@ -29,7 +29,8 @@ def parse_graph(raw: OrderedDict):
         'inputs': [],
         'outputs': [],
         'category': raw.get("@category", None),
-        'description': raw.get("@description", None)
+        'description': raw.get("@description", None),
+        "presets": {}
     }
     if parsed_graph["category"] is not None:
         parsed_graph["category"] = parsed_graph["category"].split("/")[-1]
@@ -50,13 +51,45 @@ def parse_graph(raw: OrderedDict):
         raw_output_list = [xml_outputs['output']]
     for i in range(output_count):
         parsed_graph['outputs'].append(parse_output(raw_output_list[i]))
+    xml_presets = raw.get('sbspresets', None)
+    if xml_presets is not None:
+        presets_count = int(xml_presets['@count'])
+        if presets_count > 1:
+            raw_preset_list = xml_presets['sbspreset']
+        else:
+            raw_preset_list = [xml_presets['raw_preset_list']]
+        for i in range(presets_count):
+            label, preset = parse_preset(raw_preset_list[i])
+            parsed_graph['presets'][label] = preset
     return parsed_graph
 
 
+def parse_preset(raw: OrderedDict):
+    preset = {
+        "preset_name": raw.get("@label"),
+        "inputs": []
+    }
+    inputs: list = raw.get("presetinput")
+    if not isinstance(inputs, list):
+        inputs = [inputs]
+    for p_input in inputs:
+        input_info = {
+            "identifier": p_input.get("@identifier"),
+            "type": int(p_input.get("@type")),
+            "uid": p_input.get("@uid"),
+            "prop": parser.uid_prop(p_input.get("@uid")),
+            "value": p_input.get("@value")
+        }
+        preset['inputs'].append(input_info)
+    return raw.get("@label"), preset
+
+
 def parse_output(raw: OrderedDict):
-    parsed_output = {'identifier': raw['@identifier'],
-                     'uid': raw['@uid'],
-                     'label': raw['outputgui']['@label']}
+    parsed_output = {
+        'identifier': raw['@identifier'],
+        'uid': raw['@uid'],
+        'label': raw['outputgui']['@label']
+    }
     if raw['outputgui']['channels'] is not None:
         usages = []
         if isinstance(raw['outputgui']['channels']['channel'], list):
@@ -82,8 +115,7 @@ def parse_input(raw: OrderedDict):
     if parsed_input['identifier'] == "$randomseed":
         parsed_input['prop'] = "$randomseed"
     if raw.get('@default') is not None:
-        default_value = parse_str_value(
-            raw['@default'], parsed_input['type'])
+        default_value = parse_str_value(raw['@default'], parsed_input['type'])
         parsed_input['default'] = default_value
     else:
         parsed_input['default'] = None

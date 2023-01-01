@@ -6,7 +6,7 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
-from . import globalvar, utils, async_loop, consts, template
+from . import globalvar, utils, async_loop, consts, template, sbsarlite
 from .settings import Sublender_Material_MT_Setting
 from .utils import new_material_name, EvalDelegate
 
@@ -71,6 +71,27 @@ class Sublender_Import_Graph(Operator):
                 for output_info in clss_info['output_info']['list']:
                     setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
             setattr(graph_setting, consts.SBS_CONFIGURED, True)
+            if importing_graph.preset_name != "":
+                presets = globalvar.library["materials"].get(importing_graph.library_uid)["presets"]
+                cur_preset = presets.get(importing_graph.preset_name)
+                prop_input_map = clss_info["prop_input_map"]
+                for params in cur_preset["values"]:
+                    if params["identifier"] == "$outputsize":
+                        width, height = params["value"].split(",")
+                        setattr(graph_setting, consts.output_size_x, width)
+                        setattr(graph_setting, consts.output_size_y, height)
+                    else:
+                        parsed_value = params["value"]
+                        if isinstance(params["value"], str):
+                            parsed_value = sbsarlite.parse_str_value(params["value"], params["type"])
+                        if params["type"] == sbsarlite.SBSARTypeEnum.INTEGER1:
+                            input_info = prop_input_map[params['prop']]
+                            if input_info.get('widget') == 'combobox' and input_info.get(
+                                    'combo_items') is not None:
+                                parsed_value = "$NUM:{0}".format(parsed_value)
+                            if input_info.get('widget') == 'togglebutton':
+                                parsed_value = bool(parsed_value)
+                        setattr(graph_setting, params['prop'], parsed_value)
         bpy.ops.sublender.render_texture_async(importing_graph=True, package_path=self.package_path)
         return {'FINISHED'}
 
@@ -144,8 +165,10 @@ class Sublender_Import_Sbsar_To_Library(async_loop.AsyncModalOperatorMixin, Oper
             for graph_info in sbs_pkg['graphs']:
                 adding_graph = importing_graphs.add()
                 adding_graph.graph_url = graph_info["pkgUrl"]
-            bpy.ops.sublender.import_graph_to_library(
-                'INVOKE_DEFAULT', package_path=self.sbsar_path)
+                for preset_name in graph_info['presets'].keys():
+                    importing_preset = adding_graph.importing_presets.add()
+                    importing_preset.name = preset_name
+            bpy.ops.sublender.import_graph_to_library('INVOKE_DEFAULT', package_path=self.sbsar_path)
 
 
 class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
@@ -188,15 +211,17 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
                     if label == "":
                         label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
                     importing_graph.library_uid = "{}_{}".format(label, sbs_pkg["asmuid"])
-            bpy.ops.sublender.import_graph(
-                'INVOKE_DEFAULT', package_path=self.sbsar_path)
+                    active_material = context.scene.sublender_library.active_material
+                    if len(globalvar.library_material_preset_map.get(active_material)) > 0:
+                        if context.scene.sublender_library.material_preset != "$DEFAULT$":
+                            importing_graph.preset_name = context.scene.sublender_library.material_preset
+            bpy.ops.sublender.import_graph('INVOKE_DEFAULT', package_path=self.sbsar_path)
 
 
 class Sublender_Import_Graph_To_Library(Operator):
     bl_idname = "sublender.import_graph_to_library"
     bl_label = "Import Package"
-    package_path: StringProperty(
-        name='Current Graph')
+    package_path: StringProperty(name='Current Graph')
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Preview Engine")
 
     def execute(self, _):
@@ -208,8 +233,19 @@ class Sublender_Import_Graph_To_Library(Operator):
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
-        for graph in context.scene.sublender_library.importing_graphs:
-            self.layout.prop(graph, "enable", text="Import {}".format(graph.graph_url))
+        for importing_graph in context.scene.sublender_library.importing_graphs:
+            self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
+            if len(importing_graph.importing_presets) > 0:
+                row = self.layout.row()
+                space = row.column()
+                space.separator()
+                column = row.column()
+                for importing_preset in importing_graph.importing_presets:
+                    column.prop(importing_preset,
+                                "enable",
+                                text="Preset {}".format(importing_preset.name))
+                column.enabled = importing_graph.enable
+                self.layout.separator()
         self.layout.prop(self, 'engine')
 
 
