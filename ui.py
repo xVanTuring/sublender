@@ -318,7 +318,6 @@ class Sublender_Prop_BasePanel(Panel):
 
 
 class SUBLENDER_PT_Library_Panel(Panel):
-    # FIXME: Custom category cause error at start up
     bl_label = "Library"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -340,12 +339,13 @@ class SUBLENDER_PT_Library_Panel(Panel):
             else:
                 self.layout.label(text="Working on")
             active_material = properties.active_material
-            if active_material == '':  # TODO: use function get_library_material_list
+            if len(settings.get_library_material_list(properties,
+                                                      context)) == 0:
                 self.layout.box().label(text="No material is in this category")
                 return
             row = self.layout.row()
             row.template_icon_view(properties, "active_material", show_labels=True)
-            has_presets = len(globalvar.library_material_preset_map.get(active_material)) > 0
+            has_presets = len(globalvar.library_material_preset_map.get(active_material, [])) > 0
             if has_presets:
                 row.template_icon_view(properties, "material_preset", show_labels=True)
             row = self.layout.row()

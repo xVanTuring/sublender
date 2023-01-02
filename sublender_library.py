@@ -24,7 +24,11 @@ def generate_cmd_list(context, target_dir: str, package_path, graph_url, preset_
         param_list.append("$outputsize@9,9")
     else:
         for p in preset_params:
-            param_list.append("--set-value")
+            is_image = p['type'] == consts.SBSARTypeEnum.IMAGE
+            if is_image:
+                param_list.append("--set-entry")
+            else:
+                param_list.append("--set-value")
             param_list.append("{}@{}".format(p["identifier"], p["value"]))
 
     param_list.append("--output-path")
@@ -168,7 +172,6 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             self.package_path = material_info["sbsar_path"]
             preset_info = material_info["presets"][self.preset_name]
             preset_parameters = preset_info["values"]
-            # TODO file parameters support
             param_list = generate_cmd_list(context,
                                            target_dir,
                                            self.package_path,
@@ -417,7 +420,7 @@ def generate_preview():
                 (uu_key, label, label, thumb.icon_id, i))
 
     globalvar.library_category_enum.append(("$ALL$", "All", "All"))
-    for cat in category_set:
+    for cat in sorted(category_set):
         globalvar.library_category_enum.append((cat, cat, cat))
     globalvar.library_category_enum.append(("$OTHER$", "Other", "Other"))
 
