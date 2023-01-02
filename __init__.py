@@ -8,7 +8,7 @@ bl_info = {
     "name": "Sublender",
     "author": "xVanTuring(@foxmail.com)",
     "blender": (2, 80, 0),
-    "version": (1, 0, 5),
+    "version": (2, 0, 0),
     "location": "View3D > Properties > Sublender",
     "description": "An add-on for sbsar",
     "category": "Material"
