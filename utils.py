@@ -13,7 +13,7 @@ from .parser import parse_sbsar_group
 
 
 def sbsar_input_updated(_, context):
-    if context.scene.sublender_settings.live_update:
+    if context.scene.sublender_settings.live_update and not globalvar.applying_preset:
         bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
 
 
@@ -151,7 +151,7 @@ def generate_sub_panel(group_map, graph_url):
         if parent_name != '':
             bl_parent_id = sub_panel_name(parent_name, graph_url)
         p_clss = type(
-            sub_panel_name(group_key, graph_url), (ui.Sublender_Prop_BasePanel,), {
+            sub_panel_name(group_key, graph_url), (ui.Sublender_Prop_BasePanel, ), {
                 'bl_label': displace_name,
                 'bl_parent_id': bl_parent_id,
                 'graph_url': graph_url,
@@ -228,11 +228,11 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
         def parse_output(_output):
             _anno_obj[sb_output_to_prop(_output['identifier'])] = (BoolProperty, {
                 'name':
-                    _output['label'],
+                _output['label'],
                 'default':
-                    False,
+                False,
                 'update':
-                    sbsar_output_updated_name(_output['identifier'])
+                sbsar_output_updated_name(_output['identifier'])
             })
             _anno_obj[sb_output_format_to_prop(_output['identifier'])] = (EnumProperty, {
                 'name': 'Format',
@@ -253,7 +253,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             'name': "SBS Configured",
             'default': False,
         })
-        clss = type(clss_name, (bpy.types.PropertyGroup,), {'__annotations__': _anno_obj})
+        clss = type(clss_name, (bpy.types.PropertyGroup, ), {'__annotations__': _anno_obj})
         register_class(clss)
 
         globalvar.graph_clss[clss_name] = {
@@ -380,7 +380,9 @@ def texture_output_dir(material_name: str):
 
 
 def find_active_mat(context):
-    scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
+    if not inited(context):
+        return None
+    scene_sb_settings = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
         if context.view_layer.objects.active is None or len(
                 bpy.context.view_layer.objects.active.material_slots) == 0:
@@ -390,13 +392,15 @@ def find_active_mat(context):
             return None
         mat_name = context.scene.sublender_settings.object_active_instance
         return bpy.data.materials.get(mat_name, None)
-
-    mats = bpy.data.materials
-    target_mat = mats.get(scene_sb_settings.active_instance)
-    return target_mat
+    if len(globalvar.instance_of_graph) > 0:
+        target_mat = bpy.data.materials.get(scene_sb_settings.active_instance)
+        return target_mat
+    return None
 
 
 def find_active_graph(context):
+    if not inited(context):
+        return None
     scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
         if context.view_layer.objects.active is None or len(
@@ -448,6 +452,37 @@ async def init_sublender_async(self, context):
         sublender_settings.uuid = str(uuid.uuid4())
     globalvar.current_uuid = sublender_settings.uuid
     refresh_panel(context)
+
+
+def apply_preset(material, preset_name):
+    material_id = material.sublender.library_uid
+    clss_name = gen_clss_name(material.sublender.graph_url)
+    graph_setting = getattr(material, clss_name)
+    clss_info = globalvar.graph_clss.get(clss_name)
+    prop_input_map = clss_info['prop_input_map']
+    # Apply preset
+    preset = globalvar.library['materials'].get(material_id)['presets'].get(preset_name)
+    for p_value in preset["values"]:
+        if p_value['identifier'] != '$outputsize' and p_value['identifier'] != '$randomseed':
+            parsed_value = p_value["value"]
+            if isinstance(parsed_value, str):
+                parsed_value = sbsarlite.parse_str_value(parsed_value, p_value['type'])
+            if p_value["type"] == consts.SBSARTypeEnum.INTEGER1:
+                input_info = prop_input_map[p_value['prop']]
+                if input_info.get('widget') == 'combobox' and input_info.get('combo_items') is not None:
+                    parsed_value = "$NUM:{0}".format(parsed_value)
+                if input_info.get('widget') == 'togglebutton':
+                    parsed_value = bool(parsed_value)
+            setattr(graph_setting, p_value['prop'], parsed_value)
+
+
+def reset_material(material):
+    clss_name = gen_clss_name(material.sublender.graph_url)
+    graph_setting = getattr(material, clss_name)
+    clss_info = globalvar.graph_clss.get(clss_name)
+    for p_input in clss_info["input"]:
+        if p_input['identifier'] != "$outputsize" and p_input['identifier'] != "$randomseed":
+            graph_setting.property_unset(p_input["prop"])
 
 
 def inited(context):

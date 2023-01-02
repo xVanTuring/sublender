@@ -59,6 +59,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
     package_path: StringProperty(default="")
     preset_name: StringProperty(default="")
     library_uid: StringProperty(default="")
+    engine: StringProperty(default="eevee")
     process_list = list()
 
     def clean(self, _):
@@ -114,8 +115,14 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
         await asyncio.gather(*worker_list)
         preview_cmd = [
             "-b", consts.sublender_library_render_template_file, "-o",
-            consts.sublender_preview_img_template_file, "-f", "1"
+            consts.sublender_preview_img_template_file, "-E"
         ]
+        if self.engine == "cycles":
+            preview_cmd.append("CYCLES")
+        else:
+            preview_cmd.append("BLENDER_EEVEE")
+        preview_cmd.append("-f")
+        preview_cmd.append("1")
         await self.run_async(sys.executable, preview_cmd)
         if not is_preset:
             preview_folder = os.path.join(consts.sublender_library_dir, uu_key, "default")
@@ -138,6 +145,8 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
             copied_img = shutil.copy(consts.sublender_preview_img_file,
                                      os.path.join(preview_folder, "preview.png"))
+            if globalvar.preview_collections.get(copied_img) is not None:
+                del globalvar.preview_collections[copied_img]
             globalvar.library["materials"].get(
                 self.library_uid)["presets"][self.preset_name]["preview"] = copied_img
 
@@ -191,6 +200,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                                                    self.package_path,
                                                    importing_graph.graph_url,
                                                    preset_params=preset_params)
+                    self.report({'INFO'}, "Importing Preset {}".format(preset.name))
                     await self.render_graph(param_list, importing_graph.graph_url, is_preset=True)
 
         end = datetime.datetime.now()
@@ -241,25 +251,7 @@ def generate_preset(preset_name: str, material_name: str):
     graph_setting = getattr(material_inst, clss_name)
     preset_parameters = []
     for input_info in input_list:
-        if input_info['identifier'] == '$outputsize':
-            locked = getattr(graph_setting, consts.output_size_lock, True)
-            width = getattr(graph_setting, consts.output_size_x)
-            if locked:
-                preset_parameters.append({
-                    "identifier": input_info['identifier'],
-                    "value": "{0},{0}".format(width),
-                    "type": input_info['type'],
-                    "prop": input_info['prop']
-                })
-            else:
-                height = getattr(graph_setting, consts.output_size_x)
-                preset_parameters.append({
-                    "identifier": input_info['identifier'],
-                    "value": "{0},{1}".format(width, height),
-                    "type": input_info['type'],
-                    "prop": input_info['prop']
-                })
-        else:
+        if input_info['identifier'] != '$outputsize' and input_info['identifier'] != '$randomseed':
             is_image = input_info['type'] == 5
             value = graph_setting.get(input_info['prop'])
             if value is not None:
@@ -288,7 +280,6 @@ def generate_preset(preset_name: str, material_name: str):
 
 
 class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
-    # TODO: preset name
     bl_idname = "sublender.save_as_preset"
     bl_label = "Save as Preset"
     bl_description = "Save current material as a preset"
@@ -310,14 +301,56 @@ class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
         self.layout.prop(self, "preset_name")
 
     def execute(self, context):
+        mat = bpy.data.materials.get(self.material_name)
+        self.library_uid = mat.sublender.library_uid
         globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name] \
             = generate_preset(self.preset_name, self.material_name)
         bpy.ops.sublender.render_preview_async(library_uid=self.library_uid, preset_name=self.preset_name)
         return {'FINISHED'}
 
 
-# blender -b ./template.blend -o ~/Desktop/out_cycles# -E BLENDER_EEVEE -f 1
-# CYCLES
+class SUBLENDER_OT_APPLY_PRESET(Operator):
+    bl_idname = "sublender.apply_preset"
+    bl_label = "Apply Preset"
+    bl_description = "Apply preset to selected instance"
+
+    # @classmethod
+    # def poll(cls, context):
+    #     return False
+
+    def execute(self, context):
+        current_material = utils.find_active_mat(context)
+        library_properties = context.scene.sublender_library
+        active_material = library_properties.active_material
+        active_preset_name = "$DEFAULT$"
+        if len(globalvar.library_material_preset_map.get(active_material)) > 0:
+            active_preset_name = library_properties.material_preset
+        globalvar.applying_preset = True
+        utils.reset_material(current_material)
+        if active_preset_name != "$DEFAULT$":
+            utils.apply_preset(current_material, active_preset_name)
+        globalvar.applying_preset = False
+        # Manually update
+        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
+        return {'FINISHED'}
+
+
+class SUBLENDER_OT_SAVE_TO_PRESET(Operator):
+    bl_idname = "sublender.save_to_preset"
+    bl_label = "Save to Preset"
+    bl_description = "Save current parameters to Preset"
+
+    def execute(self, context):
+        current_material = utils.find_active_mat(context)
+        library_properties = context.scene.sublender_library
+        active_material = library_properties.active_material
+        if len(globalvar.library_material_preset_map.get(active_material)) == 0:
+            return
+        active_preset_name = library_properties.material_preset
+        bpy.ops.sublender.save_as_preset(material_name=current_material.name, preset_name=active_preset_name)
+        return {'FINISHED'}
+
+
 def ensure_template_render_env():
     pathlib.Path(consts.sublender_library_render_dir).mkdir(parents=True, exist_ok=True)
     if not os.path.exists(consts.sublender_library_render_template_file):
@@ -398,6 +431,8 @@ def register():
     bpy.utils.register_class(SUBLENDER_OT_Render_Preview_Async)
     bpy.utils.register_class(SUBLENDER_OT_REMOVE_MATERIAL)
     bpy.utils.register_class(SUBLENDER_OT_SAVE_AS_PRESET)
+    bpy.utils.register_class(SUBLENDER_OT_APPLY_PRESET)
+    bpy.utils.register_class(SUBLENDER_OT_SAVE_TO_PRESET)
 
 
 def unregister():
@@ -406,3 +441,5 @@ def unregister():
     bpy.utils.unregister_class(SUBLENDER_OT_Render_Preview_Async)
     bpy.utils.unregister_class(SUBLENDER_OT_REMOVE_MATERIAL)
     bpy.utils.unregister_class(SUBLENDER_OT_SAVE_AS_PRESET)
+    bpy.utils.unregister_class(SUBLENDER_OT_APPLY_PRESET)
+    bpy.utils.unregister_class(SUBLENDER_OT_SAVE_TO_PRESET)

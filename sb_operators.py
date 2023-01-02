@@ -165,8 +165,8 @@ class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
 
         for material in bpy.data.materials:
             m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
-            if (m_sublender is not None) and (m_sublender.graph_url is not "") and (m_sublender.package_path
-                                                                                    == self.sbsar_path):
+            if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path
+                                                                                == self.sbsar_path):
                 m_sublender.package_loaded = False
                 await utils.load_sbsar_gen(loop, preferences, material, self.force_reload, self.report)
                 m_sublender.package_loaded = True

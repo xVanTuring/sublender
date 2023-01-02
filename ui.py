@@ -74,7 +74,7 @@ class SUBLENDER_PT_Main(Panel):
         if not utils.inited(context):
             if bpy.data.filepath == "":
                 self.layout.operator("wm.save_mainfile")
-                self.layout.label(text="Please save your file first.")
+                self.layout.box().label(text="Please save your file first.")
             operator = self.layout.operator("sublender.init_async")
             operator.pop_import = True
         else:
@@ -318,6 +318,7 @@ class Sublender_Prop_BasePanel(Panel):
 
 
 class SUBLENDER_PT_Library_Panel(Panel):
+    # FIXME: Custom category cause error at start up
     bl_label = "Library"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -338,15 +339,27 @@ class SUBLENDER_PT_Library_Panel(Panel):
                 self.layout.prop(properties, "categories", text="")
             else:
                 self.layout.label(text="Working on")
+            active_material = properties.active_material
+            if active_material == '':  # TODO: use function get_library_material_list
+                self.layout.box().label(text="No material is in this category")
+                return
             row = self.layout.row()
             row.template_icon_view(properties, "active_material", show_labels=True)
-            active_material = context.scene.sublender_library.active_material
-            if len(globalvar.library_material_preset_map.get(active_material)) > 0:
+            has_presets = len(globalvar.library_material_preset_map.get(active_material)) > 0
+            if has_presets:
                 row.template_icon_view(properties, "material_preset", show_labels=True)
             row = self.layout.row()
             import_sbsar_operator = row.operator("sublender.import_sbsar")
             import_sbsar_operator.from_library = True
             row.operator("sublender.remove_material", icon="PANEL_CLOSE")
+            active_mat = utils.find_active_mat(context)
+            if active_mat is not None:
+                material_id = active_mat.sublender.library_uid
+                if material_id != '' and material_id == active_material:
+                    row = self.layout.row()
+                    row.operator("sublender.apply_preset")
+                    if has_presets and properties.material_preset != "$DEFAULT$":
+                        row.operator("sublender.save_to_preset")
 
 
 def register():

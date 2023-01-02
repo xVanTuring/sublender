@@ -85,8 +85,7 @@ def init_graph_items():
     i = 0
     for material in bpy.data.materials:
         m_sublender = material.sublender
-        if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path
-                                                                            is not ""):
+        if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path != ""):
             if m_sublender.graph_url not in package_url_set:
                 package_url_set.add(m_sublender.graph_url)
                 globalvar.graph_enum.append(

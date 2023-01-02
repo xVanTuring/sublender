@@ -18,9 +18,10 @@ library_category_enum = []
 library_material_preset_map = {}
 library_category_material_map = {"$OTHER$": [], "$ALL$": []}
 
-
 graph_enum = []
 instance_of_graph = []
+
+applying_preset = False
 
 
 def clear():

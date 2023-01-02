@@ -72,26 +72,7 @@ class Sublender_Import_Graph(Operator):
                     setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
             setattr(graph_setting, consts.SBS_CONFIGURED, True)
             if importing_graph.preset_name != "":
-                presets = globalvar.library["materials"].get(importing_graph.library_uid)["presets"]
-                cur_preset = presets.get(importing_graph.preset_name)
-                prop_input_map = clss_info["prop_input_map"]
-                for params in cur_preset["values"]:
-                    if params["identifier"] == "$outputsize":
-                        width, height = params["value"].split(",")
-                        setattr(graph_setting, consts.output_size_x, width)
-                        setattr(graph_setting, consts.output_size_y, height)
-                    else:
-                        parsed_value = params["value"]
-                        if isinstance(params["value"], str):
-                            parsed_value = sbsarlite.parse_str_value(params["value"], params["type"])
-                        if params["type"] == sbsarlite.SBSARTypeEnum.INTEGER1:
-                            input_info = prop_input_map[params['prop']]
-                            if input_info.get('widget') == 'combobox' and input_info.get(
-                                    'combo_items') is not None:
-                                parsed_value = "$NUM:{0}".format(parsed_value)
-                            if input_info.get('widget') == 'togglebutton':
-                                parsed_value = bool(parsed_value)
-                        setattr(graph_setting, params['prop'], parsed_value)
+                utils.apply_preset(material, importing_graph.preset_name)
         bpy.ops.sublender.render_texture_async(importing_graph=True, package_path=self.package_path)
         return {'FINISHED'}
 
@@ -215,6 +196,7 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
                     if len(globalvar.library_material_preset_map.get(active_material)) > 0:
                         if context.scene.sublender_library.material_preset != "$DEFAULT$":
                             importing_graph.preset_name = context.scene.sublender_library.material_preset
+                            importing_graph.material_name = new_material_name(importing_graph.preset_name)
             bpy.ops.sublender.import_graph('INVOKE_DEFAULT', package_path=self.sbsar_path)
 
 
@@ -225,7 +207,7 @@ class Sublender_Import_Graph_To_Library(Operator):
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Preview Engine")
 
     def execute(self, _):
-        bpy.ops.sublender.render_preview_async(package_path=self.package_path)
+        bpy.ops.sublender.render_preview_async(package_path=self.package_path, engine=self.engine)
         return {'FINISHED'}
 
     def invoke(self, context, _):
