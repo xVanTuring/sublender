@@ -3,7 +3,7 @@ import pathlib
 
 result = subprocess.run(["git", "describe", "--tags"], stdout=subprocess.PIPE)
 current_version = str(result.stdout, encoding="ascii").strip()
-instr = input("Sbsarlite(default) or sbsarlite-dev(1):")
+instr = int(input("Sbsarlite(default) or sbsarlite-dev(1):"))
 branch = "sbsarlite"
 if instr == 1:
     branch = "sbsarlite-dev"
