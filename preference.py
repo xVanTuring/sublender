@@ -48,6 +48,9 @@ class SublenderPreferences(AddonPreferences):
     sbs_render: StringProperty(name="Sbsrender Path", default=default_sbsrender_path, subtype='FILE_PATH')
     memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
     hide_channels: BoolProperty(name="Hide Channels Group", default=False)
+    library_preview_engine: EnumProperty(name="Default Library Render Engine",
+                                         items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")],
+                                         default="eevee")
 
     def draw(self, _):
         layout = self.layout
@@ -68,6 +71,9 @@ class SublenderPreferences(AddonPreferences):
         layout.prop(self, 'engine_enum')
         if self.engine_enum == consts.CUSTOM:
             layout.prop(self, 'custom_engine')
+        layout.prop(self, 'library_preview_engine')
+
+        layout.separator()
         layout.label(text="Special Thanks to YOU and: ")
         layout.label(text=', '.join(thank_list))
 

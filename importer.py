@@ -204,14 +204,24 @@ class Sublender_Import_Graph_To_Library(Operator):
     bl_idname = "sublender.import_graph_to_library"
     bl_label = "Import Package"
     package_path: StringProperty(name='Current Graph')
-    engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Preview Engine")
+    engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Engine")
+    invert_normal: BoolProperty(
+        name="DirectX Normal to OpenGL Normal",
+        description=
+        "Blender use OpenGL's Normal Format, while most substance materials use DirectX's Normal Format. "
+        "Usually there is parameter included in the substance material controlling the Normal Format. "
+        "Conversion can be done by inverting the G channel of Normal texture.")
 
     def execute(self, _):
-        bpy.ops.sublender.render_preview_async(package_path=self.package_path, engine=self.engine)
+        bpy.ops.sublender.render_preview_async(package_path=self.package_path,
+                                               engine=self.engine,
+                                               invert_normal=self.invert_normal)
         return {'FINISHED'}
 
     def invoke(self, context, _):
         wm = context.window_manager
+        preferences = bpy.context.preferences.addons[__package__].preferences
+        self.engine = preferences.library_preview_engine
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
@@ -223,12 +233,11 @@ class Sublender_Import_Graph_To_Library(Operator):
                 space.separator()
                 column = row.column()
                 for importing_preset in importing_graph.importing_presets:
-                    column.prop(importing_preset,
-                                "enable",
-                                text="Preset {}".format(importing_preset.name))
+                    column.prop(importing_preset, "enable", text="Preset {}".format(importing_preset.name))
                 column.enabled = importing_graph.enable
                 self.layout.separator()
         self.layout.prop(self, 'engine')
+        self.layout.prop(self, 'invert_normal')
 
 
 def register():

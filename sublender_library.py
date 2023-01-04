@@ -8,7 +8,7 @@ import asyncio
 import bpy
 import os
 import sys
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 from bpy.utils import previews
 
@@ -64,6 +64,8 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
     preset_name: StringProperty(default="")
     library_uid: StringProperty(default="")
     engine: StringProperty(default="eevee")
+    invert_normal: BoolProperty(default=False)
+
     process_list = list()
 
     def clean(self, _):
@@ -117,10 +119,10 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             worker_list.append(self.render_map(per_output_cmd))
 
         await asyncio.gather(*worker_list)
-        preview_cmd = [
-            "-b", consts.sublender_library_render_template_file, "-o",
-            consts.sublender_preview_img_template_file, "-E"
-        ]
+        blender_file = consts.sublender_library_render_template_file
+        if self.invert_normal:
+            blender_file = consts.sublender_library_render_template_invert_file
+        preview_cmd = ["-b", blender_file, "-o", consts.sublender_preview_img_template_file, "-E"]
         if self.engine == "cycles":
             preview_cmd.append("CYCLES")
         else:
@@ -358,6 +360,9 @@ def ensure_template_render_env():
     pathlib.Path(consts.sublender_library_render_dir).mkdir(parents=True, exist_ok=True)
     if not os.path.exists(consts.sublender_library_render_template_file):
         shutil.copy(consts.packed_sublender_template_file, consts.sublender_library_render_template_file)
+    if not os.path.exists(consts.sublender_library_render_template_invert_file):
+        shutil.copy(consts.packed_sublender_template_file,
+                    consts.sublender_library_render_template_invert_file)
 
 
 def ensure_library_config():
