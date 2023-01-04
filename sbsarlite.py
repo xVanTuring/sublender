@@ -54,10 +54,11 @@ def parse_graph(raw: OrderedDict):
     xml_presets = raw.get('sbspresets', None)
     if xml_presets is not None:
         presets_count = int(xml_presets['@count'])
-        if presets_count > 1:
-            raw_preset_list = xml_presets['sbspreset']
-        else:
-            raw_preset_list = [xml_presets['raw_preset_list']]
+        if presets_count > 0:
+            if presets_count > 1:
+                raw_preset_list = xml_presets['sbspreset']
+            else:
+                raw_preset_list = [xml_presets['sbspreset']]
         for i in range(presets_count):
             label, preset = parse_preset(raw_preset_list[i])
             parsed_graph['presets'][label] = preset
