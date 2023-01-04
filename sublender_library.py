@@ -105,7 +105,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             existed_material = globalvar.library["materials"].get(uu_key)
             if existed_material is not None:
                 self.report({"WARNING"}, "Package has already been imported!")
-                return
+                return None, None
         else:
             uu_key = self.library_uid
 
@@ -188,6 +188,9 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                 param_list = generate_cmd_list(context, target_dir, self.package_path,
                                                importing_graph.graph_url)
                 uu_key, current_graph = await self.render_graph(param_list, importing_graph.graph_url)
+
+                if uu_key is None or current_graph is None:
+                    return
 
                 for preset in importing_graph.importing_presets:
                     if not preset.enable:
