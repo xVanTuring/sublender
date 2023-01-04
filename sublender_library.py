@@ -424,6 +424,9 @@ def generate_preview():
             globalvar.library_category_material_map["$OTHER$"].append(
                 (uu_key, label, label, thumb.icon_id, i))
 
+    for key in globalvar.library_category_material_map:
+        globalvar.library_category_material_map[key].sort()
+
     globalvar.library_category_enum.append(("$ALL$", "All", "All"))
     for cat in sorted(category_set):
         globalvar.library_category_enum.append((cat, cat, cat))
