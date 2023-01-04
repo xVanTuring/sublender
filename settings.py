@@ -169,10 +169,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
 
 # region SublenderLibrary
 def get_library_material_list(self, _):
-    if self.mode == "CATEGORIES":
-        return globalvar.library_category_material_map[self.categories]
-    else:
-        return globalvar.library_category_material_map["$ALL$"]
+    return globalvar.library_category_material_map[self.categories]
 
 
 def get_material_preset(self, _):
@@ -189,11 +186,6 @@ def category_selected(self, context):
         self.active_material = material_list[0][0]
 
 
-def search_materials(_, __):
-    pass
-    # self.info_type = material_library.rpr_material_library.search_materials(search_string)
-
-
 class SublenderLibrary(bpy.types.PropertyGroup):
     active_material: EnumProperty(items=get_library_material_list)
     material_preset: EnumProperty(items=get_material_preset,
@@ -201,18 +193,6 @@ class SublenderLibrary(bpy.types.PropertyGroup):
                                   set=set_idx("material_preset"))
     importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
     categories: EnumProperty(items=get_category_list, update=category_selected)
-    mode: EnumProperty(
-        name="Library browsing mode",
-        items=(
-            ('CATEGORIES', "Categories", "Browse materials by category"),
-            ('SEARCH', "Search", "Search for materials by name"),
-        ),
-        default='CATEGORIES',
-    )
-    search: StringProperty(
-        name="Search",
-        set=search_materials,
-    )
 
 
 # endregion
