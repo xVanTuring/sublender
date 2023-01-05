@@ -430,10 +430,13 @@ def generate_preview():
     for key in globalvar.library_category_material_map:
         globalvar.library_category_material_map[key].sort()
 
-    globalvar.library_category_enum.append(("$ALL$", "All", "All"))
+    globalvar.library_category_enum.append(
+        ("$ALL$", "All - {}".format(len(globalvar.library_category_material_map["$ALL$"])), "All"))
     for cat in sorted(category_set):
-        globalvar.library_category_enum.append((cat, cat, cat))
-    globalvar.library_category_enum.append(("$OTHER$", "Other", "Other"))
+        globalvar.library_category_enum.append(
+            (cat, "{} - {}".format(cat, len(globalvar.library_category_material_map[cat])), cat))
+    globalvar.library_category_enum.append(
+        ("$OTHER$", "Other - {}".format(len(globalvar.library_category_material_map["$OTHER$"])), "Other"))
 
 
 def sync_library():
