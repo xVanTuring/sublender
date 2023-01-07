@@ -28,8 +28,8 @@ def parse_graph(raw: OrderedDict):
         'label': raw['@label'],
         'inputs': [],
         'outputs': [],
-        'category': raw.get("@category", None),
-        'description': raw.get("@description", None),
+        'category': raw.get("@category", ""),
+        'description': raw.get("@description", ""),
         "presets": {}
     }
     if parsed_graph["category"] is not None:

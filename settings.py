@@ -69,6 +69,7 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
     library_uid: StringProperty(default="")
     preset_name: StringProperty(default="")
     importing_presets: bpy.props.CollectionProperty(type=ImportingPreset)
+    category: StringProperty(default="")
 
 
 # region SublenderSetting

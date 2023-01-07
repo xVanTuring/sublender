@@ -85,7 +85,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
         sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
         await self.run_async(sbs_render_path, cmd_list)
 
-    async def render_graph(self, param_list, pkg_url, is_preset=False):
+    async def render_graph(self, param_list, pkg_url, is_preset=False, category=""):
         package_info = globalvar.sbsar_dict.get(self.package_path)
         current_graph = None
         build_list = []
@@ -142,7 +142,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                 "preview": copied_img,
                 "pkg_url": current_graph['pkgUrl'],
                 "ar_uid": package_info["asmuid"],
-                "category": current_graph["category"],
+                "category": category,
                 "description": current_graph["description"],
                 "presets": {}
             }
@@ -187,7 +187,9 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
 
                 param_list = generate_cmd_list(context, target_dir, self.package_path,
                                                importing_graph.graph_url)
-                uu_key, current_graph = await self.render_graph(param_list, importing_graph.graph_url)
+                uu_key, current_graph = await self.render_graph(param_list,
+                                                                importing_graph.graph_url,
+                                                                category=importing_graph.category)
 
                 if uu_key is None or current_graph is None:
                     return
@@ -220,6 +222,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
         self.report({"INFO"}, "Render Done! Time spent: {0}s.".format((end - start).total_seconds()))
 
 
+# FIXME: error after removing material under external category
 class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
     bl_idname = "sublender.remove_material"
     bl_label = "Remove"
@@ -417,7 +420,7 @@ def generate_preview():
                     (p_key, p_key, p_key, preset_thumb.icon_id, p_i))
                 p_i += 1
 
-        if material.get("category") is not None:
+        if material.get("category") is not None and material.get("category") != "":
             category_set.add(material.get("category"))
             if globalvar.library_category_material_map.get(material.get("category")) is None:
                 globalvar.library_category_material_map[material.get("category")] = []
