@@ -65,6 +65,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
     library_uid: StringProperty(default="")
     engine: StringProperty(default="eevee")
     invert_normal: BoolProperty(default=False)
+    cloth_template: BoolProperty(default=False)
 
     process_list = list()
 
@@ -119,9 +120,16 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             worker_list.append(self.render_map(per_output_cmd))
 
         await asyncio.gather(*worker_list)
-        blender_file = consts.sublender_library_render_template_file
+        if self.cloth_template:
+            blender_file = consts.sublender_library_render_cloth_template_file
+        else:
+            blender_file = consts.sublender_library_render_template_file
         if self.invert_normal:
-            blender_file = consts.sublender_library_render_template_invert_file
+            if self.cloth_template:
+                blender_file = consts.sublender_library_render_cloth_template_invert_file
+            else:
+                blender_file = consts.sublender_library_render_template_invert_file
+
         preview_cmd = ["-b", blender_file, "-o", consts.sublender_preview_img_template_file, "-E"]
         if self.engine == "cycles":
             preview_cmd.append("CYCLES")
@@ -234,7 +242,7 @@ class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
         sync_library()
         generate_preview()
         library_len = len(globalvar.library_category_material_map["$ALL$"])
-        if context.scene['sublender_library']['active_material'] >= library_len > 0:
+        if 0 < library_len <= context.scene['sublender_library']['active_material']:
             context.scene['sublender_library']['active_material'] = library_len - 1
         shutil.rmtree(os.path.join(consts.sublender_library_dir, active_material))
         return {'FINISHED'}
@@ -367,8 +375,14 @@ def ensure_template_render_env():
     if not os.path.exists(consts.sublender_library_render_template_file):
         shutil.copy(consts.packed_sublender_template_file, consts.sublender_library_render_template_file)
     if not os.path.exists(consts.sublender_library_render_template_invert_file):
-        shutil.copy(consts.packed_sublender_template_file,
+        shutil.copy(consts.packed_sublender_template_invert_file,
                     consts.sublender_library_render_template_invert_file)
+    if not os.path.exists(consts.sublender_library_render_cloth_template_file):
+        shutil.copy(consts.packed_sublender_template_cloth_file,
+                    consts.sublender_library_render_cloth_template_file)
+    if not os.path.exists(consts.sublender_library_render_cloth_template_invert_file):
+        shutil.copy(consts.packed_sublender_template_cloth_invert_file,
+                    consts.sublender_library_render_cloth_template_invert_file)
 
 
 def ensure_library_config():

@@ -106,10 +106,19 @@ sublender_library_render_template_file = os.path.join(sublender_library_render_d
 sublender_library_render_template_invert_file = os.path.join(sublender_library_render_dir,
                                                              "preview_template_invert.blend")
 
+sublender_library_render_cloth_template_file = os.path.join(sublender_library_render_dir,
+                                                            "preview_cloth_template.blend")
+sublender_library_render_cloth_template_invert_file = os.path.join(sublender_library_render_dir,
+                                                                   "preview_cloth_template_invert.blend")
+
 sublender_preview_img_template_file = os.path.join(sublender_library_render_dir, "out#.png")
 sublender_preview_img_file = os.path.join(sublender_library_render_dir, "out1.png")
 
 packed_sublender_template_file = os.path.join(ADDON_DIR, 'resources', 'preview_template.blend')
+packed_sublender_template_invert_file = os.path.join(ADDON_DIR, 'resources', 'preview_template_invert.blend')
+packed_sublender_template_cloth_file = os.path.join(ADDON_DIR, 'resources', 'preview_cloth_template.blend')
+packed_sublender_template_cloth_invert_file = os.path.join(ADDON_DIR, 'resources',
+                                                           'preview_cloth_template_invert.blend')
 
 
 class SBSARTypeEnum:

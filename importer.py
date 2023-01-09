@@ -207,16 +207,18 @@ class Sublender_Import_Graph_To_Library(Operator):
     package_path: StringProperty(name='Current Graph')
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Engine")
     invert_normal: BoolProperty(
-        name="DirectX Normal to OpenGL Normal",
+        name="Invert Normal",
         description=
         "Blender use OpenGL's Normal Format, while most substance materials use DirectX's Normal Format. "
         "Usually there is parameter included in the substance material controlling the Normal Format. "
         "Conversion can be done by inverting the G channel of Normal texture.")
+    cloth_template: BoolProperty(default=False, name="Use Cloth Template")
 
     def execute(self, _):
         bpy.ops.sublender.render_preview_async(package_path=self.package_path,
                                                engine=self.engine,
-                                               invert_normal=self.invert_normal)
+                                               invert_normal=self.invert_normal,
+                                               cloth_template=self.cloth_template)
         return {'FINISHED'}
 
     def invoke(self, context, _):
@@ -239,7 +241,9 @@ class Sublender_Import_Graph_To_Library(Operator):
                 column.enabled = importing_graph.enable
             self.layout.separator()
         self.layout.prop(self, 'engine')
-        self.layout.prop(self, 'invert_normal')
+        row = self.layout.row()
+        row.prop(self, 'invert_normal', toggle=1)
+        row.prop(self, 'cloth_template', toggle=1)
 
 
 def register():
