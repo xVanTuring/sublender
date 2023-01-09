@@ -133,3 +133,16 @@ class SBSARTypeEnum:
     INTEGER2 = 8
     INTEGER3 = 9
     INTEGER4 = 10
+
+
+build_in_material_type = [('Ceramic', 'Ceramic', 'Ceramic'),
+                          ('Concrete-Asphalt', 'Concrete-Asphalt', 'Concrete-Asphalt'),
+                          ('Fabric', 'Fabric', 'Fabric'), ('Ground', 'Ground', 'Ground'),
+                          ('Leather', 'Leather', 'Leather'),
+                          ('Marble-Granite', 'Marble-Granite', 'Marble-Granite'), ('Metal', 'Metal', 'Metal'),
+                          ('Organic', 'Organic', 'Organic'), ('Paint', 'Paint', 'Paint'),
+                          ('Paper', 'Paper', 'Paper'), ('Plaster', 'Plaster', 'Plaster'),
+                          ('Plastic-Rubber', 'Plastic-Rubber', 'Plastic-Rubber'), ('Stone', 'Stone', 'Stone'),
+                          ('Terracotta', 'Terracotta', 'Terracotta'),
+                          ('Translucent', 'Translucent', 'Translucent'), ('Wood', 'Wood', 'Wood'),
+                          ('$CUSTOM$', 'Custom', 'Custom')]

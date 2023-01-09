@@ -195,9 +195,12 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
 
                 param_list = generate_cmd_list(context, target_dir, self.package_path,
                                                importing_graph.graph_url)
+                category = importing_graph.category
+                if category == "$CUSTOM$":
+                    category = importing_graph.category_str
                 uu_key, current_graph = await self.render_graph(param_list,
                                                                 importing_graph.graph_url,
-                                                                category=importing_graph.category)
+                                                                category=category)
 
                 if uu_key is None or current_graph is None:
                     return

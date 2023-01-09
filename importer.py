@@ -146,7 +146,7 @@ class Sublender_Import_Sbsar_To_Library(async_loop.AsyncModalOperatorMixin, Oper
             for graph_info in sbs_pkg['graphs']:
                 adding_graph = importing_graphs.add()
                 adding_graph.graph_url = graph_info["pkgUrl"]
-                adding_graph.category = graph_info["category"]
+                adding_graph.category_str = graph_info["category"]
                 for preset_name in graph_info['presets'].keys():
                     importing_preset = adding_graph.importing_presets.add()
                     importing_preset.name = preset_name
@@ -230,7 +230,10 @@ class Sublender_Import_Graph_To_Library(Operator):
     def draw(self, context):
         for importing_graph in context.scene.sublender_library.importing_graphs:
             self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
-            self.layout.prop(importing_graph, "category", text="Category")
+            row = self.layout.row()
+            row.prop(importing_graph, "category", text="Category")
+            if importing_graph.category == "$CUSTOM$":
+                row.prop(importing_graph, "category_str", text="")
             if len(importing_graph.importing_presets) > 0:
                 row = self.layout.row()
                 space = row.column()
