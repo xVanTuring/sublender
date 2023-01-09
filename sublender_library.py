@@ -233,20 +233,26 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
         self.report({"INFO"}, "Render Done! Time spent: {0}s.".format((end - start).total_seconds()))
 
 
-# FIXME: error after removing material under external category
 class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
     bl_idname = "sublender.remove_material"
     bl_label = "Remove"
     bl_description = "Remove selected material"
 
     def execute(self, context):
-        active_material = context.scene.sublender_library.active_material
+        library_preference = context.scene.sublender_library
+        prev_category = library_preference.categories
+        active_material = library_preference.active_material
         del globalvar.library["materials"][active_material]
         sync_library()
         generate_preview()
-        library_len = len(globalvar.library_category_material_map["$ALL$"])
+        if prev_category != library_preference.categories:
+            # Last material in that material had been removed, reset to All
+            library_preference.categories = "$ALL$"
+        # Check Material index existence, reset to first
+        current_mat_list = globalvar.library_category_material_map.get(library_preference.categories, [])
+        library_len = len(current_mat_list)
         if 0 < library_len <= context.scene['sublender_library']['active_material']:
-            context.scene['sublender_library']['active_material'] = library_len - 1
+            context.scene.sublender_library.active_material = current_mat_list[0][0]
         shutil.rmtree(os.path.join(consts.sublender_library_dir, active_material))
         return {'FINISHED'}
 
@@ -412,7 +418,7 @@ def generate_preview():
     for key in globalvar.library_category_material_map:
         globalvar.library_category_material_map[key].clear()
     category_set = set()
-    for i, uu_key in enumerate(globalvar.library["materials"]):
+    for i, uu_key in enumerate(sorted(globalvar.library["materials"].keys())):
         material = globalvar.library["materials"][uu_key]
         img = material['preview']
         label = material['label']
@@ -446,9 +452,6 @@ def generate_preview():
         else:
             globalvar.library_category_material_map["$OTHER$"].append(
                 (uu_key, label, label, thumb.icon_id, i))
-
-    for key in globalvar.library_category_material_map:
-        globalvar.library_category_material_map[key].sort()
 
     globalvar.library_category_enum.append(
         ("$ALL$", "All - {}".format(len(globalvar.library_category_material_map["$ALL$"])), "All"))

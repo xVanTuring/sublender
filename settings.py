@@ -171,7 +171,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
 
 # region SublenderLibrary
 def get_library_material_list(self, _):
-    return globalvar.library_category_material_map[self.categories]
+    return globalvar.library_category_material_map.get(self.categories, [])
 
 
 def get_material_preset(self, _):
@@ -183,7 +183,7 @@ def get_category_list(_, __):
 
 
 def category_selected(self, context):
-    material_list = get_library_material_list(self, context)
+    material_list = globalvar.library_category_material_map.get(self.categories, [])
     if len(material_list) > 0:
         self.active_material = material_list[0][0]
 

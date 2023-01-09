@@ -334,10 +334,10 @@ class SUBLENDER_PT_Library_Panel(Panel):
         if len(globalvar.library_category_material_map["$ALL$"]) > 0:
             properties = context.scene.sublender_library
             self.layout.prop(properties, "categories", text="")
-            active_material = properties.active_material
-            if len(settings.get_library_material_list(properties, context)) == 0:
+            if len(globalvar.library_category_material_map.get(properties.categories, [])) == 0:
                 self.layout.box().label(text="No material is in this category")
                 return
+            active_material = properties.active_material
             row = self.layout.row()
             row.template_icon_view(properties, "active_material", show_labels=True)
             has_presets = len(globalvar.library_material_preset_map.get(active_material, [])) > 0
