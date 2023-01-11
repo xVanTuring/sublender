@@ -138,12 +138,11 @@ class SUBLENDER_OT_Apply_Image(Operator):
     def execute(self, _):
         target_mat: bpy.types.Material = bpy.data.materials.get(self.material_name)
         if target_mat is not None:
-            target_node: bpy.types.ShaderNodeTexImage = target_mat.node_tree.nodes.get(self.node_name)
+            target_node = target_mat.node_tree.nodes.get(self.node_name)
             if target_node is not None and isinstance(target_node, bpy.types.ShaderNodeTexImage):
                 target_node.image = bpy.data.images.get(self.bl_img_name)
             else:
-                bl_texture_node: bpy.types.ShaderNodeTexImage = target_mat.node_tree.nodes.new(
-                    'ShaderNodeTexImage')
+                bl_texture_node = target_mat.node_tree.nodes.new('ShaderNodeTexImage')
                 bl_texture_node.name = self.node_name
                 bl_texture_node.image = bpy.data.images.get(self.bl_img_name)
                 bl_texture_node.label = consts.usage_to_label.get(self.node_name, self.node_name)
@@ -151,25 +150,24 @@ class SUBLENDER_OT_Apply_Image(Operator):
         return {'FINISHED'}
 
 
-class Sublender_Load_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
-    bl_idname = "sublender.load_sbsar"
+class Sublender_Load_Missing_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
+    bl_idname = "sublender.load_missing_sbsar"
     bl_label = "Load Sbsar"
     bl_description = "Load Sbsar"
     sbsar_path: StringProperty()
-    force_reload: bpy.props.BoolProperty(default=False)
-    task_id = "Sublender_Load_Sbsar"
+    task_id = "Sublender_Load_Missing_SBSAR"
 
     async def async_execute(self, _):
-        loop = asyncio.get_event_loop()
         preferences = bpy.context.preferences.addons[__package__].preferences
-
+        force = True
         for material in bpy.data.materials:
-            m_sublender: settings.Sublender_Material_MT_Setting = material.sublender
-            if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path
-                                                                                == self.sbsar_path):
+            m_sublender = material.sublender
+            if m_sublender is not None and m_sublender.graph_url != "" and m_sublender.package_path == self.sbsar_path:
                 m_sublender.package_loaded = False
-                await utils.load_sbsar_gen(loop, preferences, material, self.force_reload, self.report)
-                m_sublender.package_loaded = True
+            await utils.gen_clss_from_material_async(material, preferences.enable_visible_if, force, self.report)
+            m_sublender.package_loaded = True
+            # only force load once
+            force = False
 
 
 class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
@@ -210,7 +208,7 @@ def register():
     bpy.utils.register_class(Sublender_Render_All)
     bpy.utils.register_class(SUBLENDER_OT_Delete_Image)
     bpy.utils.register_class(SUBLENDER_OT_Load_Image)
-    bpy.utils.register_class(Sublender_Load_Sbsar)
+    bpy.utils.register_class(Sublender_Load_Missing_Sbsar)
     bpy.utils.register_class(Sublender_New_Instance)
     bpy.utils.register_class(Sublender_Random_Seed)
     bpy.utils.register_class(SUBLENDER_OT_Apply_Image)
@@ -223,7 +221,7 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Render_All)
     bpy.utils.unregister_class(SUBLENDER_OT_Delete_Image)
     bpy.utils.unregister_class(SUBLENDER_OT_Load_Image)
-    bpy.utils.unregister_class(Sublender_Load_Sbsar)
+    bpy.utils.unregister_class(Sublender_Load_Missing_Sbsar)
     bpy.utils.unregister_class(Sublender_New_Instance)
     bpy.utils.unregister_class(Sublender_Inflate_Material)
     bpy.utils.unregister_class(Sublender_Random_Seed)

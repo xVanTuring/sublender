@@ -37,7 +37,7 @@ def set_idx(name):
 # region Sublender_Material_MT_Setting
 def package_path_updated(self, _):
     if self.package_missing:
-        bpy.ops.sublender.load_sbsar(sbsar_path=self.package_path)
+        bpy.ops.sublender.load_missing_sbsar(sbsar_path=self.package_path)
 
 
 class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):

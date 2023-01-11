@@ -135,12 +135,8 @@ class Sublender_Import_Sbsar_To_Library(async_loop.AsyncModalOperatorMixin, Oper
     task_id = "Sublender_Import_Sbsar_To_Library"
 
     async def async_execute(self, context):
-        loop = asyncio.get_event_loop()
-        self.report({"INFO"}, "Parsing package: {0}".format(self.sbsar_path))
-        sbs_pkg = await loop.run_in_executor(None, utils.load_sbsar_package, self.sbsar_path)
+        sbs_pkg = await utils.load_sbsar_to_dict_async(self.sbsar_path, self.report)
         if sbs_pkg is not None:
-            globalvar.sbsar_dict[self.sbsar_path] = sbs_pkg
-
             importing_graphs = context.scene.sublender_library.importing_graphs
             importing_graphs.clear()
             for graph_info in sbs_pkg['graphs']:
@@ -176,7 +172,7 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
             self.sbsar_path = sbs_graph_info["sbsar_path"]
             self.pkg_url = sbs_graph_info["pkg_url"]
         self.report({"INFO"}, "Parsing package: {0}".format(self.sbsar_path))
-        sbs_pkg = await loop.run_in_executor(None, utils.load_sbsar_package, self.sbsar_path)
+        sbs_pkg = await loop.run_in_executor(None, utils.parse_sbsar_package, self.sbsar_path)
         if sbs_pkg is not None:
             globalvar.sbsar_dict[self.sbsar_path] = sbs_pkg
 
