@@ -30,9 +30,18 @@ def run_pip(*args):
     return run_module_call('pip', 'install', *args)
 
 
+def has_py7ze():
+    try:
+        import py7zr
+        return True
+    except ImportError:
+        return False
+
+
 def ensure_py7zr():
     try:
         import py7zr
+        return True
     except ImportError:
         try:
             if IS_MAC or IS_LINUX:
@@ -40,5 +49,7 @@ def ensure_py7zr():
             run_pip("--upgrade", "pip")
             run_pip("wheel")
             run_pip("py7zr")
+            return True
         except subprocess.SubprocessError as e:
             print("Something went wrong, unable to install py7zr", e)
+        return False

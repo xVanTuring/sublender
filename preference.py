@@ -1,9 +1,9 @@
 import bpy
 import platform
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
-from bpy.types import AddonPreferences
+from bpy.types import AddonPreferences, Operator
 
-from . import consts
+from . import consts, globalvar, install_lib
 
 if platform.system() == "Linux":
     default_sbsrender_path = "/opt/Allegorithmic/Substance_Designer/sbsrender"
@@ -54,6 +54,11 @@ class SublenderPreferences(AddonPreferences):
 
     def draw(self, _):
         layout = self.layout
+        if not globalvar.py7zr_state:
+            box = layout.box()
+            box.label(text="Click Install Dependencies. " "And restart blender afterwards.")
+            box.operator("sublender.install_deps")
+            return
         layout.prop(self, 'sbs_render')
         row = layout.row()
         row.prop(self, 'output_size_x', text='Default Texture Size')
@@ -78,9 +83,32 @@ class SublenderPreferences(AddonPreferences):
         layout.label(text=', '.join(thank_list))
 
 
+def ShowMessageBox(message="", title="Message Box", icon='INFO'):
+    def draw(self, context):
+        self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+
+
+class Sublender_OT_Install_Deps(Operator):
+    bl_idname = "sublender.install_deps"
+    bl_label = "Install Dependencies"
+    bl_description = "Install Dependencies"
+
+    def execute(self, _):
+        state = install_lib.ensure_py7zr()
+        if state:
+            ShowMessageBox("Installation Done! Please restart blender")
+        else:
+            ShowMessageBox("Something went wrong! Please contact the developer.")
+        return {'FINISHED'}
+
+
 def register():
+    bpy.utils.register_class(Sublender_OT_Install_Deps)
     bpy.utils.register_class(SublenderPreferences)
 
 
 def unregister():
     bpy.utils.unregister_class(SublenderPreferences)
+    bpy.utils.unregister_class(Sublender_OT_Install_Deps)

@@ -23,6 +23,8 @@ instance_of_graph = []
 
 applying_preset = False
 
+py7zr_state = True
+
 
 def clear():
     global current_uuid

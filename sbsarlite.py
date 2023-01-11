@@ -1,6 +1,10 @@
 import os
 from collections import OrderedDict
-import py7zr
+
+try:
+    import py7zr
+except ImportError:
+    py7zr = None
 import tempfile
 import xml
 
@@ -199,6 +203,8 @@ def parse_str_value(raw_str: str, type_num):
 
 
 def parse_doc(file_path: str):
+    if py7zr is None:
+        return None
     archive = py7zr.SevenZipFile(file_path, mode='r')
     allfiles = archive.getnames()
     sbsar_xml_path = None
