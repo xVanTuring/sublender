@@ -24,6 +24,7 @@ instance_of_graph = []
 applying_preset = False
 
 py7zr_state = True
+display_restart = False
 
 
 def clear():

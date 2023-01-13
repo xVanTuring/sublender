@@ -56,7 +56,10 @@ class SublenderPreferences(AddonPreferences):
         layout = self.layout
         if not globalvar.py7zr_state:
             box = layout.box()
-            box.label(text="Click Install Dependencies. " "And restart blender afterwards.")
+            if globalvar.display_restart:
+                box.label(text="Installation done! Please restart blender")
+            else:
+                box.label(text="Click Install Dependencies. And restart blender afterwards.")
             box.operator("sublender.install_deps")
             return
         layout.prop(self, 'sbs_render')
@@ -98,7 +101,7 @@ class Sublender_OT_Install_Deps(Operator):
     def execute(self, _):
         state = install_lib.ensure_py7zr()
         if state:
-            ShowMessageBox("Installation Done! Please restart blender")
+            globalvar.display_restart = True
         else:
             ShowMessageBox("Something went wrong! Please contact the developer.")
         return {'FINISHED'}
