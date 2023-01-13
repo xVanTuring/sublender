@@ -17,11 +17,12 @@ Workflow:
 * subsurface workflow
 
 Library:
-* category/search
+* ~~category/search~~
 * category update operation
-* instance/preset
-* load preset from package
-
+* ~~instance/preset~~
+* ~~load preset from package~~
+* ~~category with account~~
+* ~~cloth preset~~
 
 ## Hack
 * pip install fake-bpy-module-2.82
