@@ -83,8 +83,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str]):
-        sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
-        await self.run_async(sbs_render_path, cmd_list)
+        await self.run_async(bpy.context.preferences.addons[__package__].preferences.sbs_render, cmd_list)
 
     async def render_graph(self, param_list, pkg_url, is_preset=False, category=""):
         package_info = globalvar.sbsar_dict.get(self.package_path)
@@ -98,6 +97,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                     if usage in default_usage_list:
                         build_list.append((output_usage_dict[usage][0], usage))
                 break
+        label = ""
         if not is_preset:
             label = current_graph['label']
             if label == "":
@@ -121,16 +121,16 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
 
         await asyncio.gather(*worker_list)
         if self.cloth_template:
-            blender_file = consts.sublender_library_render_cloth_template_file
+            blender_file = get_sublender_library_render_dir(consts.sublender_cloth_template_file)
         else:
-            blender_file = consts.sublender_library_render_template_file
+            blender_file = get_sublender_library_render_dir(consts.sublender_default_template_file)
         if self.invert_normal:
             if self.cloth_template:
-                blender_file = consts.sublender_library_render_cloth_template_invert_file
+                blender_file = get_sublender_library_render_dir(consts.sublender_cloth_template_invert_file)
             else:
-                blender_file = consts.sublender_library_render_template_invert_file
+                blender_file = get_sublender_library_render_dir(consts.sublender_template_invert_file)
 
-        preview_cmd = ["-b", blender_file, "-o", consts.sublender_preview_img_template_file, "-E"]
+        preview_cmd = ["-b", blender_file, "-o", get_sublender_library_render_dir("out#.png"), "-E"]
         if self.engine == "cycles":
             preview_cmd.append("CYCLES")
         else:
@@ -138,10 +138,11 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
         preview_cmd.append("-f")
         preview_cmd.append("1")
         await self.run_async(sys.executable, preview_cmd)
+        sublender_preview_img_file = get_sublender_library_render_dir("out1.png")
         if not is_preset:
-            preview_folder = os.path.join(consts.sublender_library_dir, uu_key, "default")
+            preview_folder = os.path.join(get_sublender_library_dir(), uu_key, "default")
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
-            copied_img = shutil.copy(consts.sublender_preview_img_file,
+            copied_img = shutil.copy(sublender_preview_img_file,
                                      os.path.join(preview_folder, "preview.png"))
             copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
             globalvar.library["materials"][uu_key] = {
@@ -155,10 +156,9 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                 "presets": {}
             }
         else:
-            preview_folder = os.path.join(consts.sublender_library_dir, uu_key, self.preset_name)
+            preview_folder = os.path.join(get_sublender_library_dir(), uu_key, self.preset_name)
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
-            copied_img = shutil.copy(consts.sublender_preview_img_file,
-                                     os.path.join(preview_folder, "preview.png"))
+            copied_img = shutil.copy(sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
             if globalvar.preview_collections.get(copied_img) is not None:
                 del globalvar.preview_collections[copied_img]
             globalvar.library["materials"].get(
@@ -176,7 +176,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
     async def async_execute(self, context):
         ensure_library()
         start = datetime.datetime.now()
-        target_dir = consts.sublender_library_render_dir
+        target_dir = get_sublender_library_render_dir()
         if self.preset_name != "":
             material_info = globalvar.library["materials"].get(self.library_uid)
             self.package_path = material_info["sbsar_path"]
@@ -253,7 +253,7 @@ class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
         library_len = len(current_mat_list)
         if 0 < library_len <= context.scene['sublender_library']['active_material']:
             context.scene.sublender_library.active_material = current_mat_list[0][0]
-        shutil.rmtree(os.path.join(consts.sublender_library_dir, active_material))
+        shutil.rmtree(os.path.join(get_sublender_library_dir(), active_material))
         return {'FINISHED'}
 
 
@@ -380,22 +380,33 @@ class SUBLENDER_OT_SAVE_TO_PRESET(Operator):
 
 
 def ensure_template_render_env():
-    pathlib.Path(consts.sublender_library_render_dir).mkdir(parents=True, exist_ok=True)
-    if not os.path.exists(consts.sublender_library_render_template_file):
-        shutil.copy(consts.packed_sublender_template_file, consts.sublender_library_render_template_file)
-    if not os.path.exists(consts.sublender_library_render_template_invert_file):
+    sublender_library_dir = bpy.context.preferences.addons[__package__].preferences.library_path
+    sublender_library_render_dir = os.path.join(sublender_library_dir, "template")
+    pathlib.Path(sublender_library_render_dir).mkdir(parents=True, exist_ok=True)
+
+    sublender_library_render_template_file = os.path.join(sublender_library_render_dir, "preview_template.blend")
+    sublender_library_render_template_invert_file = os.path.join(sublender_library_render_dir,
+                                                                 "preview_template_invert.blend")
+
+    sublender_library_render_cloth_template_file = os.path.join(sublender_library_render_dir,
+                                                                "preview_cloth_template.blend")
+    sublender_library_render_cloth_template_invert_file = os.path.join(sublender_library_render_dir,
+                                                                       "preview_cloth_template_invert.blend")
+    if not os.path.exists(sublender_library_render_template_file):
+        shutil.copy(consts.packed_sublender_template_file, sublender_library_render_template_file)
+    if not os.path.exists(sublender_library_render_template_invert_file):
         shutil.copy(consts.packed_sublender_template_invert_file,
-                    consts.sublender_library_render_template_invert_file)
-    if not os.path.exists(consts.sublender_library_render_cloth_template_file):
+                    sublender_library_render_template_invert_file)
+    if not os.path.exists(sublender_library_render_cloth_template_file):
         shutil.copy(consts.packed_sublender_template_cloth_file,
-                    consts.sublender_library_render_cloth_template_file)
-    if not os.path.exists(consts.sublender_library_render_cloth_template_invert_file):
+                    sublender_library_render_cloth_template_file)
+    if not os.path.exists(sublender_library_render_cloth_template_invert_file):
         shutil.copy(consts.packed_sublender_template_cloth_invert_file,
-                    consts.sublender_library_render_cloth_template_invert_file)
+                    sublender_library_render_cloth_template_invert_file)
 
 
 def ensure_library_config():
-    if not os.path.exists(consts.sublender_library_config_file):
+    if not os.path.exists(get_sublender_library_config_file()):
         sync_library()
 
 
@@ -405,10 +416,25 @@ def ensure_library():
 
 
 def load_library():
-    with open(consts.sublender_library_config_file, 'r') as f:
+    with open(get_sublender_library_config_file(), 'r') as f:
         data = json.load(f)
         globalvar.library = data
         generate_preview()
+
+
+def get_sublender_library_config_file():
+    return os.path.join(get_sublender_library_dir(), "config.json")
+
+
+def get_sublender_library_dir():
+    return bpy.context.preferences.addons[__package__].preferences.library_path
+
+
+def get_sublender_library_render_dir(append=None):
+    if append is None:
+        return os.path.join(get_sublender_library_dir(), "template")
+    else:
+        return os.path.join(get_sublender_library_dir(), "template", append)
 
 
 def generate_preview():
@@ -463,7 +489,7 @@ def generate_preview():
 
 
 def sync_library():
-    with open(consts.sublender_library_config_file, 'w') as f:
+    with open(get_sublender_library_config_file(), 'w') as f:
         json.dump(globalvar.library, f, indent=2)
 
 

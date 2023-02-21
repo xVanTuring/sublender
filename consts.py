@@ -99,20 +99,11 @@ output_bit_depth = [
     ("16f", "Float 16", "Float 16"),
     ("32f", "Float 32", "Float 32"),
 ]
-sublender_library_dir = os.path.expanduser("~/Documents/Sublender")
-sublender_library_config_file = os.path.join(sublender_library_dir, "config.json")
-sublender_library_render_dir = os.path.join(sublender_library_dir, "template")
-sublender_library_render_template_file = os.path.join(sublender_library_render_dir, "preview_template.blend")
-sublender_library_render_template_invert_file = os.path.join(sublender_library_render_dir,
-                                                             "preview_template_invert.blend")
+sublender_default_template_file = "preview_template.blend"
+sublender_template_invert_file = "preview_template_invert.blend"
 
-sublender_library_render_cloth_template_file = os.path.join(sublender_library_render_dir,
-                                                            "preview_cloth_template.blend")
-sublender_library_render_cloth_template_invert_file = os.path.join(sublender_library_render_dir,
-                                                                   "preview_cloth_template_invert.blend")
-
-sublender_preview_img_template_file = os.path.join(sublender_library_render_dir, "out#.png")
-sublender_preview_img_file = os.path.join(sublender_library_render_dir, "out1.png")
+sublender_cloth_template_file = "preview_cloth_template.blend"
+sublender_cloth_template_invert_file = "preview_cloth_template_invert.blend"
 
 packed_sublender_template_file = os.path.join(ADDON_DIR, 'resources', 'preview_template.blend')
 packed_sublender_template_invert_file = os.path.join(ADDON_DIR, 'resources', 'preview_template_invert.blend')

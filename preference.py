@@ -1,9 +1,12 @@
 import bpy
 import platform
+import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import AddonPreferences, Operator
 
 from . import consts, globalvar, install_lib
+
+default_library_path = os.path.expanduser("~/Documents/Sublender")
 
 if platform.system() == "Linux":
     default_sbsrender_path = "/opt/Allegorithmic/Substance_Designer/sbsrender"
@@ -42,8 +45,8 @@ class SublenderPreferences(AddonPreferences):
         ("d3d10pc", "d3d10pc(GPU,2019)", "similar to d3d11pc, but for substance 2019"),
         (consts.CUSTOM, "Custom", "Custom")
     ],
-                              default="$default$",
-                              name="Substance Render Engine")
+        default="$default$",
+        name="Substance Render Engine")
     custom_engine: StringProperty(name="Custom Engine", default='')
     sbs_render: StringProperty(name="Sbsrender Path", default=default_sbsrender_path, subtype='FILE_PATH')
     memory_budget: IntProperty(name="Memory Budget (MB)", min=0, default=1000)
@@ -51,6 +54,8 @@ class SublenderPreferences(AddonPreferences):
     library_preview_engine: EnumProperty(name="Default Library Render Engine",
                                          items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")],
                                          default="eevee")
+    library_path: StringProperty(name="Library Path(restart required)", default=default_library_path,
+                                 subtype='DIR_PATH')
 
     def draw(self, _):
         layout = self.layout
@@ -63,6 +68,7 @@ class SublenderPreferences(AddonPreferences):
             box.operator("sublender.install_deps")
             return
         layout.prop(self, 'sbs_render')
+        layout.prop(self, 'library_path')
         row = layout.row()
         row.prop(self, 'output_size_x', text='Default Texture Size')
         row.prop(self, 'output_size_lock', toggle=1, icon_only=True, icon="LINKED")
