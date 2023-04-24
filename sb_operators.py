@@ -1,4 +1,3 @@
-import asyncio
 import random
 import os
 
@@ -162,9 +161,11 @@ class Sublender_Load_Missing_Sbsar(async_loop.AsyncModalOperatorMixin, Operator)
         force = True
         for material in bpy.data.materials:
             m_sublender = material.sublender
-            if m_sublender is not None and m_sublender.graph_url != "" and m_sublender.package_path == self.sbsar_path:
+            if (m_sublender is not None and m_sublender.graph_url != ""
+                    and m_sublender.package_path == self.sbsar_path):
                 m_sublender.package_loaded = False
-            await utils.gen_clss_from_material_async(material, preferences.enable_visible_if, force, self.report)
+            await utils.gen_clss_from_material_async(material, preferences.enable_visible_if, force,
+                                                     self.report)
             m_sublender.package_loaded = True
             # only force load once
             force = False

@@ -204,8 +204,8 @@ class Sublender_Import_Graph_To_Library(Operator):
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Engine")
     invert_normal: BoolProperty(
         name="Invert Normal",
-        description=
-        "Blender use OpenGL's Normal Format, while most substance materials use DirectX's Normal Format. "
+        description="Blender use OpenGL's Normal Format, while most substance materials use DirectX's "
+        "Normal Format. "
         "Usually there is parameter included in the substance material controlling the Normal Format. "
         "Conversion can be done by inverting the G channel of Normal texture.")
     cloth_template: BoolProperty(default=False, name="Use Cloth Template")

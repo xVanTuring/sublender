@@ -142,8 +142,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
         if not is_preset:
             preview_folder = os.path.join(get_sublender_library_dir(), uu_key, "default")
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
-            copied_img = shutil.copy(sublender_preview_img_file,
-                                     os.path.join(preview_folder, "preview.png"))
+            copied_img = shutil.copy(sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
             copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
             globalvar.library["materials"][uu_key] = {
                 "label": label,
@@ -384,7 +383,8 @@ def ensure_template_render_env():
     sublender_library_render_dir = os.path.join(sublender_library_dir, "template")
     pathlib.Path(sublender_library_render_dir).mkdir(parents=True, exist_ok=True)
 
-    sublender_library_render_template_file = os.path.join(sublender_library_render_dir, "preview_template.blend")
+    sublender_library_render_template_file = os.path.join(sublender_library_render_dir,
+                                                          "preview_template.blend")
     sublender_library_render_template_invert_file = os.path.join(sublender_library_render_dir,
                                                                  "preview_template_invert.blend")
 
@@ -398,8 +398,7 @@ def ensure_template_render_env():
         shutil.copy(consts.packed_sublender_template_invert_file,
                     sublender_library_render_template_invert_file)
     if not os.path.exists(sublender_library_render_cloth_template_file):
-        shutil.copy(consts.packed_sublender_template_cloth_file,
-                    sublender_library_render_cloth_template_file)
+        shutil.copy(consts.packed_sublender_template_cloth_file, sublender_library_render_cloth_template_file)
     if not os.path.exists(sublender_library_render_cloth_template_invert_file):
         shutil.copy(consts.packed_sublender_template_cloth_invert_file,
                     sublender_library_render_cloth_template_invert_file)

@@ -32,7 +32,7 @@ def run_pip(*args):
 
 def has_py7ze():
     try:
-        import py7zr
+        import py7zr # noqa
         return True
     except ImportError:
         return False
@@ -40,7 +40,7 @@ def has_py7ze():
 
 def ensure_py7zr():
     try:
-        import py7zr
+        import py7zr # noqa
         return True
     except ImportError:
         try:

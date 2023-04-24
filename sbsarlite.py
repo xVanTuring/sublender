@@ -220,6 +220,7 @@ def parse_doc(file_path: str):
             try:
                 raw_sbs_xml = xmltodict.parse(raw_xml_str)
             except xml.parsers.expat.ExpatError as e:
+                e.with_traceback()
                 raise Exception("Failed to parsed file {} as it's empty".format(sbsar_xml_path))
         return parse_sbsar_raw(raw_sbs_xml)
     return None
