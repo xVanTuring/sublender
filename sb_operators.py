@@ -5,7 +5,7 @@ import bpy
 from bpy.props import (StringProperty, BoolProperty)
 from bpy.types import Operator
 
-from . import settings, utils, globalvar, consts, template, async_loop
+from . import settings, utils, globalvar, consts, template, async_loop, install_lib
 
 
 class Sublender_Base_Operator(object):
@@ -200,6 +200,28 @@ class Sublender_New_Instance(Sublender_Base_Operator, Operator):
         return {'FINISHED'}
 
 
+def ShowMessageBox(message="", title="Message Box", icon='INFO'):
+    def draw(self, context):
+        self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
+
+
+class Sublender_OT_Install_Deps(Operator):
+    bl_idname = "sublender.install_deps"
+    bl_label = "Install Dependencies"
+    bl_description = "Install Dependencies"
+
+    def execute(self, context):
+        state = install_lib.ensure_py7zr()
+        utils.refresh_panel(context)
+        if state:
+            globalvar.display_restart = True
+        else:
+            ShowMessageBox("Something went wrong! Please contact the developer.")
+        return {'FINISHED'}
+
+
 def register():
     bpy.utils.register_class(Sublender_Init_Async)
 
@@ -213,6 +235,7 @@ def register():
     bpy.utils.register_class(Sublender_New_Instance)
     bpy.utils.register_class(Sublender_Random_Seed)
     bpy.utils.register_class(SUBLENDER_OT_Apply_Image)
+    bpy.utils.register_class(Sublender_OT_Install_Deps)
 
 
 def unregister():
@@ -227,3 +250,4 @@ def unregister():
     bpy.utils.unregister_class(Sublender_Inflate_Material)
     bpy.utils.unregister_class(Sublender_Random_Seed)
     bpy.utils.unregister_class(SUBLENDER_OT_Apply_Image)
+    bpy.utils.unregister_class(Sublender_OT_Install_Deps)

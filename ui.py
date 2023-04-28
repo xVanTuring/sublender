@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy.types import Panel
 
-from . import settings, utils, globalvar, consts
+from . import settings, utils, globalvar, consts, sb_operators
 
 
 def draw_instance_item(self, context, target_mat):
@@ -63,6 +63,15 @@ def draw_texture_item(self, context, target_mat):
         row.enabled = False
 
 
+def draw_install_deps(layout):
+    box = layout.box()
+    if globalvar.display_restart:
+        box.label(text="Installation completed! Please restart blender")
+    else:
+        box.label(text="Install Dependencies and restart blender afterwards.")
+        box.operator(sb_operators.Sublender_OT_Install_Deps.bl_idname)
+
+
 class SUBLENDER_PT_Main(Panel):
     bl_label = "Sublender"
     bl_space_type = "VIEW_3D"
@@ -70,6 +79,9 @@ class SUBLENDER_PT_Main(Panel):
     bl_category = 'Sublender'
 
     def draw(self, context):
+        if not globalvar.py7zr_state:
+            draw_install_deps(self.layout)
+            return
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
         if not utils.inited(context):
             if bpy.data.filepath == "":
@@ -323,6 +335,10 @@ class SUBLENDER_PT_Library_Panel(Panel):
     bl_region_type = "UI"
     bl_category = 'Sublender'
     bl_order = 1
+
+    @classmethod
+    def poll(cls, _):
+        return globalvar.py7zr_state
 
     def draw(self, context):
         select_btn = self.layout.operator(

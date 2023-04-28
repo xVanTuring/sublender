@@ -4,7 +4,7 @@ import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import AddonPreferences, Operator
 
-from . import consts, globalvar, install_lib
+from . import consts, globalvar, install_lib, sb_operators, ui
 
 default_library_path = os.path.expanduser("~/Documents/Sublender")
 
@@ -61,12 +61,7 @@ class SublenderPreferences(AddonPreferences):
     def draw(self, _):
         layout = self.layout
         if not globalvar.py7zr_state:
-            box = layout.box()
-            if globalvar.display_restart:
-                box.label(text="Installation done! Please restart blender")
-            else:
-                box.label(text="Click Install Dependencies. And restart blender afterwards.")
-            box.operator("sublender.install_deps")
+            ui.draw_install_deps(layout)
             return
         layout.prop(self, 'sbs_render')
         layout.prop(self, 'library_path')
@@ -93,32 +88,10 @@ class SublenderPreferences(AddonPreferences):
         layout.label(text=', '.join(thank_list))
 
 
-def ShowMessageBox(message="", title="Message Box", icon='INFO'):
-    def draw(self, context):
-        self.layout.label(text=message)
-
-    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
-
-
-class Sublender_OT_Install_Deps(Operator):
-    bl_idname = "sublender.install_deps"
-    bl_label = "Install Dependencies"
-    bl_description = "Install Dependencies"
-
-    def execute(self, _):
-        state = install_lib.ensure_py7zr()
-        if state:
-            globalvar.display_restart = True
-        else:
-            ShowMessageBox("Something went wrong! Please contact the developer.")
-        return {'FINISHED'}
-
-
 def register():
-    bpy.utils.register_class(Sublender_OT_Install_Deps)
+
     bpy.utils.register_class(SublenderPreferences)
 
 
 def unregister():
     bpy.utils.unregister_class(SublenderPreferences)
-    bpy.utils.unregister_class(Sublender_OT_Install_Deps)
