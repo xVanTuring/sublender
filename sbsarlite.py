@@ -87,11 +87,7 @@ def parse_preset(raw: OrderedDict):
 
 
 def parse_output(raw: OrderedDict):
-    parsed_output = {
-        'identifier': raw['@identifier'],
-        'uid': raw['@uid'],
-        'label': raw['outputgui']['@label']
-    }
+    parsed_output = {'identifier': raw['@identifier'], 'uid': raw['@uid'], 'label': raw['outputgui']['@label']}
     if raw['outputgui']['channels'] is not None:
         usages = []
         if isinstance(raw['outputgui']['channels']['channel'], list):

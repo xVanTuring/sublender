@@ -150,13 +150,12 @@ def generate_sub_panel(group_map, graph_url):
         bl_parent_id = ''
         if parent_name != '':
             bl_parent_id = sub_panel_name(parent_name, graph_url)
-        p_clss = type(
-            sub_panel_name(group_key, graph_url), (ui.Sublender_Prop_BasePanel, ), {
-                'bl_label': displace_name,
-                'bl_parent_id': bl_parent_id,
-                'graph_url': graph_url,
-                'group_info': cur_group
-            })
+        p_clss = type(sub_panel_name(group_key, graph_url), (ui.Sublender_Prop_BasePanel, ), {
+            'bl_label': displace_name,
+            'bl_parent_id': bl_parent_id,
+            'graph_url': graph_url,
+            'group_info': cur_group
+        })
         register_class(p_clss)
         globalvar.sub_panel_clss_list.append(p_clss)
 
@@ -288,7 +287,7 @@ def graph_output_parse(outputs, exec_per=None):
             'name': output['identifier'],
             'usages': usages,
             'label': output['label'],
-            'uid': output['uid']
+            'uid': output['uid'],
         }
         output_list_dict[output['identifier']] = output_graph
         output_list.append(output_graph)
@@ -383,8 +382,8 @@ def find_active_mat(context):
         return None
     scene_sb_settings = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
-        if context.view_layer.objects.active is None or len(
-                bpy.context.view_layer.objects.active.material_slots) == 0:
+        if (context.view_layer.objects.active is None
+                or len(bpy.context.view_layer.objects.active.material_slots) == 0):
             return None
         active_material_enum = settings.instance_list_of_object
         if len(active_material_enum) == 0:
@@ -402,8 +401,8 @@ def find_active_graph(context):
         return None
     scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
-        if context.view_layer.objects.active is None or len(
-                bpy.context.view_layer.objects.active.material_slots) == 0:
+        if (context.view_layer.objects.active is None
+                or len(bpy.context.view_layer.objects.active.material_slots) == 0):
             return None, None
         if context.scene.sublender_settings.object_active_instance == "":
             settings.init_instance_list_of_object(context)

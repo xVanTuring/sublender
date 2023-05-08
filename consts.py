@@ -47,8 +47,8 @@ sbsar_type_to_property = [
 CUSTOM = "$CUSTOM$"
 output_size_one_enum = [("0", "1", "1"), ("1", "2", "2"), ("2", "4", "4"), ("3", "8", "8"), ("4", "16", "16"),
                         ("5", "32", "32"), ("6", "64", "64"), ("7", "128", "128"), ("8", "256", "256"),
-                        ("9", "512", "512"), ("10", "1024", "1024"), ("11", "2048", "2048"),
-                        ("12", "4096", "4096"), ("13", "8192", "8192")]
+                        ("9", "512", "512"), ("10", "1024", "1024"), ("11", "2048", "2048"), ("12", "4096", "4096"),
+                        ("13", "8192", "8192")]
 output_size_enum = [
     ("1", "1x1", "1x1"),
     ("2", "2x2", "2x2"),
@@ -127,13 +127,11 @@ class SBSARTypeEnum:
 
 
 build_in_material_type = [('Ceramic', 'Ceramic', 'Ceramic'),
-                          ('Concrete-Asphalt', 'Concrete-Asphalt', 'Concrete-Asphalt'),
-                          ('Fabric', 'Fabric', 'Fabric'), ('Ground', 'Ground', 'Ground'),
-                          ('Leather', 'Leather', 'Leather'),
+                          ('Concrete-Asphalt', 'Concrete-Asphalt', 'Concrete-Asphalt'), ('Fabric', 'Fabric', 'Fabric'),
+                          ('Ground', 'Ground', 'Ground'), ('Leather', 'Leather', 'Leather'),
                           ('Marble-Granite', 'Marble-Granite', 'Marble-Granite'), ('Metal', 'Metal', 'Metal'),
-                          ('Organic', 'Organic', 'Organic'), ('Paint', 'Paint', 'Paint'),
-                          ('Paper', 'Paper', 'Paper'), ('Plaster', 'Plaster', 'Plaster'),
-                          ('Plastic-Rubber', 'Plastic-Rubber', 'Plastic-Rubber'), ('Stone', 'Stone', 'Stone'),
-                          ('Terracotta', 'Terracotta', 'Terracotta'),
+                          ('Organic', 'Organic', 'Organic'), ('Paint', 'Paint', 'Paint'), ('Paper', 'Paper', 'Paper'),
+                          ('Plaster', 'Plaster', 'Plaster'), ('Plastic-Rubber', 'Plastic-Rubber', 'Plastic-Rubber'),
+                          ('Stone', 'Stone', 'Stone'), ('Terracotta', 'Terracotta', 'Terracotta'),
                           ('Translucent', 'Translucent', 'Translucent'), ('Wood', 'Wood', 'Wood'),
                           ('$CUSTOM$', 'Custom', 'Custom')]

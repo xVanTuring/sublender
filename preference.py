@@ -37,14 +37,12 @@ class SublenderPreferences(AddonPreferences):
     enable_visible_if: BoolProperty(name="Enable Visible If")
     enable_output_params: BoolProperty(name="Enable Output Params")
 
-    engine_enum: EnumProperty(items=[
-        ("$default$", "Unspecified", "Unspecified, it will use the default engine."),
-        ("d3d11pc", "d3d11pc(GPU,windows)",
-         "d3d11pc: it will use dx11 as render engine, might not be available in linux"),
-        ("sse2", "sse2(CPU)", "sse2"), ("ogl3", "ogl3(GPU,non-windows)", "ogl3"),
-        ("d3d10pc", "d3d10pc(GPU,2019)", "similar to d3d11pc, but for substance 2019"),
-        (consts.CUSTOM, "Custom", "Custom")
-    ],
+    engine_enum: EnumProperty(items=[("$default$", "Unspecified", "Unspecified, it will use the default engine."),
+                                     ("d3d11pc", "d3d11pc(GPU,windows)",
+                                      "d3d11pc: it will use dx11 as render engine, might not be available in linux"),
+                                     ("sse2", "sse2(CPU)", "sse2"), ("ogl3", "ogl3(GPU,non-windows)", "ogl3"),
+                                     ("d3d10pc", "d3d10pc(GPU,2019)", "similar to d3d11pc, but for substance 2019"),
+                                     (consts.CUSTOM, "Custom", "Custom")],
                               default="$default$",
                               name="Substance Render Engine")
     custom_engine: StringProperty(name="Custom Engine", default='')

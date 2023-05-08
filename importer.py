@@ -86,9 +86,7 @@ class Sublender_Import_Graph(Operator):
             self.layout.prop(self, "use_same_config", toggle=1)
         if self.use_same_config:
             for importing_graph in importing_graph_items:
-                self.layout.prop(importing_graph,
-                                 "enable",
-                                 text="Import {}".format(importing_graph.graph_url))
+                self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
                 self.layout.prop(importing_graph, "material_name")
             self.layout.prop(self, "material_template")
             row = self.layout.row()
@@ -96,9 +94,7 @@ class Sublender_Import_Graph(Operator):
             row.prop(self, "assign_to_selection", toggle=1)
         else:
             for importing_graph in importing_graph_items:
-                self.layout.prop(importing_graph,
-                                 "enable",
-                                 text="Import {}".format(importing_graph.graph_url))
+                self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
                 self.layout.prop(importing_graph, "material_name")
                 self.layout.prop(importing_graph, "material_template")
                 row = self.layout.row()

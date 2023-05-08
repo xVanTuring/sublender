@@ -109,12 +109,9 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Oper
             self.task_id = self.material_name
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
-    async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict,
-                         format: str):
+    async def render_map(self, cmd_list: List[str], output_id: str, output_dir: str, output_dict: dict, format: str):
         sbs_render_path = bpy.context.preferences.addons[__package__].preferences.sbs_render
-        process = await asyncio.create_subprocess_exec(sbs_render_path,
-                                                       *cmd_list,
-                                                       stdout=asyncio.subprocess.PIPE)
+        process = await asyncio.create_subprocess_exec(sbs_render_path, *cmd_list, stdout=asyncio.subprocess.PIPE)
         self.process_list.append(process)
         await process.wait()
         print("Texture {0} Render done!".format(output_id))
@@ -230,8 +227,8 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Oper
                 output_format = getattr(graph_setting, format_name, "png")
                 param_list.append("--output-format"),
                 param_list.append(output_format)
-                await self.render_map(param_list, self.texture_name, target_dir,
-                                      clss_info['output_info']['dict'], output_format)
+                await self.render_map(param_list, self.texture_name, target_dir, clss_info['output_info']['dict'],
+                                      output_format)
             end = datetime.datetime.now()
             self.report({"INFO"}, "Render Done! Time spent: {0}s.".format((end - start).total_seconds()))
 

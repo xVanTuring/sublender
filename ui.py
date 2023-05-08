@@ -114,8 +114,7 @@ class SUBLENDER_PT_Main(Panel):
 def calc_prop_visibility(eval_delegate, input_info: dict):
     if input_info.get('visibleIf') is None:
         return True
-    eval_str: str = input_info.get('visibleIf').replace("&&", " and ").replace("||",
-                                                                               " or ").replace("!", " not ")
+    eval_str: str = input_info.get('visibleIf').replace("&&", " and ").replace("||", " or ").replace("!", " not ")
     if eval_delegate is None:
         return False
     eval_result = eval(eval_str, {'input': eval_delegate, 'true': True, 'false': False})
@@ -166,12 +165,8 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
             self.layout.prop(normal_node.inputs.get('Strength'), 'default_value', text="Normal Strength")
         displacement_node = active_mat.node_tree.nodes.get('Displacement')
         if displacement_node is not None and isinstance(displacement_node, bpy.types.ShaderNodeDisplacement):
-            self.layout.prop(displacement_node.inputs.get('Midlevel'),
-                             'default_value',
-                             text="Displacement Midlevel")
-            self.layout.prop(displacement_node.inputs.get('Scale'),
-                             'default_value',
-                             text="Displacement Scale")
+            self.layout.prop(displacement_node.inputs.get('Midlevel'), 'default_value', text="Displacement Midlevel")
+            self.layout.prop(displacement_node.inputs.get('Scale'), 'default_value', text="Displacement Scale")
 
 
 class SUBLENDER_PT_SB_Output_Panel(Panel):
@@ -236,8 +231,7 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
                 delete_image.filepath = bpy.path.abspath(bpy_image.filepath)
                 delete_image.bl_img_name = bl_img_name
             else:
-                output_format = getattr(graph_setting, utils.sb_output_format_to_prop(output_info['name']),
-                                        "png")
+                output_format = getattr(graph_setting, utils.sb_output_format_to_prop(output_info['name']), "png")
                 image_file_path = os.path.join(material_output_folder,
                                                "{0}.{1}".format(output_info['name'], output_format))
                 if globalvar.file_existence_dict.get(image_file_path) is None:
@@ -279,14 +273,11 @@ class Sublender_Prop_BasePanel(Panel):
             if preferences.enable_visible_if:
                 clss_name = utils.gen_clss_name(cls.graph_url)
                 if globalvar.eval_delegate_map.get(active_mat.name) is None:
-                    globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(
-                        active_mat.name, clss_name)
+                    globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(active_mat.name, clss_name)
                 else:
                     # assign again, undo/redo will change the memory address
-                    globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(
-                        active_mat, clss_name)
-                visible = calc_group_visibility(globalvar.eval_delegate_map.get(active_mat.name),
-                                                cls.group_info)
+                    globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
+                visible = calc_group_visibility(globalvar.eval_delegate_map.get(active_mat.name), cls.group_info)
                 return visible
             return True
         return False
@@ -309,11 +300,7 @@ class Sublender_Prop_BasePanel(Panel):
                 else:
                     row.prop(graph_setting, consts.output_size_y, text='')
                 if context.scene.sublender_settings.live_update:
-                    row.prop(graph_setting,
-                             consts.update_when_sizing,
-                             toggle=1,
-                             icon_only=True,
-                             icon="UV_SYNC_SELECT")
+                    row.prop(graph_setting, consts.update_when_sizing, toggle=1, icon_only=True, icon="UV_SYNC_SELECT")
             elif prop_info.get('identifier') == "$randomseed":
                 row = layout.row()
                 row.prop(graph_setting, prop_info['prop'], text=prop_info['label'])

@@ -160,8 +160,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             copied_img = shutil.copy(sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
             if globalvar.preview_collections.get(copied_img) is not None:
                 del globalvar.preview_collections[copied_img]
-            globalvar.library["materials"].get(
-                self.library_uid)["presets"][self.preset_name]["preview"] = copied_img
+            globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name]["preview"] = copied_img
 
         sync_library()
         generate_preview()
@@ -192,8 +191,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                 if not importing_graph.enable:
                     continue
 
-                param_list = generate_cmd_list(context, target_dir, self.package_path,
-                                               importing_graph.graph_url)
+                param_list = generate_cmd_list(context, target_dir, self.package_path, importing_graph.graph_url)
                 category = importing_graph.category
                 if category == "$CUSTOM$":
                     category = importing_graph.category_str
@@ -383,8 +381,7 @@ def ensure_template_render_env():
     sublender_library_render_dir = os.path.join(sublender_library_dir, "template")
     pathlib.Path(sublender_library_render_dir).mkdir(parents=True, exist_ok=True)
 
-    sublender_library_render_template_file = os.path.join(sublender_library_render_dir,
-                                                          "preview_template.blend")
+    sublender_library_render_template_file = os.path.join(sublender_library_render_dir, "preview_template.blend")
     sublender_library_render_template_invert_file = os.path.join(sublender_library_render_dir,
                                                                  "preview_template_invert.blend")
 
@@ -395,8 +392,7 @@ def ensure_template_render_env():
     if not os.path.exists(sublender_library_render_template_file):
         shutil.copy(consts.packed_sublender_template_file, sublender_library_render_template_file)
     if not os.path.exists(sublender_library_render_template_invert_file):
-        shutil.copy(consts.packed_sublender_template_invert_file,
-                    sublender_library_render_template_invert_file)
+        shutil.copy(consts.packed_sublender_template_invert_file, sublender_library_render_template_invert_file)
     if not os.path.exists(sublender_library_render_cloth_template_file):
         shutil.copy(consts.packed_sublender_template_cloth_file, sublender_library_render_cloth_template_file)
     if not os.path.exists(sublender_library_render_cloth_template_invert_file):
@@ -454,8 +450,7 @@ def generate_preview():
         globalvar.library_category_material_map["$ALL$"].append((uu_key, label, label, thumb.icon_id, i))
         globalvar.library_material_preset_map[uu_key] = []
         if len(material.get("presets", {})) > 0:
-            globalvar.library_material_preset_map[uu_key].append(
-                ("$DEFAULT$", "Default", "Default", thumb.icon_id, 0))
+            globalvar.library_material_preset_map[uu_key].append(("$DEFAULT$", "Default", "Default", thumb.icon_id, 0))
             p_i = 1
             for p_key in material.get("presets", {}):
                 preset = material["presets"][p_key]
@@ -464,8 +459,7 @@ def generate_preview():
                     preset_thumb = globalvar.preview_collections.load(preset_img, preset_img, "IMAGE")
                 else:
                     preset_thumb = globalvar.preview_collections[preset_img]
-                globalvar.library_material_preset_map[uu_key].append(
-                    (p_key, p_key, p_key, preset_thumb.icon_id, p_i))
+                globalvar.library_material_preset_map[uu_key].append((p_key, p_key, p_key, preset_thumb.icon_id, p_i))
                 p_i += 1
 
         if material.get("category") is not None and material.get("category") != "":
@@ -475,8 +469,7 @@ def generate_preview():
             globalvar.library_category_material_map[material.get("category")].append(
                 (uu_key, label, label, thumb.icon_id, i))
         else:
-            globalvar.library_category_material_map["$OTHER$"].append(
-                (uu_key, label, label, thumb.icon_id, i))
+            globalvar.library_category_material_map["$OTHER$"].append((uu_key, label, label, thumb.icon_id, i))
 
     globalvar.library_category_enum.append(
         ("$ALL$", "All - {}".format(len(globalvar.library_category_material_map["$ALL$"])), "All"))

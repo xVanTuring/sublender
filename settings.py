@@ -90,8 +90,7 @@ def init_graph_items():
         if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path != ""):
             if m_sublender.graph_url not in package_url_set:
                 package_url_set.add(m_sublender.graph_url)
-                globalvar.graph_enum.append(
-                    (m_sublender.graph_url, m_sublender.graph_url, m_sublender.graph_url))
+                globalvar.graph_enum.append((m_sublender.graph_url, m_sublender.graph_url, m_sublender.graph_url))
                 i += 1
 
 
@@ -129,8 +128,7 @@ def get_instance_list_of_object(_, context):
 
 def init_instance_list_of_object(context):
     instance_list_of_object.clear()
-    if context.view_layer.objects.active is None or len(
-            context.view_layer.objects.active.material_slots) == 0:
+    if context.view_layer.objects.active is None or len(context.view_layer.objects.active.material_slots) == 0:
         return instance_list_of_object
 
     for i, mat_slot in enumerate(context.view_layer.objects.active.material_slots):
@@ -208,8 +206,7 @@ def register():
     bpy.utils.register_class(SublenderLibrary)
     bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(type=SublenderSetting, name="Sublender")
     bpy.types.Material.sublender = bpy.props.PointerProperty(type=Sublender_Material_MT_Setting)
-    bpy.types.Scene.sublender_library = bpy.props.PointerProperty(type=SublenderLibrary,
-                                                                  name="Sublender Library")
+    bpy.types.Scene.sublender_library = bpy.props.PointerProperty(type=SublenderLibrary, name="Sublender Library")
 
 
 def unregister():
