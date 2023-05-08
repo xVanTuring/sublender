@@ -212,7 +212,7 @@ class Sublender_OT_Install_Deps(Operator):
     bl_description = "Install Dependencies"
 
     def execute(self, context):
-        state = install_lib.ensure_py7zr()
+        state = install_lib.ensure_libs()
         utils.refresh_panel(context)
         if state:
             globalvar.display_restart = True

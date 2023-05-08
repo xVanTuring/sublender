@@ -6,8 +6,6 @@ import site
 import subprocess
 import sys
 
-import bpy
-
 OS = platform.system()
 IS_WIN = OS == 'Windows'
 IS_MAC = OS == 'Darwin'
@@ -22,7 +20,7 @@ def run_module_call(*args):
     """Run Blender Python with arguments on user access level"""
     module_args = ('-m', *args, '--user')
 
-    subprocess.check_call([bpy.app.binary_path_python, *module_args], timeout=60.0)
+    subprocess.check_call([sys.executable, *module_args], timeout=60.0)
 
 
 def run_pip(*args):
@@ -30,18 +28,20 @@ def run_pip(*args):
     return run_module_call('pip', 'install', *args)
 
 
-def has_py7ze():
+def has_libs():
     try:
-        import py7zr # noqa
-        return True
+        import py7zr
+        import xmltodict
+        return py7zr is not None and xmltodict is not None
     except ImportError:
         return False
 
 
-def ensure_py7zr():
+def ensure_libs():
     try:
-        import py7zr # noqa
-        return True
+        import py7zr
+        import xmltodict
+        return py7zr is not None and xmltodict is not None
     except ImportError:
         try:
             if IS_MAC or IS_LINUX:
@@ -49,6 +49,7 @@ def ensure_py7zr():
             run_pip("--upgrade", "pip")
             run_pip("wheel")
             run_pip("py7zr")
+            run_pip("xmltodict")
             return True
         except subprocess.SubprocessError as e:
             print("Something went wrong, unable to install py7zr", e)

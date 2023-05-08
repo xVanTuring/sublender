@@ -59,7 +59,7 @@ def on_save_post(_):
 
 
 def register():
-    py7zr_state = install_lib.has_py7ze()
+    py7zr_state = install_lib.has_libs()
     from . import globalvar
     globalvar.py7zr_state = py7zr_state
     log.info('Sublender@register: Starting')
