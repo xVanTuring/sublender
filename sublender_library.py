@@ -137,7 +137,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             preview_cmd.append("BLENDER_EEVEE")
         preview_cmd.append("-f")
         preview_cmd.append("1")
-        await self.run_async(sys.executable, preview_cmd)
+        await self.run_async(bpy.app.binary_path, preview_cmd)
         sublender_preview_img_file = get_sublender_library_render_dir("out1.png")
         if not is_preset:
             preview_folder = os.path.join(get_sublender_library_dir(), uu_key, "default")
