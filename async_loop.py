@@ -35,7 +35,7 @@ def kick_async_loop() -> bool:
     stop_after_this_kick = False
     if loop.is_closed():
         return True
-    all_tasks = asyncio.Task.all_tasks()
+    all_tasks = asyncio.all_tasks(loop=loop)
     if not len(all_tasks):
         stop_after_this_kick = True
     elif all(task.done() for task in all_tasks):
