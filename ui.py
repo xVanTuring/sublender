@@ -67,6 +67,7 @@ def draw_install_deps(layout):
     box = layout.box()
     if globalvar.display_restart:
         box.label(text="Installation completed! Please restart blender")
+        box.operator("wm.quit_blender")
     else:
         box.label(text="Install Dependencies and restart blender afterwards.")
         box.operator(sb_operators.Sublender_OT_Install_Deps.bl_idname)
