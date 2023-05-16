@@ -10,8 +10,7 @@ if instr == 1:
 package_name = pathlib.Path("../sublender_{0}.zip".format(current_version)).resolve()
 
 print("Writing {0}".format(package_name))
-subprocess.run(
-    ["git", "archive", "--format", "zip", "--output", package_name, branch, "--prefix", "sublender/"])
+subprocess.run(["git", "archive", "--format", "zip", "--output", package_name, branch, "--prefix", "sublender/"])
 
 package_mirror_name = pathlib.Path("../sublender_{0}_cn_mirror.zip".format(current_version)).resolve()
 print("Writing {0}".format(package_mirror_name))
@@ -19,7 +18,14 @@ subprocess.run(
     ["git", "archive", "--format", "zip", "--output", package_mirror_name, branch, "--prefix", "sublender/"])
 patched_path = "/tmp/sublender/install_lib.py"
 pathlib.Path("/tmp/sublender").mkdir(parents=True, exist_ok=True)
-subprocess.run(["patch", "./install_lib.py", "./scripts/install_lib.patch", "-o", patched_path])
+with open("./install_lib.py", "r") as basefile:
+    content = basefile.read()
+    content = content.replace('run_pip("--upgrade", "pip")','run_pip("--upgrade", "pip", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")') \
+                        .replace('run_pip("wheel")','run_pip("wheel", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")') \
+                        .replace('run_pip("py7zr")','run_pip("py7zr", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")') \
+                        .replace('run_pip("xmltodict")', 'run_pip("xmltodict", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple")')
+    with open(patched_path, "w") as updatingfile:
+        updatingfile.write(content)
 subprocess.run([
     "zip",
     package_mirror_name,
