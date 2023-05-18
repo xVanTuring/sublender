@@ -40,3 +40,4 @@ def clear():
     file_existence_dict.clear()
     graph_enum.clear()
     instance_of_graph.clear()
+    instance_map.clear()

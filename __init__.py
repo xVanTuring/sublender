@@ -2,7 +2,7 @@ import logging
 
 import bpy
 from bpy.app.handlers import persistent
-from . import install_lib
+from .utils import install_lib
 
 bl_info = {
     "name": "Sublender",
@@ -132,10 +132,7 @@ def unregister():
     for class_name in globalvar.graph_clss:
         class_info = globalvar.graph_clss.get(class_name)
         bpy.utils.unregister_class(class_info['clss'])
-    globalvar.current_uuid = ""
-    globalvar.graph_clss.clear()
-    globalvar.sbsar_dict.clear()
-    globalvar.instance_map.clear()
+    globalvar.clear()
 
     bpy.app.handlers.load_pre.remove(on_load_pre)
     bpy.app.handlers.save_post.remove(on_save_post)

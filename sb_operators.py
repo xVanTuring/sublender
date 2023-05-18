@@ -5,7 +5,7 @@ import bpy
 from bpy.props import (StringProperty, BoolProperty)
 from bpy.types import Operator
 
-from . import settings, utils, globalvar, template, async_loop, install_lib
+from . import settings, utils, globalvar, template, async_loop
 
 
 class Sublender_Base_Operator(object):
@@ -212,7 +212,7 @@ class Sublender_OT_Install_Deps(Operator):
     bl_description = "Install Dependencies"
 
     def execute(self, context):
-        state = install_lib.ensure_libs()
+        state = utils.install_lib.ensure_libs()
         utils.refresh_panel(context)
         if state:
             globalvar.display_restart = True

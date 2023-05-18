@@ -1,4 +1,5 @@
 from . import consts
+from . import install_lib
 
 import asyncio
 import os
