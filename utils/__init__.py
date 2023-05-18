@@ -12,9 +12,6 @@ from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
 from .. import globalvar, settings, parser, ui, sbsarlite
 
-print("PACKAGE======================")
-print(__package__)
-
 
 def sbsar_input_updated(_, context):
     if context.scene.sublender_settings.live_update and not globalvar.applying_preset:
@@ -490,6 +487,10 @@ def reset_material(material):
 def sublender_inited(context):
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     return globalvar.current_uuid != "" and globalvar.current_uuid == sublender_settings.uuid
+
+
+def get_addon_preferences(context):
+    return context.preferences.addons["sublender"].preferences
 
 
 def on_blender_undo(scene):
