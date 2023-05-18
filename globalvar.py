@@ -1,3 +1,4 @@
+import asyncio
 instance_map = {}
 sbsar_dict = {}
 
@@ -25,6 +26,10 @@ applying_preset = False
 
 py7zr_state = True
 display_restart = False
+
+task_id = 0
+queue: asyncio.Queue = asyncio.Queue()
+consumer_started = False
 
 
 def clear():

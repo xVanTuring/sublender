@@ -178,13 +178,13 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
     pop_import: BoolProperty(default=False, name="Pop Import")
 
     @classmethod
-    def poll(cls, _):
+    def poll(cls, context):
         return not bpy.data.filepath == ""
 
     async def async_execute(self, context):
         await utils.init_sublender_async(self, context)
         if self.pop_import:
-            bpy.ops.sublender.select_sbsar('INVOKE_DEFAULT', to_library=False)
+            bpy.ops.sublender.select_sbsar('INVOKE_DEFAULT')
 
 
 class Sublender_New_Instance(Sublender_Base_Operator, Operator):

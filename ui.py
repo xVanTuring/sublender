@@ -33,8 +33,7 @@ def draw_graph_item(self, context, target_mat):
         graph_info_column.prop(sublender_settings, 'active_graph')
 
     row.prop(sublender_settings, 'follow_selection', icon='RESTRICT_SELECT_OFF', icon_only=True)
-    operator = row.operator('sublender.select_sbsar', icon='IMPORT', text='')
-    operator.to_library = False
+    row.operator('sublender.select_sbsar', icon='IMPORT', text='')
 
 
 def draw_workflow_item(self, _, target_mat):
@@ -108,8 +107,7 @@ class SUBLENDER_PT_Main(Panel):
                 else:
                     self.layout.label(text="No material is selected")
             else:
-                operator = self.layout.operator("sublender.select_sbsar", icon='IMPORT')
-                operator.to_library = False
+                self.layout.operator("sublender.select_sbsar", icon='IMPORT')
 
 
 def calc_prop_visibility(eval_delegate, input_info: dict):
@@ -329,12 +327,11 @@ class SUBLENDER_PT_Library_Panel(Panel):
         return globalvar.py7zr_state
 
     def draw(self, context):
-        select_btn = self.layout.operator(
-            'sublender.select_sbsar',
+        self.layout.operator(
+            'sublender.select_sbsar_to_library',
             icon='IMPORT',
             text='Import to Library',
         )
-        select_btn.to_library = True
         if len(globalvar.library_category_material_map["$ALL$"]) > 0:
             properties = context.scene.sublender_library
             self.layout.prop(properties, "categories", text="")

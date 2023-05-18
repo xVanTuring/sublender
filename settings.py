@@ -1,3 +1,4 @@
+import typing
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 
@@ -71,6 +72,16 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
     importing_presets: bpy.props.CollectionProperty(type=ImportingPreset)
     category: EnumProperty(items=consts.build_in_material_type, default="$CUSTOM$")
     category_str: StringProperty(default="")
+    package_path: StringProperty(name="Package Path", subtype="FILE_PATH")
+
+
+def new_graph_item(graph_url: str, category: str, package_path: str):
+    return {
+        "graph_url": graph_url,
+        "category": category,
+        "package_path": package_path,
+        "presets": [],
+    }
 
 
 # region SublenderSetting

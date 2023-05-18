@@ -7,7 +7,6 @@ from typing import List
 import asyncio
 import bpy
 import os
-import sys
 from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 from bpy.utils import previews
@@ -56,11 +55,10 @@ def generate_cmd_list(context, target_dir: str, package_path, graph_url, preset_
     return param_list
 
 
-class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.render_preview_async"
     bl_label = "Render Preview"
     bl_description = "Render Preview"
-    package_path: StringProperty(default="")
     preset_name: StringProperty(default="")
     library_uid: StringProperty(default="")
     engine: StringProperty(default="eevee")
@@ -76,17 +74,16 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
                 process.terminate()
 
     def invoke(self, context, event):
-        if self.package_path == "" and self.preset_name == "":
-            self.report({"WARNING"}, "No Graph/Preset is selected or given")
-            return {"CANCELLED"}
-        self.task_id = self.package_path
+        self.task_id = "SublenderOTRenderPreviewAsync_%s" % globalvar.task_id
+        print("Current Task ID: %s" % self.task_id)
+        globalvar.task_id += 1
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str]):
         await self.run_async(bpy.context.preferences.addons[__package__].preferences.sbs_render, cmd_list)
 
-    async def render_graph(self, param_list, pkg_url, is_preset=False, category=""):
-        package_info = globalvar.sbsar_dict.get(self.package_path)
+    async def render_graph(self, package_path, param_list, pkg_url, is_preset=False, category=""):
+        package_info = globalvar.sbsar_dict.get(package_path)
         current_graph = None
         build_list = []
         for graph in package_info['graphs']:
@@ -143,7 +140,7 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
             preview_folder = os.path.join(get_sublender_library_dir(), uu_key, "default")
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
             copied_img = shutil.copy(sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
-            copied_sbsar = shutil.copy(self.package_path, pathlib.Path(preview_folder, "../").resolve())
+            copied_sbsar = shutil.copy(package_path, pathlib.Path(preview_folder, "../").resolve())
             globalvar.library["materials"][uu_key] = {
                 "label": label,
                 "sbsar_path": copied_sbsar,
@@ -173,64 +170,67 @@ class SUBLENDER_OT_Render_Preview_Async(async_loop.AsyncModalOperatorMixin, Oper
 
     async def async_execute(self, context):
         ensure_library()
-        start = datetime.datetime.now()
+        # start = datetime.datetime.now()
         target_dir = get_sublender_library_render_dir()
         if self.preset_name != "":
             material_info = globalvar.library["materials"].get(self.library_uid)
-            self.package_path = material_info["sbsar_path"]
+            package_path = material_info["sbsar_path"]
             preset_info = material_info["presets"][self.preset_name]
             preset_parameters = preset_info["values"]
             param_list = generate_cmd_list(context,
                                            target_dir,
-                                           self.package_path,
+                                           package_path,
                                            material_info["pkg_url"],
                                            preset_params=preset_parameters)
-            await self.render_graph(param_list, material_info["pkg_url"], is_preset=True)
+            await self.render_graph(package_path, param_list, material_info["pkg_url"], is_preset=True)
         else:
-            for importing_graph in context.scene.sublender_library.importing_graphs:
-                if not importing_graph.enable:
-                    continue
+            if globalvar.consumer_started:
+                return
+            globalvar.consumer_started = True
+            while True:
+                if globalvar.queue.empty():
+                    globalvar.consumer_started = False
+                    break
+                importing_graph_list = await globalvar.queue.get()
+                for importing_graph in importing_graph_list:
+                    package_path = importing_graph["package_path"]
+                    param_list = generate_cmd_list(context, target_dir, package_path, importing_graph["graph_url"])
+                    category = importing_graph["category"]
+                    graph_url = importing_graph["graph_url"]
+                    uu_key, current_graph = await self.render_graph(package_path,
+                                                                    param_list,
+                                                                    graph_url,
+                                                                    category=category)
+                    if uu_key is None or current_graph is None:
+                        return
 
-                param_list = generate_cmd_list(context, target_dir, self.package_path, importing_graph.graph_url)
-                category = importing_graph.category
-                if category == "$CUSTOM$":
-                    category = importing_graph.category_str
-                uu_key, current_graph = await self.render_graph(param_list,
-                                                                importing_graph.graph_url,
-                                                                category=category)
-
-                if uu_key is None or current_graph is None:
-                    return
-
-                for preset in importing_graph.importing_presets:
-                    if not preset.enable:
-                        continue
-                    self.preset_name = preset.name
-                    self.library_uid = uu_key
-                    preset_params = current_graph['presets'].get(preset.name)['inputs']
-                    globalvar.library["materials"].get(uu_key)["presets"][preset.name] = {
-                        "name": preset.name,
-                        "values": preset_params,
-                        "preview": ""
-                    }
-                    param_list = generate_cmd_list(context,
-                                                   target_dir,
-                                                   self.package_path,
-                                                   importing_graph.graph_url,
-                                                   preset_params=preset_params)
-                    self.report({'INFO'}, "Importing Preset {}".format(preset.name))
-                    await self.render_graph(param_list, importing_graph.graph_url, is_preset=True)
-
-        end = datetime.datetime.now()
-        # https://blender.stackexchange.com/a/30613
-        for region in context.area.regions:
-            if region.type == "UI":
-                region.tag_redraw()
-                break
-        self.report({"INFO"}, "Render Done! Time spent: {0}s.".format((end - start).total_seconds()))
+                    for preset_name in importing_graph["presets"]:
+                        self.preset_name = preset_name
+                        self.library_uid = uu_key
+                        preset_params = current_graph['presets'].get(preset_name)['inputs']
+                        globalvar.library["materials"].get(uu_key)["presets"][preset_name] = {
+                            "name": preset_name,
+                            "values": preset_params,
+                            "preview": ""
+                        }
+                        param_list = generate_cmd_list(context,
+                                                       target_dir,
+                                                       package_path,
+                                                       graph_url,
+                                                       preset_params=preset_params)
+                        self.report({'INFO'}, "Importing Preset {}".format(preset_name))
+                        await self.render_graph(package_path, param_list, graph_url, is_preset=True)
+                # end = datetime.datetime.now()
+                # https://blender.stackexchange.com/a/30613
+                for region in context.area.regions:
+                    if region.type == "UI":
+                        region.tag_redraw()
+                        break
+                # self.report({"INFO"}, "Render Done! Time spent: {0}s.".format((end - start).total_seconds()))
 
 
 class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
+    # TODO error after removing
     bl_idname = "sublender.remove_material"
     bl_label = "Remove"
     bl_description = "Remove selected material"
@@ -328,8 +328,8 @@ class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
     def execute(self, context):
         mat = bpy.data.materials.get(self.material_name)
         self.library_uid = mat.sublender.library_uid
-        globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name] \
-            = generate_preset(self.preset_name, self.material_name)
+        globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name] = generate_preset(
+            self.preset_name, self.material_name)
         bpy.ops.sublender.render_preview_async(library_uid=self.library_uid, preset_name=self.preset_name)
         return {'FINISHED'}
 
@@ -486,7 +486,7 @@ def sync_library():
 
 
 def register():
-    bpy.utils.register_class(SUBLENDER_OT_Render_Preview_Async)
+    bpy.utils.register_class(SublenderOTRenderPreviewAsync)
     bpy.utils.register_class(SUBLENDER_OT_REMOVE_MATERIAL)
     bpy.utils.register_class(SUBLENDER_OT_SAVE_AS_PRESET)
     bpy.utils.register_class(SUBLENDER_OT_APPLY_PRESET)
@@ -496,7 +496,7 @@ def register():
 def unregister():
     previews.remove(globalvar.preview_collections)
     globalvar.preview_collections = None
-    bpy.utils.unregister_class(SUBLENDER_OT_Render_Preview_Async)
+    bpy.utils.unregister_class(SublenderOTRenderPreviewAsync)
     bpy.utils.unregister_class(SUBLENDER_OT_REMOVE_MATERIAL)
     bpy.utils.unregister_class(SUBLENDER_OT_SAVE_AS_PRESET)
     bpy.utils.unregister_class(SUBLENDER_OT_APPLY_PRESET)

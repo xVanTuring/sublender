@@ -2,16 +2,16 @@ import asyncio
 import pathlib
 
 import bpy
-from bpy.props import (StringProperty, BoolProperty, EnumProperty)
-from bpy.types import Operator
+from bpy.props import (StringProperty, BoolProperty, EnumProperty, CollectionProperty)
+from bpy.types import Operator, OperatorFileListElement
 from bpy_extras.io_utils import ImportHelper
 
 from . import globalvar, utils, async_loop, consts, template
-from .settings import Sublender_Material_MT_Setting
+from .settings import Sublender_Material_MT_Setting, new_graph_item
 from .utils import new_material_name, EvalDelegate
 
 
-class Sublender_Import_Graph(Operator):
+class SublenderOTImportGraph(Operator):
     bl_idname = "sublender.import_graph"
     bl_label = "Import Graph"
     package_path: StringProperty(name='Current Graph')
@@ -102,55 +102,30 @@ class Sublender_Import_Graph(Operator):
                 row.prop(importing_graph, "assign_to_selection", toggle=1)
 
 
-class Sublender_Sbsar_Selector(Operator, ImportHelper):
+# TODO register importer to import menu
+class SublenderOTSelectSbsar(Operator, ImportHelper):
     bl_idname = "sublender.select_sbsar"
     bl_label = "Import Sbsar"
     bl_description = "Import Sbsar"
     filename_ext = ".sbsar"
-    to_library: BoolProperty(default=False, name="Import To Library")
     filter_glob: StringProperty(default="*.sbsar", options={'HIDDEN'}, maxlen=255)
+    filepath: StringProperty(subtype='FILE_PATH')
+
+    @classmethod
+    def poll(cls, _):
+        return not bpy.data.filepath == ""
 
     def execute(self, _):
-        file_extension = pathlib.Path(self.filepath).suffix
-        if file_extension != ".sbsar":
-            self.report({'WARNING'}, "File extension doesn't match")
-            return {'CANCELLED'}
-
-        if self.to_library:
-            bpy.ops.sublender.import_sbsar_to_library(sbsar_path=self.filepath)
-        else:
-            bpy.ops.sublender.import_sbsar(sbsar_path=self.filepath, from_library=False)
+        bpy.ops.sublender.import_sbsar(sbsar_path=self.filepath, from_library=False)
         return {'FINISHED'}
 
 
-class Sublender_Import_Sbsar_To_Library(async_loop.AsyncModalOperatorMixin, Operator):
-    bl_idname = "sublender.import_sbsar_to_library"
-    bl_label = "Import Sbsar"
-    bl_description = "Import Sbsar"
-    sbsar_path: StringProperty()
-    task_id = "Sublender_Import_Sbsar_To_Library"
-
-    async def async_execute(self, context):
-        sbs_pkg = await utils.load_sbsar_to_dict_async(self.sbsar_path, self.report)
-        if sbs_pkg is not None:
-            importing_graphs = context.scene.sublender_library.importing_graphs
-            importing_graphs.clear()
-            for graph_info in sbs_pkg['graphs']:
-                adding_graph = importing_graphs.add()
-                adding_graph.graph_url = graph_info["pkgUrl"]
-                adding_graph.category_str = graph_info["category"]
-                for preset_name in graph_info['presets'].keys():
-                    importing_preset = adding_graph.importing_presets.add()
-                    importing_preset.name = preset_name
-            bpy.ops.sublender.import_graph_to_library('INVOKE_DEFAULT', package_path=self.sbsar_path)
-
-
-class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.import_sbsar"
     bl_label = "Import"
     bl_description = "Import"
     sbsar_path: StringProperty()
-    task_id = "Sublender_Import_Sbsar"
+    task_id = "SublenderOTImportSbsar"
     from_library: BoolProperty(default=False)
     pkg_url = ""
 
@@ -161,17 +136,13 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
     async def async_execute(self, context):
         if not utils.inited(context):
             await utils.init_sublender_async(self, context)
-        loop = asyncio.get_event_loop()
         if self.from_library:
             active_material = context.scene.sublender_library.active_material
             sbs_graph_info = globalvar.library["materials"].get(active_material)
             self.sbsar_path = sbs_graph_info["sbsar_path"]
             self.pkg_url = sbs_graph_info["pkg_url"]
-        self.report({"INFO"}, "Parsing package: {0}".format(self.sbsar_path))
-        sbs_pkg = await loop.run_in_executor(None, utils.parse_sbsar_package, self.sbsar_path)
+        sbs_pkg = await utils.load_sbsar_to_dict_async(self.sbsar_path, self.report)
         if sbs_pkg is not None:
-            globalvar.sbsar_dict[self.sbsar_path] = sbs_pkg
-
             importing_graph_items = context.scene.sublender_settings.importing_graphs
             importing_graph_items.clear()
             for graph_info in sbs_pkg['graphs']:
@@ -193,10 +164,62 @@ class Sublender_Import_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
             bpy.ops.sublender.import_graph('INVOKE_DEFAULT', package_path=self.sbsar_path)
 
 
-class Sublender_Import_Graph_To_Library(Operator):
-    bl_idname = "sublender.import_graph_to_library"
+class SublenderOTSelectSbsarLibrary(Operator, ImportHelper):
+    bl_idname = "sublender.select_sbsar_to_library"
+    bl_label = "Import Sbsar to Library"
+    bl_description = "Import Sbsar to Library"
+    filename_ext = ".sbsar"
+    filter_glob: StringProperty(default="*.sbsar", options={'HIDDEN'}, maxlen=255)
+    # https://gist.github.com/batFINGER/2c0604be3620def01c4eeaff6ceb22f4
+    files: CollectionProperty(name="Sbsar files", type=OperatorFileListElement)
+    directory: StringProperty(subtype='DIR_PATH')
+
+    @classmethod
+    def poll(cls, context):
+        return len(context.scene.sublender_library.importing_graphs) == 0
+
+    def execute(self, context):
+        files_str = ""
+        importing_graphs = context.scene.sublender_library.importing_graphs
+        importing_graphs.clear()
+        for file in self.files:
+            if pathlib.Path(file.name).suffix != ".sbsar":
+                self.report({'WARNING'}, "File extension doesn't match")
+                return {'CANCELLED'}
+            files_str += "%s|" % str(pathlib.Path(self.directory, file.name))
+        bpy.ops.sublender.parse_selected_sbsars(files_list=files_str)
+        return {'FINISHED'}
+
+
+class SublenderOTParseSelectedSbsars(async_loop.AsyncModalOperatorMixin, Operator):
+    bl_idname = "sublender.parse_selected_sbsars"
+    bl_label = "Parse Sbsars"
+    bl_description = "Parse Sbsars"
+
+    files_list: StringProperty()
+    task_id = "SublenderOTParseSelectedSbsars"
+
+    async def async_execute(self, context):
+        importing_graphs = context.scene.sublender_library.importing_graphs
+        importing_graphs.clear()
+        sbsar_files = filter(lambda x: x, self.files_list.split("|"))
+        for sbsar_path in sbsar_files:
+            sbs_pkg = await utils.load_sbsar_to_dict_async(sbsar_path, self.report)
+            if sbs_pkg is not None:
+                for graph_info in sbs_pkg['graphs']:
+                    adding_graph = importing_graphs.add()
+                    adding_graph.graph_url = graph_info["pkgUrl"]
+                    adding_graph.category_str = graph_info["category"]
+                    adding_graph.package_path = sbsar_path
+                    for preset_name in graph_info['presets'].keys():
+                        importing_preset = adding_graph.importing_presets.add()
+                        importing_preset.name = preset_name
+        bpy.ops.sublender.import_graphs_to_library('INVOKE_DEFAULT')
+
+
+class SublenderOTImportGraphesToLibrary(Operator):
+    bl_idname = "sublender.import_graphs_to_library"
     bl_label = "Import Package"
-    package_path: StringProperty(name='Current Graph')
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Engine")
     invert_normal: BoolProperty(
         name="Invert Normal",
@@ -206,12 +229,29 @@ class Sublender_Import_Graph_To_Library(Operator):
         "Conversion can be done by inverting the G channel of Normal texture.")
     cloth_template: BoolProperty(default=False, name="Use Cloth Template")
 
-    def execute(self, _):
-        bpy.ops.sublender.render_preview_async(package_path=self.package_path,
-                                               engine=self.engine,
+    def execute(self, context):
+        graphtask_list = []
+        for importing_graph in context.scene.sublender_library.importing_graphs:
+            if not importing_graph.enable:
+                continue
+            category = importing_graph.category
+            if category == "$CUSTOM$":
+                category = importing_graph.category_str
+            graph_item = new_graph_item(importing_graph.graph_url, category, importing_graph.package_path)
+            for preset in importing_graph.importing_presets:
+                if not preset.enable:
+                    continue
+                graph_item["presets"].append(preset.name)
+            graphtask_list.append(graph_item)
+        globalvar.queue.put_nowait(graphtask_list)
+        context.scene.sublender_library.importing_graphs.clear()
+        bpy.ops.sublender.render_preview_async(engine=self.engine,
                                                invert_normal=self.invert_normal,
                                                cloth_template=self.cloth_template)
         return {'FINISHED'}
+
+    def cancel(self, context):
+        context.scene.sublender_library.importing_graphs.clear()
 
     def invoke(self, context, _):
         wm = context.window_manager
@@ -242,16 +282,18 @@ class Sublender_Import_Graph_To_Library(Operator):
 
 
 def register():
-    bpy.utils.register_class(Sublender_Import_Graph)
-    bpy.utils.register_class(Sublender_Import_Sbsar)
-    bpy.utils.register_class(Sublender_Sbsar_Selector)
-    bpy.utils.register_class(Sublender_Import_Graph_To_Library)
-    bpy.utils.register_class(Sublender_Import_Sbsar_To_Library)
+    bpy.utils.register_class(SublenderOTImportGraph)
+    bpy.utils.register_class(SublenderOTImportSbsar)
+    bpy.utils.register_class(SublenderOTSelectSbsar)
+    bpy.utils.register_class(SublenderOTImportGraphesToLibrary)
+    bpy.utils.register_class(SublenderOTParseSelectedSbsars)
+    bpy.utils.register_class(SublenderOTSelectSbsarLibrary)
 
 
 def unregister():
-    bpy.utils.unregister_class(Sublender_Import_Graph)
-    bpy.utils.unregister_class(Sublender_Import_Sbsar)
-    bpy.utils.unregister_class(Sublender_Sbsar_Selector)
-    bpy.utils.unregister_class(Sublender_Import_Graph_To_Library)
-    bpy.utils.unregister_class(Sublender_Import_Sbsar_To_Library)
+    bpy.utils.unregister_class(SublenderOTSelectSbsarLibrary)
+    bpy.utils.unregister_class(SublenderOTImportGraph)
+    bpy.utils.unregister_class(SublenderOTImportSbsar)
+    bpy.utils.unregister_class(SublenderOTSelectSbsar)
+    bpy.utils.unregister_class(SublenderOTImportGraphesToLibrary)
+    bpy.utils.unregister_class(SublenderOTParseSelectedSbsars)
