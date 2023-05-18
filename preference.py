@@ -4,7 +4,7 @@ import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import AddonPreferences, Operator
 
-from . import consts, globalvar, install_lib, sb_operators, ui
+from . import utils, globalvar, ui
 
 default_library_path = os.path.expanduser("~/Documents/Sublender")
 
@@ -30,8 +30,8 @@ class SublenderPreferences(AddonPreferences):
     # when defining this in a submodule of a python package.
     bl_idname = __package__
 
-    output_size_x: EnumProperty(name='Width', items=consts.output_size_one_enum, default='8')
-    output_size_y: EnumProperty(name='Height', items=consts.output_size_one_enum, default='8')
+    output_size_x: EnumProperty(name='Width', items=utils.consts.output_size_one_enum, default='8')
+    output_size_y: EnumProperty(name='Height', items=utils.consts.output_size_one_enum, default='8')
     output_size_lock: BoolProperty(default=True, update=output_size_x_updated)
 
     enable_visible_if: BoolProperty(name="Enable Visible If")
@@ -42,7 +42,7 @@ class SublenderPreferences(AddonPreferences):
                                       "d3d11pc: it will use dx11 as render engine, might not be available in linux"),
                                      ("sse2", "sse2(CPU)", "sse2"), ("ogl3", "ogl3(GPU,non-windows)", "ogl3"),
                                      ("d3d10pc", "d3d10pc(GPU,2019)", "similar to d3d11pc, but for substance 2019"),
-                                     (consts.CUSTOM, "Custom", "Custom")],
+                                     (utils.consts.CUSTOM, "Custom", "Custom")],
                               default="$default$",
                               name="Substance Render Engine")
     custom_engine: StringProperty(name="Custom Engine", default='')
@@ -77,7 +77,7 @@ class SublenderPreferences(AddonPreferences):
         row.prop(self, 'memory_budget')
         row.prop(self, 'hide_channels', toggle=1)
         layout.prop(self, 'engine_enum')
-        if self.engine_enum == consts.CUSTOM:
+        if self.engine_enum == utils.consts.CUSTOM:
             layout.prop(self, 'custom_engine')
         layout.prop(self, 'library_preview_engine')
 

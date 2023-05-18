@@ -6,7 +6,7 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty, CollectionPro
 from bpy.types import Operator, OperatorFileListElement
 from bpy_extras.io_utils import ImportHelper
 
-from . import globalvar, utils, async_loop, consts, template
+from . import globalvar, utils, async_loop, template
 from .settings import Sublender_Material_MT_Setting, new_graph_item
 from .utils import new_material_name, EvalDelegate
 
@@ -59,7 +59,7 @@ class SublenderOTImportGraph(Operator):
                 globalvar.eval_delegate_map[material.name] = EvalDelegate(material.name, clss_name)
 
             graph_setting = getattr(material, clss_name)
-            if active_material_template != consts.CUSTOM:
+            if active_material_template != utils.consts.CUSTOM:
                 material_template = globalvar.material_templates.get(active_material_template)
                 output_info_usage: dict = clss_info['output_info']['usage']
                 for template_texture in material_template['texture']:
@@ -70,7 +70,7 @@ class SublenderOTImportGraph(Operator):
             else:
                 for output_info in clss_info['output_info']['list']:
                     setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
-            setattr(graph_setting, consts.SBS_CONFIGURED, True)
+            setattr(graph_setting, utils.consts.SBS_CONFIGURED, True)
             if importing_graph.preset_name != "":
                 utils.apply_preset(material, importing_graph.preset_name)
         bpy.ops.sublender.render_texture_async(importing_graph=True, package_path=self.package_path)
@@ -134,7 +134,7 @@ class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
         return not bpy.data.filepath == ""
 
     async def async_execute(self, context):
-        if not utils.inited(context):
+        if not utils.sublender_inited(context):
             await utils.init_sublender_async(self, context)
         if self.from_library:
             active_material = context.scene.sublender_library.active_material

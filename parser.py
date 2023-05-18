@@ -1,5 +1,5 @@
 import bpy
-from .consts import sbsar_name_to_label
+from .utils.consts import sbsar_name_to_label
 
 
 def hash_prop(value: str):

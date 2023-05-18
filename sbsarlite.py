@@ -4,7 +4,7 @@ from collections import OrderedDict
 import tempfile
 import xml
 
-from . import (parser, consts)
+from . import (parser, utils)
 
 
 def parse_sbsar_raw(raw: OrderedDict):
@@ -152,7 +152,7 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
 
             if raw.get('guislider').get('@step'):
                 parsed_input['step'] = parse_str_value(raw.get('guislider')['@step'], type_num)
-                if type_num < consts.SBSARTypeEnum.INTEGER1:
+                if type_num < utils.consts.SBSARTypeEnum.INTEGER1:
                     if parsed_input['step']:
                         parsed_input['step'] = parsed_input['step'] * 100
 

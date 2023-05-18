@@ -5,7 +5,7 @@ import bpy
 from bpy.props import (StringProperty, BoolProperty)
 from bpy.types import Operator
 
-from . import settings, utils, globalvar, consts, template, async_loop, install_lib
+from . import settings, utils, globalvar, template, async_loop, install_lib
 
 
 class Sublender_Base_Operator(object):
@@ -31,18 +31,18 @@ class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
         output_info_usage: dict = clss_info['output_info']['usage']
         graph_setting = getattr(material_inst, clss_name)
 
-        setattr(graph_setting, consts.SBS_CONFIGURED, False)
-        if workflow_name != consts.CUSTOM:
+        setattr(graph_setting, utils.consts.SBS_CONFIGURED, False)
+        if workflow_name != utils.consts.CUSTOM:
             for template_texture in material_template['texture']:
                 if output_info_usage.get(template_texture) is not None:
                     name = output_info_usage.get(template_texture)[0]
                     setattr(graph_setting, utils.sb_output_to_prop(name), True)
-            setattr(graph_setting, consts.SBS_CONFIGURED, True)
+            setattr(graph_setting, utils.consts.SBS_CONFIGURED, True)
             template.inflate_template(material_inst, workflow_name, True)
         else:
             for output_info in clss_info['output_info']['list']:
                 setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
-        setattr(graph_setting, consts.SBS_CONFIGURED, True)
+        setattr(graph_setting, utils.consts.SBS_CONFIGURED, True)
         bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
         return {'FINISHED'}
 
@@ -121,7 +121,7 @@ class SUBLENDER_OT_Load_Image(Operator):
         bl_img = bpy.data.images.load(self.filepath, check_existing=True)
         bl_img.name = self.bl_img_name
         globalvar.file_existence_dict[self.filepath] = True
-        if self.usage != "" and self.usage not in consts.usage_color_dict:
+        if self.usage != "" and self.usage not in utils.consts.usage_color_dict:
             bl_img.colorspace_settings.name = 'Non-Color'
         return {'FINISHED'}
 
@@ -144,7 +144,7 @@ class SUBLENDER_OT_Apply_Image(Operator):
                 bl_texture_node = target_mat.node_tree.nodes.new('ShaderNodeTexImage')
                 bl_texture_node.name = self.node_name
                 bl_texture_node.image = bpy.data.images.get(self.bl_img_name)
-                bl_texture_node.label = consts.usage_to_label.get(self.node_name, self.node_name)
+                bl_texture_node.label = utils.consts.usage_to_label.get(self.node_name, self.node_name)
 
         return {'FINISHED'}
 

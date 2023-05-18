@@ -67,7 +67,7 @@ output_size_enum = [
     (CUSTOM, "Custom", "Custom"),
 ]
 
-ADDON_DIR = os.path.dirname(__file__)
+ADDON_DIR = os.path.join(os.path.dirname(__file__), "../")
 
 TEMPLATE_PATH = os.path.join(ADDON_DIR, 'workflows')
 RESOURCES_PATH = os.path.join(ADDON_DIR, 'resources')

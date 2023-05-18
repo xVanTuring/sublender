@@ -2,7 +2,7 @@ import typing
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 
-from . import globalvar, consts
+from . import globalvar, utils
 
 
 # region get/set idx
@@ -70,7 +70,7 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
     library_uid: StringProperty(default="")
     preset_name: StringProperty(default="")
     importing_presets: bpy.props.CollectionProperty(type=ImportingPreset)
-    category: EnumProperty(items=consts.build_in_material_type, default="$CUSTOM$")
+    category: EnumProperty(items=utils.consts.build_in_material_type, default="$CUSTOM$")
     category_str: StringProperty(default="")
     package_path: StringProperty(name="Package Path", subtype="FILE_PATH")
 

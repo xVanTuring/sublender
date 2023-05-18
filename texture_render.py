@@ -8,7 +8,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 
-from . import globalvar, settings, utils, consts, async_loop
+from . import globalvar, settings, utils, async_loop
 
 
 def generate_cmd_list(context, target_material_name: str, m_sublender, clss_info, graph_setting):
@@ -16,16 +16,16 @@ def generate_cmd_list(context, target_material_name: str, m_sublender, clss_info
     param_list = ["render", "--input", m_sublender.package_path, "--input-graph", m_sublender.graph_url]
     for input_info in input_list:
         if input_info['identifier'] == '$outputsize':
-            locked = getattr(graph_setting, consts.output_size_lock, True)
+            locked = getattr(graph_setting, utils.consts.output_size_lock, True)
             param_list.append("--set-value")
-            width = getattr(graph_setting, consts.output_size_x)
+            width = getattr(graph_setting, utils.consts.output_size_x)
             if locked:
                 param_list.append("{0}@{1},{1}".format(input_info['identifier'], width))
             else:
-                height = getattr(graph_setting, consts.output_size_x)
+                height = getattr(graph_setting, utils.consts.output_size_x)
                 param_list.append("{0}@{1},{2}".format(input_info['identifier'], width, height))
         else:
-            is_image = input_info['type'] == consts.SBSARTypeEnum.IMAGE
+            is_image = input_info['type'] == utils.consts.SBSARTypeEnum.IMAGE
             value = graph_setting.get(input_info['prop'])
             if value is not None:
                 if input_info.get('enum_items') is not None:
@@ -58,7 +58,7 @@ def generate_cmd_list(context, target_material_name: str, m_sublender, clss_info
     param_list.append("{outputNodeName}")
     engine_value = context.preferences.addons[__package__].preferences.engine_enum
     if engine_value != "$default$":
-        if engine_value != consts.CUSTOM:
+        if engine_value != utils.consts.CUSTOM:
             param_list.append('--engine')
             param_list.append(engine_value)
             print("Render engine is {0}".format(engine_value))
@@ -127,7 +127,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Oper
             texture_image = bpy.data.images.load(texture_path, check_existing=True)
             texture_image.name = bl_img_name
             texture_image.use_fake_user = True
-        if not output_info['usages'] or output_info['usages'][0] not in consts.usage_color_dict:
+        if not output_info['usages'] or output_info['usages'][0] not in utils.consts.usage_color_dict:
             texture_image.colorspace_settings.name = 'Non-Color'
         if output_info['usages'] is not None:
             material_instance: bpy.types.Material = bpy.data.materials.get(self.material_name)

@@ -11,7 +11,7 @@ from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 from bpy.utils import previews
 
-from . import consts, async_loop, utils, globalvar
+from . import async_loop, utils, globalvar
 
 default_usage_list = ["baseColor", "metallic", "roughness", "normal"]
 
@@ -23,7 +23,7 @@ def generate_cmd_list(context, target_dir: str, package_path, graph_url, preset_
         param_list.append("$outputsize@9,9")
     else:
         for p in preset_params:
-            is_image = p['type'] == consts.SBSARTypeEnum.IMAGE
+            is_image = p['type'] == utils.consts.SBSARTypeEnum.IMAGE
             if is_image:
                 param_list.append("--set-entry")
             else:
@@ -36,7 +36,7 @@ def generate_cmd_list(context, target_dir: str, package_path, graph_url, preset_
 
     engine_value = context.preferences.addons[__package__].preferences.engine_enum
     if engine_value != "$default$":
-        if engine_value != consts.CUSTOM:
+        if engine_value != utils.consts.CUSTOM:
             param_list.append('--engine')
             param_list.append(engine_value)
             print("Render engine is {0}".format(engine_value))
@@ -118,14 +118,14 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
 
         await asyncio.gather(*worker_list)
         if self.cloth_template:
-            blender_file = get_sublender_library_render_dir(consts.sublender_cloth_template_file)
+            blender_file = get_sublender_library_render_dir(utils.consts.sublender_cloth_template_file)
         else:
-            blender_file = get_sublender_library_render_dir(consts.sublender_default_template_file)
+            blender_file = get_sublender_library_render_dir(utils.consts.sublender_default_template_file)
         if self.invert_normal:
             if self.cloth_template:
-                blender_file = get_sublender_library_render_dir(consts.sublender_cloth_template_invert_file)
+                blender_file = get_sublender_library_render_dir(utils.consts.sublender_cloth_template_invert_file)
             else:
-                blender_file = get_sublender_library_render_dir(consts.sublender_template_invert_file)
+                blender_file = get_sublender_library_render_dir(utils.consts.sublender_template_invert_file)
 
         preview_cmd = ["-b", blender_file, "-o", get_sublender_library_render_dir("out#.png"), "-E"]
         if self.engine == "cycles":
@@ -390,13 +390,13 @@ def ensure_template_render_env():
     sublender_library_render_cloth_template_invert_file = os.path.join(sublender_library_render_dir,
                                                                        "preview_cloth_template_invert.blend")
     if not os.path.exists(sublender_library_render_template_file):
-        shutil.copy(consts.packed_sublender_template_file, sublender_library_render_template_file)
+        shutil.copy(utils.consts.packed_sublender_template_file, sublender_library_render_template_file)
     if not os.path.exists(sublender_library_render_template_invert_file):
-        shutil.copy(consts.packed_sublender_template_invert_file, sublender_library_render_template_invert_file)
+        shutil.copy(utils.consts.packed_sublender_template_invert_file, sublender_library_render_template_invert_file)
     if not os.path.exists(sublender_library_render_cloth_template_file):
-        shutil.copy(consts.packed_sublender_template_cloth_file, sublender_library_render_cloth_template_file)
+        shutil.copy(utils.consts.packed_sublender_template_cloth_file, sublender_library_render_cloth_template_file)
     if not os.path.exists(sublender_library_render_cloth_template_invert_file):
-        shutil.copy(consts.packed_sublender_template_cloth_invert_file,
+        shutil.copy(utils.consts.packed_sublender_template_cloth_invert_file,
                     sublender_library_render_cloth_template_invert_file)
 
 

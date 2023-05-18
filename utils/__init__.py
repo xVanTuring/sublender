@@ -1,3 +1,5 @@
+from . import consts
+
 import asyncio
 import os
 import pathlib
@@ -8,8 +10,10 @@ import bpy
 import mathutils
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
-from . import globalvar, consts, settings, parser, ui, sbsarlite
-from .parser import parse_sbsar_group
+from .. import globalvar, settings, parser, ui, sbsarlite
+
+print("PACKAGE======================")
+print(__package__)
 
 
 def sbsar_input_updated(_, context):
@@ -200,7 +204,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             _anno_item['update'] = sbsar_input_updated
             if input_info['identifier'] == '$outputsize':
                 preferences = bpy.context.preferences
-                addon_prefs = preferences.addons[__package__].preferences
+                addon_prefs = preferences.addons["sublender"].preferences
                 _anno_obj[consts.output_size_x] = (EnumProperty, {
                     'items': consts.output_size_one_enum,
                     'default': addon_prefs.output_size_x,
@@ -246,7 +250,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
 
         output_list_dict, output_list, output_usage_dict = graph_output_parse(all_outputs, parse_output)
 
-        group_tree, group_map = parse_sbsar_group(sbs_graph)
+        group_tree, group_map = parser.parse_sbsar_group(sbs_graph)
         generate_sub_panel(group_map, graph_url)
         _anno_obj[consts.SBS_CONFIGURED] = (BoolProperty, {
             'name': "SBS Configured",
@@ -344,7 +348,7 @@ async def load_sbsar_to_dict_async(filepath: str, report=None):
 
 
 async def load_sbsars_async(report=None):
-    preferences = bpy.context.preferences.addons[__package__].preferences
+    preferences = bpy.context.preferences.addons["sublender"].preferences
     sb_materials = []
     sbs_package_set = set()
 
@@ -378,7 +382,7 @@ def texture_output_dir(material_name: str):
 
 
 def find_active_mat(context):
-    if not inited(context):
+    if not sublender_inited(context):
         return None
     scene_sb_settings = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
@@ -397,7 +401,7 @@ def find_active_mat(context):
 
 
 def find_active_graph(context):
-    if not inited(context):
+    if not sublender_inited(context):
         return None
     scene_sb_settings: settings.SublenderSetting = context.scene.sublender_settings
     if scene_sb_settings.follow_selection:
@@ -483,7 +487,7 @@ def reset_material(material):
             graph_setting.property_unset(p_input["prop"])
 
 
-def inited(context):
+def sublender_inited(context):
     sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
     return globalvar.current_uuid != "" and globalvar.current_uuid == sublender_settings.uuid
 

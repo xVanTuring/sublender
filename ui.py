@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy.types import Panel
 
-from . import settings, utils, globalvar, consts, sb_operators
+from . import settings, utils, globalvar, sb_operators
 
 
 def draw_instance_item(self, context, target_mat):
@@ -83,7 +83,7 @@ class SUBLENDER_PT_Main(Panel):
             draw_install_deps(self.layout)
             return
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-        if not utils.inited(context):
+        if not utils.sublender_inited(context):
             if bpy.data.filepath == "":
                 self.layout.operator("wm.save_mainfile")
                 self.layout.box().label(text="Please save your file first.")
@@ -145,7 +145,7 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.inited(context) or len(globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
             return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
@@ -177,7 +177,7 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.inited(context) or len(globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
             return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
@@ -260,7 +260,7 @@ class Sublender_Prop_BasePanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.inited(context) or len(globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
             return False
         preferences = context.preferences.addons[__package__].preferences
         if preferences.hide_channels and cls.bl_label == "Channels":
@@ -292,14 +292,18 @@ class Sublender_Prop_BasePanel(Panel):
         for prop_info in self.group_info['inputs']:
             if prop_info.get('identifier') == '$outputsize':
                 row = layout.row()
-                row.prop(graph_setting, consts.output_size_x, text='Size')
-                row.prop(graph_setting, consts.output_size_lock, toggle=1, icon_only=True, icon="LINKED")
-                if getattr(graph_setting, consts.output_size_lock):
-                    row.prop(graph_setting, consts.output_size_x, text='')
+                row.prop(graph_setting, utils.consts.output_size_x, text='Size')
+                row.prop(graph_setting, utils.consts.output_size_lock, toggle=1, icon_only=True, icon="LINKED")
+                if getattr(graph_setting, utils.consts.output_size_lock):
+                    row.prop(graph_setting, utils.consts.output_size_x, text='')
                 else:
-                    row.prop(graph_setting, consts.output_size_y, text='')
+                    row.prop(graph_setting, utils.consts.output_size_y, text='')
                 if context.scene.sublender_settings.live_update:
-                    row.prop(graph_setting, consts.update_when_sizing, toggle=1, icon_only=True, icon="UV_SYNC_SELECT")
+                    row.prop(graph_setting,
+                             utils.consts.update_when_sizing,
+                             toggle=1,
+                             icon_only=True,
+                             icon="UV_SYNC_SELECT")
             elif prop_info.get('identifier') == "$randomseed":
                 row = layout.row()
                 row.prop(graph_setting, prop_info['prop'], text=prop_info['label'])

@@ -3,7 +3,7 @@ import os
 
 import bpy
 
-from . import globalvar, consts
+from . import globalvar, utils
 
 
 def is_type(val, type_str: str):
@@ -65,8 +65,8 @@ def ensure_options(mat, template):
 
 
 def load_default_texture(mat, template):
-    default_color = os.path.join(consts.RESOURCES_PATH, "default_color.png")
-    default_normal = os.path.join(consts.RESOURCES_PATH, "default_normal.png")
+    default_color = os.path.join(utils.consts.RESOURCES_PATH, "default_color.png")
+    default_normal = os.path.join(utils.consts.RESOURCES_PATH, "default_normal.png")
     default_color_node = bpy.data.images.load(default_color, check_existing=True)
     default_normal_node = bpy.data.images.load(default_normal, check_existing=True)
     for texture in template['texture']:
@@ -89,7 +89,7 @@ def inflate_template(mat, template_name: str, clear_nodes=False):
 
 
 def load_material_templates():
-    template_path = consts.TEMPLATE_PATH
+    template_path = utils.consts.TEMPLATE_PATH
     files = os.listdir(template_path)
     files.sort()
 
@@ -110,4 +110,4 @@ def load_material_templates():
                         material_temp.get('description', file_name_full),
                     ))
     globalvar.material_template_enum.append(
-        (consts.CUSTOM, "Custom", "Custom Workflow, empty material will be generated."))
+        (utils.consts.CUSTOM, "Custom", "Custom Workflow, empty material will be generated."))
