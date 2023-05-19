@@ -88,10 +88,8 @@ def register():
         render = reload_mod('render')
         sb_operators = reload_mod('sb_operators')
         ui = reload_mod('ui')
-        sublender_library = reload_mod('sublender_library')
     else:
-        from . import (template, settings, importer, preference, async_loop, render, sb_operators, ui,
-                       sublender_library)
+        from . import (template, settings, importer, preference, async_loop, render, sb_operators, ui)
 
     template.load_material_templates()
     preference.register()
@@ -102,9 +100,8 @@ def register():
     settings.register()
     sb_operators.register()
     ui.register()
-    sublender_library.register()
-    sublender_library.ensure_library()
-    sublender_library.load_library()
+    render.sublender_library.ensure_library()
+    render.sublender_library.load_library()
     bpy.app.handlers.load_pre.append(on_load_pre)
     bpy.app.handlers.save_pre.append(on_save_pre)
     bpy.app.handlers.save_post.append(on_save_post)
@@ -113,7 +110,7 @@ def register():
 
 
 def unregister():
-    from . import (settings, importer, preference, async_loop, render, sb_operators, ui, sublender_library, utils)
+    from . import (settings, importer, preference, async_loop, render, sb_operators, ui, utils)
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
@@ -121,7 +118,6 @@ def unregister():
     importer.unregister()
     settings.unregister()
     sb_operators.unregister()
-    sublender_library.unregister()
     utils.unregister()
 
     for clss in globalvar.sub_panel_clss_list:

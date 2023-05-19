@@ -1,6 +1,7 @@
 import bpy
 import pathlib, tempfile, os
 from . import texture_render
+from . import sublender_library
 from ..utils import globalvar
 
 
@@ -17,7 +18,9 @@ def texture_output_dir(material_name: str):
 
 def register():
     texture_render.register()
+    sublender_library.register()
 
 
 def unregister():
     texture_render.unregister()
+    sublender_library.unregister()
