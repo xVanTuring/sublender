@@ -126,7 +126,7 @@ class SublenderOTImportGraphesToLibrary(Operator):
         row.prop(self, 'cloth_template', toggle=1)
 
 
-registerlist = [
+cls_list = [
     SublenderOTImportGraphesToLibrary,
     SublenderOTParseSelectedSbsars,
     SublenderOTSelectSbsarLibrary,
@@ -134,10 +134,10 @@ registerlist = [
 
 
 def register():
-    for cls in registerlist:
+    for cls in cls_list:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    for cls in reversed(registerlist):
+    for cls in reversed(cls_list):
         bpy.utils.unregister_class(cls)

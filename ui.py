@@ -69,7 +69,7 @@ def draw_install_deps(layout):
         box.operator("wm.quit_blender")
     else:
         box.label(text="Install Dependencies and restart blender afterwards.")
-        box.operator(sb_operators.Sublender_OT_Install_Deps.bl_idname)
+        box.operator("sublender.install_deps")
 
 
 class SUBLENDER_PT_Main(Panel):
@@ -195,7 +195,7 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         open_texture_dir = self.layout.operator("wm.path_open", text="Open Texture Folder", icon="VIEWZOOM")
         material_output_folder = render.texture_output_dir(active_mat.name)
         open_texture_dir.filepath = material_output_folder
-        display_output_params = context.preferences.addons[__package__].preferences.enable_output_params
+        display_output_params = context.preferences.addons["sublender"].preferences.enable_output_params
 
         for output_info in utils.globalvar.graph_clss.get(clss_name)['output_info']['list']:
             sbo_prop_name = utils.sb_output_to_prop(output_info['name'])
@@ -262,7 +262,7 @@ class Sublender_Prop_BasePanel(Panel):
     def poll(cls, context):
         if not utils.sublender_inited(context) or len(utils.globalvar.graph_enum) == 0:
             return False
-        preferences = context.preferences.addons[__package__].preferences
+        preferences = context.preferences.addons["sublender"].preferences
         if preferences.hide_channels and cls.bl_label == "Channels":
             return False
         active_mat, active_graph = utils.find_active_graph(context)
@@ -287,7 +287,7 @@ class Sublender_Prop_BasePanel(Panel):
         sublender_setting = target_mat.sublender
         clss_name = utils.gen_clss_name(sublender_setting.graph_url)
         graph_setting = getattr(target_mat, clss_name)
-        preferences = context.preferences.addons[__package__].preferences
+        preferences = context.preferences.addons["sublender"].preferences
         eval_dele = utils.globalvar.eval_delegate_map.get(target_mat.name)
         for prop_info in self.group_info['inputs']:
             if prop_info.get('identifier') == '$outputsize':

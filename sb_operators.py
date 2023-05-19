@@ -8,13 +8,13 @@ from bpy.types import Operator
 from . import settings, utils, template, async_loop, render
 
 
-class Sublender_Base_Operator(object):
+class SublenderBaseOperator(object):
     @classmethod
     def poll(cls, context):
         return utils.find_active_mat(context) is not None
 
 
-class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
+class SublenderOTApplyWorkflow(SublenderBaseOperator, Operator):
     bl_idname = "sublender.apply_workflow"
     bl_label = "Apply Workflow"
     bl_description = "Apply Workflow, this will remove all existing nodes"
@@ -47,7 +47,7 @@ class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
         return {'FINISHED'}
 
 
-class Sublender_Select_Active(Operator):
+class SublenderOTSelectActive(Operator):
     bl_idname = "sublender.select_active"
     bl_label = "Select Active"
     bl_description = "Select Active"
@@ -56,7 +56,7 @@ class Sublender_Select_Active(Operator):
         return {'FINISHED'}
 
 
-class Sublender_Random_Seed(Sublender_Base_Operator, Operator):
+class SublenderOTRandomSeed(SublenderBaseOperator, Operator):
     bl_idname = "sublender.randomseed"
     bl_label = "Random Seed"
     bl_description = "Random Seed"
@@ -70,7 +70,7 @@ class Sublender_Random_Seed(Sublender_Base_Operator, Operator):
         return {'FINISHED'}
 
 
-class Sublender_Copy_Texture_Path(Sublender_Base_Operator, Operator):
+class SublenderOTCopyTexturePath(SublenderBaseOperator, Operator):
     bl_idname = "sublender.copy_texture_path"
     bl_label = "Copy Texture Path"
     bl_description = ""
@@ -83,7 +83,7 @@ class Sublender_Copy_Texture_Path(Sublender_Base_Operator, Operator):
         return {'FINISHED'}
 
 
-class Sublender_Render_All(Operator):
+class SublenderOTRenderAll(Operator):
     bl_idname = "sublender.render_all"
     bl_label = "Render All Texture"
     bl_description = ""
@@ -92,7 +92,7 @@ class Sublender_Render_All(Operator):
         return {'FINISHED'}
 
 
-class SUBLENDER_OT_Delete_Image(Operator):
+class SublenderOTDeleteImage(Operator):
     bl_idname = "sublender.delete_image"
     bl_label = "Delete image"
     bl_description = "Remove target image"
@@ -109,7 +109,7 @@ class SUBLENDER_OT_Delete_Image(Operator):
         return {'FINISHED'}
 
 
-class SUBLENDER_OT_Load_Image(Operator):
+class SublenderOTLoadImage(Operator):
     bl_idname = "sublender.load_image"
     bl_label = "Load image"
     bl_description = "Load target image"
@@ -136,7 +136,7 @@ usage_to_label = {
 }
 
 
-class SUBLENDER_OT_Apply_Image(Operator):
+class SublenderOTApplyImage(Operator):
     bl_idname = "sublender.apply_image"
     bl_label = "Apply image"
     bl_description = "Apply target image into material"
@@ -159,7 +159,7 @@ class SUBLENDER_OT_Apply_Image(Operator):
         return {'FINISHED'}
 
 
-class Sublender_Load_Missing_Sbsar(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTLoadMissingSbsar(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.load_missing_sbsar"
     bl_label = "Load Sbsar"
     bl_description = "Load Sbsar"
@@ -167,7 +167,7 @@ class Sublender_Load_Missing_Sbsar(async_loop.AsyncModalOperatorMixin, Operator)
     task_id = "Sublender_Load_Missing_SBSAR"
 
     async def async_execute(self, _):
-        preferences = bpy.context.preferences.addons[__package__].preferences
+        preferences = bpy.context.preferences.addons["sublender"].preferences
         force = True
         for material in bpy.data.materials:
             m_sublender = material.sublender
@@ -180,7 +180,7 @@ class Sublender_Load_Missing_Sbsar(async_loop.AsyncModalOperatorMixin, Operator)
             force = False
 
 
-class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTInitAsync(async_loop.AsyncModalOperatorMixin, Operator):
     bl_idname = "sublender.init_async"
     bl_label = "Init & Import"
     bl_description = "Init Sublender"
@@ -197,7 +197,7 @@ class Sublender_Init_Async(async_loop.AsyncModalOperatorMixin, Operator):
             bpy.ops.sublender.select_sbsar('INVOKE_DEFAULT')
 
 
-class Sublender_New_Instance(Sublender_Base_Operator, Operator):
+class SublenderOTNewInstance(SublenderBaseOperator, Operator):
     bl_idname = "sublender.new_instance"
     bl_label = "New Instance"
     bl_description = "New Instance"
@@ -216,7 +216,7 @@ def ShowMessageBox(message="", title="Message Box", icon='INFO'):
     bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
 
-class Sublender_OT_Install_Deps(Operator):
+class SublenderOTInstallDeps(Operator):
     bl_idname = "sublender.install_deps"
     bl_label = "Install Dependencies"
     bl_description = "Install Dependencies"
@@ -232,31 +232,30 @@ class Sublender_OT_Install_Deps(Operator):
 
 
 def register():
-    bpy.utils.register_class(Sublender_Init_Async)
-
-    bpy.utils.register_class(Sublender_Inflate_Material)
-    bpy.utils.register_class(Sublender_Select_Active)
-    bpy.utils.register_class(Sublender_Copy_Texture_Path)
-    bpy.utils.register_class(Sublender_Render_All)
-    bpy.utils.register_class(SUBLENDER_OT_Delete_Image)
-    bpy.utils.register_class(SUBLENDER_OT_Load_Image)
-    bpy.utils.register_class(Sublender_Load_Missing_Sbsar)
-    bpy.utils.register_class(Sublender_New_Instance)
-    bpy.utils.register_class(Sublender_Random_Seed)
-    bpy.utils.register_class(SUBLENDER_OT_Apply_Image)
-    bpy.utils.register_class(Sublender_OT_Install_Deps)
+    bpy.utils.register_class(SublenderOTInitAsync)
+    bpy.utils.register_class(SublenderOTApplyWorkflow)
+    bpy.utils.register_class(SublenderOTSelectActive)
+    bpy.utils.register_class(SublenderOTCopyTexturePath)
+    bpy.utils.register_class(SublenderOTRenderAll)
+    bpy.utils.register_class(SublenderOTDeleteImage)
+    bpy.utils.register_class(SublenderOTLoadImage)
+    bpy.utils.register_class(SublenderOTLoadMissingSbsar)
+    bpy.utils.register_class(SublenderOTNewInstance)
+    bpy.utils.register_class(SublenderOTRandomSeed)
+    bpy.utils.register_class(SublenderOTApplyImage)
+    bpy.utils.register_class(SublenderOTInstallDeps)
 
 
 def unregister():
-    bpy.utils.unregister_class(Sublender_Init_Async)
-    bpy.utils.unregister_class(Sublender_Select_Active)
-    bpy.utils.unregister_class(Sublender_Copy_Texture_Path)
-    bpy.utils.unregister_class(Sublender_Render_All)
-    bpy.utils.unregister_class(SUBLENDER_OT_Delete_Image)
-    bpy.utils.unregister_class(SUBLENDER_OT_Load_Image)
-    bpy.utils.unregister_class(Sublender_Load_Missing_Sbsar)
-    bpy.utils.unregister_class(Sublender_New_Instance)
-    bpy.utils.unregister_class(Sublender_Inflate_Material)
-    bpy.utils.unregister_class(Sublender_Random_Seed)
-    bpy.utils.unregister_class(SUBLENDER_OT_Apply_Image)
-    bpy.utils.unregister_class(Sublender_OT_Install_Deps)
+    bpy.utils.unregister_class(SublenderOTInitAsync)
+    bpy.utils.unregister_class(SublenderOTSelectActive)
+    bpy.utils.unregister_class(SublenderOTCopyTexturePath)
+    bpy.utils.unregister_class(SublenderOTRenderAll)
+    bpy.utils.unregister_class(SublenderOTDeleteImage)
+    bpy.utils.unregister_class(SublenderOTLoadImage)
+    bpy.utils.unregister_class(SublenderOTLoadMissingSbsar)
+    bpy.utils.unregister_class(SublenderOTNewInstance)
+    bpy.utils.unregister_class(SublenderOTApplyWorkflow)
+    bpy.utils.unregister_class(SublenderOTRandomSeed)
+    bpy.utils.unregister_class(SublenderOTApplyImage)
+    bpy.utils.unregister_class(SublenderOTInstallDeps)

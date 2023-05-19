@@ -8,6 +8,69 @@ from ..settings import Sublender_Material_MT_Setting
 from ..utils import new_material_name, EvalDelegate
 
 
+# TODO batch import
+# TODO register importer to import menu
+class SublenderOTSelectSbsar(Operator, ImportHelper):
+    bl_idname = "sublender.select_sbsar"
+    bl_label = "Import Sbsar"
+    bl_description = "Import Sbsar"
+    filename_ext = ".sbsar"
+    filter_glob: StringProperty(default="*.sbsar", options={'HIDDEN'}, maxlen=255)
+    filepath: StringProperty(subtype='FILE_PATH')
+
+    @classmethod
+    def poll(cls, _):
+        return not bpy.data.filepath == ""
+
+    def execute(self, _):
+        bpy.ops.sublender.import_sbsar(sbsar_path=self.filepath, from_library=False)
+        return {'FINISHED'}
+
+
+class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
+    bl_idname = "sublender.import_sbsar"
+    bl_label = "Import"
+    bl_description = "Import"
+    sbsar_path: StringProperty()
+    task_id = "SublenderOTImportSbsar"
+    from_library: BoolProperty(default=False)
+    pkg_url = ""
+
+    @classmethod
+    def poll(cls, _):
+        return not bpy.data.filepath == ""
+
+    async def async_execute(self, context):
+        if not utils.sublender_inited(context):
+            await utils.init_sublender_async(self, context)
+        if self.from_library:
+            active_material = context.scene.sublender_library.active_material
+            sbs_graph_info = utils.globalvar.library["materials"].get(active_material)
+            self.sbsar_path = sbs_graph_info["sbsar_path"]
+            self.pkg_url = sbs_graph_info["pkg_url"]
+        sbs_pkg = await utils.load_sbsar_to_dict_async(self.sbsar_path, self.report)
+        if sbs_pkg is not None:
+            importing_graph_items = context.scene.sublender_settings.importing_graphs
+            importing_graph_items.clear()
+            for graph_info in sbs_pkg['graphs']:
+                if self.pkg_url != "" and graph_info["pkgUrl"] != self.pkg_url:
+                    continue
+                importing_graph = importing_graph_items.add()
+                importing_graph.graph_url = graph_info["pkgUrl"]
+                importing_graph.material_name = new_material_name(graph_info['label'])
+                if self.from_library:
+                    label = graph_info['label']
+                    if label == "":
+                        label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
+                    importing_graph.library_uid = "{}_{}".format(label, sbs_pkg["asmuid"])
+                    active_material = context.scene.sublender_library.active_material
+                    if len(utils.globalvar.library_material_preset_map.get(active_material)) > 0:
+                        if context.scene.sublender_library.material_preset != "$DEFAULT$":
+                            importing_graph.preset_name = context.scene.sublender_library.material_preset
+                            importing_graph.material_name = new_material_name(importing_graph.preset_name)
+            bpy.ops.sublender.import_graph('INVOKE_DEFAULT', package_path=self.sbsar_path)
+
+
 class SublenderOTImportGraph(Operator):
     bl_idname = "sublender.import_graph"
     bl_label = "Import Graph"
@@ -22,16 +85,15 @@ class SublenderOTImportGraph(Operator):
         for importing_graph in importing_graph_items:
             if not importing_graph.enable:
                 continue
-            active_material_template = self.material_template if self.use_same_config \
-                else importing_graph.material_template
+            active_material_template = (self.material_template
+                                        if self.use_same_config else importing_graph.material_template)
             material = bpy.data.materials.new(importing_graph.material_name)
             # Reassign material name
             importing_graph.material_name = material.name
             material.use_nodes = True
-            material.use_fake_user = self.use_fake_user if self.use_same_config \
-                else importing_graph.use_fake_user
-            assign_to_selection = self.assign_to_selection if self.use_same_config \
-                else importing_graph.assign_to_selection
+            material.use_fake_user = (self.use_fake_user if self.use_same_config else importing_graph.use_fake_user)
+            assign_to_selection = (self.assign_to_selection
+                                   if self.use_same_config else importing_graph.assign_to_selection)
             active_obj = bpy.context.view_layer.objects.active
             if assign_to_selection and active_obj is not None:
                 active_obj.data.materials.append(material)
@@ -99,69 +161,7 @@ class SublenderOTImportGraph(Operator):
                 row.prop(importing_graph, "assign_to_selection", toggle=1)
 
 
-# TODO register importer to import menu
-class SublenderOTSelectSbsar(Operator, ImportHelper):
-    bl_idname = "sublender.select_sbsar"
-    bl_label = "Import Sbsar"
-    bl_description = "Import Sbsar"
-    filename_ext = ".sbsar"
-    filter_glob: StringProperty(default="*.sbsar", options={'HIDDEN'}, maxlen=255)
-    filepath: StringProperty(subtype='FILE_PATH')
-
-    @classmethod
-    def poll(cls, _):
-        return not bpy.data.filepath == ""
-
-    def execute(self, _):
-        bpy.ops.sublender.import_sbsar(sbsar_path=self.filepath, from_library=False)
-        return {'FINISHED'}
-
-
-class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
-    bl_idname = "sublender.import_sbsar"
-    bl_label = "Import"
-    bl_description = "Import"
-    sbsar_path: StringProperty()
-    task_id = "SublenderOTImportSbsar"
-    from_library: BoolProperty(default=False)
-    pkg_url = ""
-
-    @classmethod
-    def poll(cls, _):
-        return not bpy.data.filepath == ""
-
-    async def async_execute(self, context):
-        if not utils.sublender_inited(context):
-            await utils.init_sublender_async(self, context)
-        if self.from_library:
-            active_material = context.scene.sublender_library.active_material
-            sbs_graph_info = utils.globalvar.library["materials"].get(active_material)
-            self.sbsar_path = sbs_graph_info["sbsar_path"]
-            self.pkg_url = sbs_graph_info["pkg_url"]
-        sbs_pkg = await utils.load_sbsar_to_dict_async(self.sbsar_path, self.report)
-        if sbs_pkg is not None:
-            importing_graph_items = context.scene.sublender_settings.importing_graphs
-            importing_graph_items.clear()
-            for graph_info in sbs_pkg['graphs']:
-                if self.pkg_url != "" and graph_info["pkgUrl"] != self.pkg_url:
-                    continue
-                importing_graph = importing_graph_items.add()
-                importing_graph.graph_url = graph_info["pkgUrl"]
-                importing_graph.material_name = new_material_name(graph_info['label'])
-                if self.from_library:
-                    label = graph_info['label']
-                    if label == "":
-                        label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
-                    importing_graph.library_uid = "{}_{}".format(label, sbs_pkg["asmuid"])
-                    active_material = context.scene.sublender_library.active_material
-                    if len(utils.globalvar.library_material_preset_map.get(active_material)) > 0:
-                        if context.scene.sublender_library.material_preset != "$DEFAULT$":
-                            importing_graph.preset_name = context.scene.sublender_library.material_preset
-                            importing_graph.material_name = new_material_name(importing_graph.preset_name)
-            bpy.ops.sublender.import_graph('INVOKE_DEFAULT', package_path=self.sbsar_path)
-
-
-registerlist = [
+cls_list = [
     SublenderOTImportGraph,
     SublenderOTImportSbsar,
     SublenderOTSelectSbsar,
@@ -169,10 +169,10 @@ registerlist = [
 
 
 def register():
-    for cls in registerlist:
+    for cls in cls_list:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-    for cls in reversed(registerlist):
+    for cls in reversed(cls_list):
         bpy.utils.unregister_class(cls)
