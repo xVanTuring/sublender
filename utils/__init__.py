@@ -411,17 +411,6 @@ async def load_sbsars_async(report=None):
         m_sublender.package_loaded = True
 
 
-def texture_output_dir(material_name: str):
-    if bpy.data.filepath != "":
-        current_file = pathlib.Path(bpy.data.filepath)
-        parent_dir = current_file.parent
-        file_name = bpy.path.clean_name(current_file.name)
-        return str(parent_dir.joinpath(file_name, "mat_{0}".format(bpy.path.clean_name(material_name))))
-    temp_dir = tempfile.gettempdir()
-    return os.path.join(temp_dir, "sublender", globalvar.current_uuid,
-                        "mat_{0}".format(bpy.path.clean_name(material_name)))
-
-
 def find_active_mat(context):
     if not sublender_inited(context):
         return None

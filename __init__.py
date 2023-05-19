@@ -1,9 +1,3 @@
-import logging
-
-import bpy
-from bpy.app.handlers import persistent
-from .utils import install_lib, globalvar
-
 bl_info = {
     "name": "Sublender",
     "author": "xVanTuring(@foxmail.com)",
@@ -13,6 +7,11 @@ bl_info = {
     "description": "An add-on for sbsar",
     "category": "Material"
 }
+import logging
+
+import bpy
+from bpy.app.handlers import persistent
+from .utils import install_lib, globalvar
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN, format='%(name)s %(message)s')
 
@@ -86,17 +85,17 @@ def register():
         importer = reload_mod('importer')
         preference = reload_mod('preference')
         async_loop = reload_mod('async_loop')
-        texture_render = reload_mod('texture_render')
+        render = reload_mod('render')
         sb_operators = reload_mod('sb_operators')
         ui = reload_mod('ui')
         sublender_library = reload_mod('sublender_library')
     else:
-        from . import (template, settings, importer, preference, async_loop, texture_render, sb_operators, ui,
+        from . import (template, settings, importer, preference, async_loop, render, sb_operators, ui,
                        sublender_library)
 
     template.load_material_templates()
     preference.register()
-    texture_render.register()
+    render.register()
     async_loop.setup_asyncio_executor()
     async_loop.register()
     importer.register()
@@ -114,12 +113,11 @@ def register():
 
 
 def unregister():
-    from . import (settings, importer, preference, async_loop, texture_render, sb_operators, ui, globalvar,
-                   sublender_library, utils)
+    from . import (settings, importer, preference, async_loop, render, sb_operators, ui, sublender_library, utils)
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
-    texture_render.unregister()
+    render.unregister()
     importer.unregister()
     settings.unregister()
     sb_operators.unregister()

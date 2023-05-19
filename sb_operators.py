@@ -5,7 +5,7 @@ import bpy
 from bpy.props import (StringProperty, BoolProperty)
 from bpy.types import Operator
 
-from . import settings, utils, template, async_loop
+from . import settings, utils, template, async_loop, render
 
 
 class Sublender_Base_Operator(object):
@@ -77,7 +77,7 @@ class Sublender_Copy_Texture_Path(Sublender_Base_Operator, Operator):
 
     def execute(self, context):
         material_instance = utils.find_active_mat(context)
-        output_dir = utils.texture_output_dir(material_instance.name)
+        output_dir = render.texture_output_dir(material_instance.name)
         bpy.context.window_manager.clipboard = output_dir
         self.report({"INFO"}, "Copied")
         return {'FINISHED'}

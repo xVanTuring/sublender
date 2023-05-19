@@ -1,13 +1,6 @@
 import asyncio
 import typing
 
-from bpy.types import Object
-import sys
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    TypedDict = Object
-
 sbsar_dict: typing.Dict[str, typing.Any] = {}
 
 graph_clss: typing.Dict = {}

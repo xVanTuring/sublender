@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy.types import Panel
 
-from . import settings, utils, sb_operators
+from . import settings, utils, sb_operators, render
 
 
 def draw_instance_item(self, context, target_mat):
@@ -193,7 +193,7 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         clss_name = utils.gen_clss_name(active_graph)
         graph_setting = getattr(active_mat, clss_name)
         open_texture_dir = self.layout.operator("wm.path_open", text="Open Texture Folder", icon="VIEWZOOM")
-        material_output_folder = utils.texture_output_dir(active_mat.name)
+        material_output_folder = render.texture_output_dir(active_mat.name)
         open_texture_dir.filepath = material_output_folder
         display_output_params = context.preferences.addons[__package__].preferences.enable_output_params
 

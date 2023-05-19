@@ -2,7 +2,7 @@ import bpy
 import platform
 import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
-from bpy.types import AddonPreferences, Operator
+from bpy.types import AddonPreferences
 
 from . import utils, ui
 

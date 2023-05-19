@@ -66,6 +66,7 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
     cloth_template: BoolProperty(default=False)
 
     process_list = list()
+    task_id = "SublenderOTRenderPreviewAsync"
 
     def clean(self, _):
         while self.process_list:
@@ -74,13 +75,12 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
                 process.terminate()
 
     def invoke(self, context, event):
-        self.task_id = "SublenderOTRenderPreviewAsync_%s" % utils.globalvar.task_id
-        print("Current Task ID: %s" % self.task_id)
-        utils.globalvar.task_id += 1
+
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str]):
-        await self.run_async(bpy.context.preferences.addons[__package__].preferences.sbs_render, cmd_list)
+        sbs_render_path = bpy.context.preferences.addons["sublender"].preferences.sbs_render
+        await self.run_async(sbs_render_path, cmd_list)
 
     async def render_graph(self, package_path, param_list, pkg_url, is_preset=False, category=""):
         package_info = utils.globalvar.sbsar_dict.get(package_path)
@@ -497,7 +497,8 @@ def register():
 
 
 def unregister():
-    previews.remove(utils.globalvar.preview_collections)
+    if utils.globalvar.preview_collections:
+        previews.remove(utils.globalvar.preview_collections)
     utils.globalvar.preview_collections = None
     bpy.utils.unregister_class(SublenderOTRenderPreviewAsync)
     bpy.utils.unregister_class(SUBLENDER_OT_REMOVE_MATERIAL)
