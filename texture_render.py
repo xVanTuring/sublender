@@ -8,7 +8,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 
-from . import globalvar, settings, utils, async_loop
+from . import settings, utils, async_loop, parser
 
 
 def generate_cmd_list(context, target_material_name: str, m_sublender, clss_info, graph_setting):
@@ -25,7 +25,7 @@ def generate_cmd_list(context, target_material_name: str, m_sublender, clss_info
                 height = getattr(graph_setting, utils.consts.output_size_x)
                 param_list.append("{0}@{1},{2}".format(input_info['identifier'], width, height))
         else:
-            is_image = input_info['type'] == utils.consts.SBSARTypeEnum.IMAGE
+            is_image = input_info['type'] == parser.sbsarlite.SBSARTypeEnum.IMAGE
             value = graph_setting.get(input_info['prop'])
             if value is not None:
                 if input_info.get('enum_items') is not None:
@@ -150,7 +150,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Oper
                 material_inst: bpy.types.Material = bpy.data.materials.get(importing_graph.material_name)
                 m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
                 clss_name = utils.gen_clss_name(m_sublender.graph_url)
-                clss_info = globalvar.graph_clss.get(clss_name)
+                clss_info = utils.globalvar.graph_clss.get(clss_name)
                 graph_setting = getattr(material_inst, clss_name)
                 param_list = generate_cmd_list(context, material_name, m_sublender, clss_info, graph_setting)
                 target_dir = utils.texture_output_dir(material_name)
@@ -186,7 +186,7 @@ class SUBLENDER_OT_Render_Texture_Async(async_loop.AsyncModalOperatorMixin, Oper
             material_inst: bpy.types.Material = bpy.data.materials.get(self.material_name)
             m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
             clss_name = utils.gen_clss_name(m_sublender.graph_url)
-            clss_info = globalvar.graph_clss.get(clss_name)
+            clss_info = utils.globalvar.graph_clss.get(clss_name)
             graph_setting = getattr(material_inst, clss_name)
 
             param_list = generate_cmd_list(context, self.material_name, m_sublender, clss_info, graph_setting)

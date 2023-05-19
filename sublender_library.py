@@ -11,7 +11,7 @@ from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 from bpy.utils import previews
 
-from . import async_loop, utils, globalvar
+from . import async_loop, utils, parser
 
 default_usage_list = ["baseColor", "metallic", "roughness", "normal"]
 
@@ -23,7 +23,7 @@ def generate_cmd_list(context, target_dir: str, package_path, graph_url, preset_
         param_list.append("$outputsize@9,9")
     else:
         for p in preset_params:
-            is_image = p['type'] == utils.consts.SBSARTypeEnum.IMAGE
+            is_image = p['type'] == parser.sbsarlite.SBSARTypeEnum.IMAGE
             if is_image:
                 param_list.append("--set-entry")
             else:
@@ -74,16 +74,16 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
                 process.terminate()
 
     def invoke(self, context, event):
-        self.task_id = "SublenderOTRenderPreviewAsync_%s" % globalvar.task_id
+        self.task_id = "SublenderOTRenderPreviewAsync_%s" % utils.globalvar.task_id
         print("Current Task ID: %s" % self.task_id)
-        globalvar.task_id += 1
+        utils.globalvar.task_id += 1
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
     async def render_map(self, cmd_list: List[str]):
         await self.run_async(bpy.context.preferences.addons[__package__].preferences.sbs_render, cmd_list)
 
     async def render_graph(self, package_path, param_list, pkg_url, is_preset=False, category=""):
-        package_info = globalvar.sbsar_dict.get(package_path)
+        package_info = utils.globalvar.sbsar_dict.get(package_path)
         current_graph = None
         build_list = []
         for graph in package_info['graphs']:
@@ -100,7 +100,7 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
             if label == "":
                 label = bpy.utils.escape_identifier(pkg_url).replace("://", "")
             uu_key = "{}_{}".format(label, package_info["asmuid"])
-            existed_material = globalvar.library["materials"].get(uu_key)
+            existed_material = utils.globalvar.library["materials"].get(uu_key)
             if existed_material is not None:
                 self.report({"WARNING"}, "Package has already been imported!")
                 return None, None
@@ -141,7 +141,7 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
             copied_img = shutil.copy(sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
             copied_sbsar = shutil.copy(package_path, pathlib.Path(preview_folder, "../").resolve())
-            globalvar.library["materials"][uu_key] = {
+            utils.globalvar.library["materials"][uu_key] = {
                 "label": label,
                 "sbsar_path": copied_sbsar,
                 "preview": copied_img,
@@ -155,9 +155,10 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
             preview_folder = os.path.join(get_sublender_library_dir(), uu_key, self.preset_name)
             pathlib.Path(preview_folder).mkdir(parents=True, exist_ok=True)
             copied_img = shutil.copy(sublender_preview_img_file, os.path.join(preview_folder, "preview.png"))
-            if globalvar.preview_collections.get(copied_img) is not None:
-                del globalvar.preview_collections[copied_img]
-            globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name]["preview"] = copied_img
+            if utils.globalvar.preview_collections.get(copied_img) is not None:
+                del utils.globalvar.preview_collections[copied_img]
+            utils.globalvar.library["materials"].get(
+                self.library_uid)["presets"][self.preset_name]["preview"] = copied_img
 
         sync_library()
         generate_preview()
@@ -173,7 +174,7 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
         # start = datetime.datetime.now()
         target_dir = get_sublender_library_render_dir()
         if self.preset_name != "":
-            material_info = globalvar.library["materials"].get(self.library_uid)
+            material_info = utils.globalvar.library["materials"].get(self.library_uid)
             package_path = material_info["sbsar_path"]
             preset_info = material_info["presets"][self.preset_name]
             preset_parameters = preset_info["values"]
@@ -184,14 +185,14 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
                                            preset_params=preset_parameters)
             await self.render_graph(package_path, param_list, material_info["pkg_url"], is_preset=True)
         else:
-            if globalvar.consumer_started:
+            if utils.globalvar.consumer_started:
                 return
-            globalvar.consumer_started = True
+            utils.globalvar.consumer_started = True
             while True:
-                if globalvar.queue.empty():
-                    globalvar.consumer_started = False
+                if utils.globalvar.queue.empty():
+                    utils.globalvar.consumer_started = False
                     break
-                importing_graph_list = await globalvar.queue.get()
+                importing_graph_list = await utils.globalvar.queue.get()
                 for importing_graph in importing_graph_list:
                     package_path = importing_graph["package_path"]
                     param_list = generate_cmd_list(context, target_dir, package_path, importing_graph["graph_url"])
@@ -208,7 +209,7 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
                         self.preset_name = preset_name
                         self.library_uid = uu_key
                         preset_params = current_graph['presets'].get(preset_name)['inputs']
-                        globalvar.library["materials"].get(uu_key)["presets"][preset_name] = {
+                        utils.globalvar.library["materials"].get(uu_key)["presets"][preset_name] = {
                             "name": preset_name,
                             "values": preset_params,
                             "preview": ""
@@ -239,14 +240,14 @@ class SUBLENDER_OT_REMOVE_MATERIAL(Operator):
         library_preference = context.scene.sublender_library
         prev_category = library_preference.categories
         active_material = library_preference.active_material
-        del globalvar.library["materials"][active_material]
+        del utils.globalvar.library["materials"][active_material]
         sync_library()
         generate_preview()
         if prev_category != library_preference.categories:
             # Last material in that material had been removed, reset to All
             library_preference.categories = "$ALL$"
         # Check Material index existence, reset to first
-        current_mat_list = globalvar.library_category_material_map.get(library_preference.categories, [])
+        current_mat_list = utils.globalvar.library_category_material_map.get(library_preference.categories, [])
         library_len = len(current_mat_list)
         if 0 < library_len <= context.scene['sublender_library']['active_material']:
             context.scene.sublender_library.active_material = current_mat_list[0][0]
@@ -271,7 +272,7 @@ def generate_preset(preset_name: str, material_name: str):
     m_sublender = material_inst.sublender
     clss_name = utils.gen_clss_name(m_sublender.graph_url)
 
-    clss_info = globalvar.graph_clss.get(clss_name)
+    clss_info = utils.globalvar.graph_clss.get(clss_name)
     input_list = clss_info['input']
     graph_setting = getattr(material_inst, clss_name)
     preset_parameters = []
@@ -316,7 +317,7 @@ class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
         wm = context.window_manager
         mat = bpy.data.materials.get(self.material_name)
         self.library_uid = mat.sublender.library_uid
-        graph_source = globalvar.library["materials"].get(self.library_uid)
+        graph_source = utils.globalvar.library["materials"].get(self.library_uid)
 
         temp_name = "Preset"
         self.preset_name = safe_name(temp_name, graph_source["presets"].keys())
@@ -328,7 +329,7 @@ class SUBLENDER_OT_SAVE_AS_PRESET(Operator):
     def execute(self, context):
         mat = bpy.data.materials.get(self.material_name)
         self.library_uid = mat.sublender.library_uid
-        globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name] = generate_preset(
+        utils.globalvar.library["materials"].get(self.library_uid)["presets"][self.preset_name] = generate_preset(
             self.preset_name, self.material_name)
         bpy.ops.sublender.render_preview_async(library_uid=self.library_uid, preset_name=self.preset_name)
         return {'FINISHED'}
@@ -348,13 +349,13 @@ class SUBLENDER_OT_APPLY_PRESET(Operator):
         library_properties = context.scene.sublender_library
         active_material = library_properties.active_material
         active_preset_name = "$DEFAULT$"
-        if len(globalvar.library_material_preset_map.get(active_material)) > 0:
+        if len(utils.globalvar.library_material_preset_map.get(active_material)) > 0:
             active_preset_name = library_properties.material_preset
-        globalvar.applying_preset = True
+        utils.globalvar.applying_preset = True
         utils.reset_material(current_material)
         if active_preset_name != "$DEFAULT$":
             utils.apply_preset(current_material, active_preset_name)
-        globalvar.applying_preset = False
+        utils.globalvar.applying_preset = False
         # Manually update
         bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
         return {'FINISHED'}
@@ -369,7 +370,7 @@ class SUBLENDER_OT_SAVE_TO_PRESET(Operator):
         current_material = utils.find_active_mat(context)
         library_properties = context.scene.sublender_library
         active_material = library_properties.active_material
-        if len(globalvar.library_material_preset_map.get(active_material)) == 0:
+        if len(utils.globalvar.library_material_preset_map.get(active_material)) == 0:
             return
         active_preset_name = library_properties.material_preset
         bpy.ops.sublender.save_as_preset(material_name=current_material.name, preset_name=active_preset_name)
@@ -413,7 +414,7 @@ def ensure_library():
 def load_library():
     with open(get_sublender_library_config_file(), 'r') as f:
         data = json.load(f)
-        globalvar.library = data
+        utils.globalvar.library = data
         generate_preview()
 
 
@@ -433,56 +434,58 @@ def get_sublender_library_render_dir(append=None):
 
 
 def generate_preview():
-    if globalvar.preview_collections is None:
-        globalvar.preview_collections = previews.new()
-    globalvar.library_category_enum.clear()
-    for key in globalvar.library_category_material_map:
-        globalvar.library_category_material_map[key].clear()
+    if utils.globalvar.preview_collections is None:
+        utils.globalvar.preview_collections = previews.new()
+    utils.globalvar.library_category_enum.clear()
+    for key in utils.globalvar.library_category_material_map:
+        utils.globalvar.library_category_material_map[key].clear()
     category_set = set()
-    for i, uu_key in enumerate(sorted(globalvar.library["materials"].keys())):
-        material = globalvar.library["materials"][uu_key]
+    for i, uu_key in enumerate(sorted(utils.globalvar.library["materials"].keys())):
+        material = utils.globalvar.library["materials"][uu_key]
         img = material['preview']
         label = material['label']
-        if not globalvar.preview_collections.get(img):
-            thumb = globalvar.preview_collections.load(img, img, "IMAGE")
+        if not utils.globalvar.preview_collections.get(img):
+            thumb = utils.globalvar.preview_collections.load(img, img, "IMAGE")
         else:
-            thumb = globalvar.preview_collections[img]
-        globalvar.library_category_material_map["$ALL$"].append((uu_key, label, label, thumb.icon_id, i))
-        globalvar.library_material_preset_map[uu_key] = []
+            thumb = utils.globalvar.preview_collections[img]
+        utils.globalvar.library_category_material_map["$ALL$"].append((uu_key, label, label, thumb.icon_id, i))
+        utils.globalvar.library_material_preset_map[uu_key] = []
         if len(material.get("presets", {})) > 0:
-            globalvar.library_material_preset_map[uu_key].append(("$DEFAULT$", "Default", "Default", thumb.icon_id, 0))
+            utils.globalvar.library_material_preset_map[uu_key].append(
+                ("$DEFAULT$", "Default", "Default", thumb.icon_id, 0))
             p_i = 1
             for p_key in material.get("presets", {}):
                 preset = material["presets"][p_key]
                 preset_img = preset["preview"]
-                if not globalvar.preview_collections.get(preset_img):
-                    preset_thumb = globalvar.preview_collections.load(preset_img, preset_img, "IMAGE")
+                if not utils.globalvar.preview_collections.get(preset_img):
+                    preset_thumb = utils.globalvar.preview_collections.load(preset_img, preset_img, "IMAGE")
                 else:
-                    preset_thumb = globalvar.preview_collections[preset_img]
-                globalvar.library_material_preset_map[uu_key].append((p_key, p_key, p_key, preset_thumb.icon_id, p_i))
+                    preset_thumb = utils.globalvar.preview_collections[preset_img]
+                utils.globalvar.library_material_preset_map[uu_key].append(
+                    (p_key, p_key, p_key, preset_thumb.icon_id, p_i))
                 p_i += 1
 
         if material.get("category") is not None and material.get("category") != "":
             category_set.add(material.get("category"))
-            if globalvar.library_category_material_map.get(material.get("category")) is None:
-                globalvar.library_category_material_map[material.get("category")] = []
-            globalvar.library_category_material_map[material.get("category")].append(
-                (uu_key, label, label, thumb.icon_id, i))
+            if utils.globalvar.library_category_material_map.get(material.get("category")) is None:
+                utils.globalvar.library_category_material_map[material.get("category")] = []
+            material_tuple: utils.globalvar.MaterialTuple = (uu_key, label, label, thumb.icon_id, i)
+            utils.globalvar.library_category_material_map[material.get("category")].append(material_tuple)
         else:
-            globalvar.library_category_material_map["$OTHER$"].append((uu_key, label, label, thumb.icon_id, i))
+            utils.globalvar.library_category_material_map["$OTHER$"].append((uu_key, label, label, thumb.icon_id, i))
 
-    globalvar.library_category_enum.append(
-        ("$ALL$", "All - {}".format(len(globalvar.library_category_material_map["$ALL$"])), "All"))
+    utils.globalvar.library_category_enum.append(
+        ("$ALL$", "All - {}".format(len(utils.globalvar.library_category_material_map["$ALL$"])), "All"))
     for cat in sorted(category_set):
-        globalvar.library_category_enum.append(
-            (cat, "{} - {}".format(cat, len(globalvar.library_category_material_map[cat])), cat))
-    globalvar.library_category_enum.append(
-        ("$OTHER$", "Other - {}".format(len(globalvar.library_category_material_map["$OTHER$"])), "Other"))
+        utils.globalvar.library_category_enum.append(
+            (cat, "{} - {}".format(cat, len(utils.globalvar.library_category_material_map[cat])), cat))
+    utils.globalvar.library_category_enum.append(
+        ("$OTHER$", "Other - {}".format(len(utils.globalvar.library_category_material_map["$OTHER$"])), "Other"))
 
 
 def sync_library():
     with open(get_sublender_library_config_file(), 'w') as f:
-        json.dump(globalvar.library, f, indent=2)
+        json.dump(utils.globalvar.library, f, indent=2)
 
 
 def register():
@@ -494,8 +497,8 @@ def register():
 
 
 def unregister():
-    previews.remove(globalvar.preview_collections)
-    globalvar.preview_collections = None
+    previews.remove(utils.globalvar.preview_collections)
+    utils.globalvar.preview_collections = None
     bpy.utils.unregister_class(SublenderOTRenderPreviewAsync)
     bpy.utils.unregister_class(SUBLENDER_OT_REMOVE_MATERIAL)
     bpy.utils.unregister_class(SUBLENDER_OT_SAVE_AS_PRESET)

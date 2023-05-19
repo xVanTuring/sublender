@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy.types import Panel
 
-from . import settings, utils, globalvar, sb_operators
+from . import settings, utils, sb_operators
 
 
 def draw_instance_item(self, context, target_mat):
@@ -41,7 +41,7 @@ def draw_workflow_item(self, _, target_mat):
     row = self.layout.row()
     row.prop(mat_setting, 'material_template', text='Workflow')
     row.operator("sublender.apply_workflow", icon='MATERIAL', text="")
-    if mat_setting.library_uid in globalvar.library["materials"]:
+    if mat_setting.library_uid in utils.globalvar.library["materials"]:
         operator = row.operator("sublender.save_as_preset", icon='PRESET_NEW', text="")
         operator.material_name = target_mat.name
     if mat_setting.package_missing or not mat_setting.package_loaded:
@@ -64,7 +64,7 @@ def draw_texture_item(self, context, target_mat):
 
 def draw_install_deps(layout):
     box = layout.box()
-    if globalvar.display_restart:
+    if utils.globalvar.display_restart:
         box.label(text="Installation completed! Please restart blender")
         box.operator("wm.quit_blender")
     else:
@@ -79,7 +79,7 @@ class SUBLENDER_PT_Main(Panel):
     bl_category = 'Sublender'
 
     def draw(self, context):
-        if not globalvar.py7zr_state:
+        if not utils.globalvar.py7zr_state:
             draw_install_deps(self.layout)
             return
         sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
@@ -90,7 +90,7 @@ class SUBLENDER_PT_Main(Panel):
             operator = self.layout.operator("sublender.init_async")
             operator.pop_import = True
         else:
-            if len(globalvar.graph_enum) > 0:
+            if len(utils.globalvar.graph_enum) > 0:
                 target_mat = utils.find_active_mat(context)
                 draw_graph_item(self, context, target_mat)
                 if sublender_settings.follow_selection or target_mat is not None:
@@ -145,7 +145,7 @@ class SUBLENDER_PT_Material_Prop_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(utils.globalvar.graph_enum) == 0:
             return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
@@ -177,13 +177,13 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(utils.globalvar.graph_enum) == 0:
             return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
         clss_name = utils.gen_clss_name(active_graph)
-        if globalvar.graph_clss.get(clss_name) is None:
+        if utils.globalvar.graph_clss.get(clss_name) is None:
             # class removed
             return False
         return True
@@ -197,7 +197,7 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
         open_texture_dir.filepath = material_output_folder
         display_output_params = context.preferences.addons[__package__].preferences.enable_output_params
 
-        for output_info in globalvar.graph_clss.get(clss_name)['output_info']['list']:
+        for output_info in utils.globalvar.graph_clss.get(clss_name)['output_info']['list']:
             sbo_prop_name = utils.sb_output_to_prop(output_info['name'])
             sbo_format_name = utils.sb_output_format_to_prop(output_info['name'])
             sbo_dep_name = utils.sb_output_dep_to_prop(output_info['name'])
@@ -233,9 +233,9 @@ class SUBLENDER_PT_SB_Output_Panel(Panel):
                 output_format = getattr(graph_setting, utils.sb_output_format_to_prop(output_info['name']), "png")
                 image_file_path = os.path.join(material_output_folder,
                                                "{0}.{1}".format(output_info['name'], output_format))
-                if globalvar.file_existence_dict.get(image_file_path) is None:
-                    globalvar.file_existence_dict[image_file_path] = os.path.exists(image_file_path)
-                if globalvar.file_existence_dict.get(image_file_path, False):
+                if utils.globalvar.file_existence_dict.get(image_file_path) is None:
+                    utils.globalvar.file_existence_dict[image_file_path] = os.path.exists(image_file_path)
+                if utils.globalvar.file_existence_dict.get(image_file_path, False):
                     load_image = row.operator("sublender.load_image", text="", icon="IMPORT")
                     load_image.filepath = image_file_path
                     load_image.bl_img_name = bl_img_name
@@ -260,7 +260,7 @@ class Sublender_Prop_BasePanel(Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(utils.globalvar.graph_enum) == 0:
             return False
         preferences = context.preferences.addons[__package__].preferences
         if preferences.hide_channels and cls.bl_label == "Channels":
@@ -271,12 +271,12 @@ class Sublender_Prop_BasePanel(Panel):
         if active_graph == cls.graph_url and not active_mat.sublender.package_missing:
             if preferences.enable_visible_if:
                 clss_name = utils.gen_clss_name(cls.graph_url)
-                if globalvar.eval_delegate_map.get(active_mat.name) is None:
-                    globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(active_mat.name, clss_name)
+                if utils.globalvar.eval_delegate_map.get(active_mat.name) is None:
+                    utils.globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(active_mat.name, clss_name)
                 else:
                     # assign again, undo/redo will change the memory address
-                    globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
-                visible = calc_group_visibility(globalvar.eval_delegate_map.get(active_mat.name), cls.group_info)
+                    utils.globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
+                visible = calc_group_visibility(utils.globalvar.eval_delegate_map.get(active_mat.name), cls.group_info)
                 return visible
             return True
         return False
@@ -288,7 +288,7 @@ class Sublender_Prop_BasePanel(Panel):
         clss_name = utils.gen_clss_name(sublender_setting.graph_url)
         graph_setting = getattr(target_mat, clss_name)
         preferences = context.preferences.addons[__package__].preferences
-        eval_dele = globalvar.eval_delegate_map.get(target_mat.name)
+        eval_dele = utils.globalvar.eval_delegate_map.get(target_mat.name)
         for prop_info in self.group_info['inputs']:
             if prop_info.get('identifier') == '$outputsize':
                 row = layout.row()
@@ -328,7 +328,7 @@ class SUBLENDER_PT_Library_Panel(Panel):
 
     @classmethod
     def poll(cls, _):
-        return globalvar.py7zr_state
+        return utils.globalvar.py7zr_state
 
     def draw(self, context):
         self.layout.operator(
@@ -336,16 +336,16 @@ class SUBLENDER_PT_Library_Panel(Panel):
             icon='IMPORT',
             text='Import to Library',
         )
-        if len(globalvar.library_category_material_map["$ALL$"]) > 0:
+        if len(utils.globalvar.library_category_material_map["$ALL$"]) > 0:
             properties = context.scene.sublender_library
             self.layout.prop(properties, "categories", text="")
-            if len(globalvar.library_category_material_map.get(properties.categories, [])) == 0:
+            if len(utils.globalvar.library_category_material_map.get(properties.categories, [])) == 0:
                 self.layout.box().label(text="No material is in this category")
                 return
             active_material = properties.active_material
             row = self.layout.row()
             row.template_icon_view(properties, "active_material", show_labels=True)
-            has_presets = len(globalvar.library_material_preset_map.get(active_material, [])) > 0
+            has_presets = len(utils.globalvar.library_material_preset_map.get(active_material, [])) > 0
             if has_presets:
                 row.template_icon_view(properties, "material_preset", show_labels=True)
             row = self.layout.row()

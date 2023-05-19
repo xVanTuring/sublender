@@ -1,5 +1,8 @@
+from . import sbsarlite
+
 import bpy
-from .utils.consts import sbsar_name_to_label
+
+sbsar_name_to_label = {'$outputsize': 'Output Size', '$randomseed': 'Random Seed'}
 
 
 def hash_prop(value: str):

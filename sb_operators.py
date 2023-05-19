@@ -5,7 +5,7 @@ import bpy
 from bpy.props import (StringProperty, BoolProperty)
 from bpy.types import Operator
 
-from . import settings, utils, globalvar, template, async_loop
+from . import settings, utils, template, async_loop
 
 
 class Sublender_Base_Operator(object):
@@ -25,9 +25,9 @@ class Sublender_Inflate_Material(Sublender_Base_Operator, Operator):
         workflow_name: str = mat_setting.material_template
         self.report({"INFO"}, "Inflating material {0}".format(material_inst.name))
 
-        material_template = globalvar.material_templates.get(mat_setting.material_template)
+        material_template = utils.globalvar.material_templates.get(mat_setting.material_template)
         clss_name = utils.gen_clss_name(mat_setting.graph_url)
-        clss_info = globalvar.graph_clss.get(clss_name)
+        clss_info = utils.globalvar.graph_clss.get(clss_name)
         output_info_usage: dict = clss_info['output_info']['usage']
         graph_setting = getattr(material_inst, clss_name)
 
@@ -105,7 +105,7 @@ class SUBLENDER_OT_Delete_Image(Operator):
             if bl_image is not None:
                 bpy.data.images.remove(bl_image)
         os.remove(self.filepath)
-        globalvar.file_existence_dict[self.filepath] = False
+        utils.globalvar.file_existence_dict[self.filepath] = False
         return {'FINISHED'}
 
 
@@ -120,10 +120,20 @@ class SUBLENDER_OT_Load_Image(Operator):
     def execute(self, _):
         bl_img = bpy.data.images.load(self.filepath, check_existing=True)
         bl_img.name = self.bl_img_name
-        globalvar.file_existence_dict[self.filepath] = True
+        utils.globalvar.file_existence_dict[self.filepath] = True
         if self.usage != "" and self.usage not in utils.consts.usage_color_dict:
             bl_img.colorspace_settings.name = 'Non-Color'
         return {'FINISHED'}
+
+
+usage_to_label = {
+    'baseColor': 'Base Color',
+    'metallic': 'Metallic',
+    'roughness': 'Roughness',
+    'normal': 'Normal',
+    'ambientOcclusion': 'Ambient Occlusion',
+    'height': 'Height'
+}
 
 
 class SUBLENDER_OT_Apply_Image(Operator):
@@ -144,7 +154,7 @@ class SUBLENDER_OT_Apply_Image(Operator):
                 bl_texture_node = target_mat.node_tree.nodes.new('ShaderNodeTexImage')
                 bl_texture_node.name = self.node_name
                 bl_texture_node.image = bpy.data.images.get(self.bl_img_name)
-                bl_texture_node.label = utils.consts.usage_to_label.get(self.node_name, self.node_name)
+                bl_texture_node.label = usage_to_label.get(self.node_name, self.node_name)
 
         return {'FINISHED'}
 
@@ -215,7 +225,7 @@ class Sublender_OT_Install_Deps(Operator):
         state = utils.install_lib.ensure_libs()
         utils.refresh_panel(context)
         if state:
-            globalvar.display_restart = True
+            utils.globalvar.display_restart = True
         else:
             ShowMessageBox("Something went wrong! Please contact the developer.")
         return {'FINISHED'}

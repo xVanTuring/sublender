@@ -3,7 +3,7 @@ import os
 
 import bpy
 
-from . import globalvar, utils
+from . import utils
 
 
 def is_type(val, type_str: str):
@@ -79,7 +79,7 @@ def load_default_texture(mat, template):
 
 
 def inflate_template(mat, template_name: str, clear_nodes=False):
-    template = globalvar.material_templates.get(template_name)
+    template = utils.globalvar.material_templates.get(template_name)
     if template is None:
         return
     ensure_nodes(mat, template, clear_nodes)
@@ -93,8 +93,8 @@ def load_material_templates():
     files = os.listdir(template_path)
     files.sort()
 
-    globalvar.material_template_enum.clear()
-    globalvar.material_templates.clear()
+    utils.globalvar.material_template_enum.clear()
+    utils.globalvar.material_templates.clear()
 
     for file_name_full in files:
         full_file_path = os.path.join(template_path, file_name_full)
@@ -103,11 +103,11 @@ def load_material_templates():
             if file_ext == ".json":
                 with open(full_file_path, 'r') as f:
                     material_temp = json.load(f)
-                    globalvar.material_templates[file_name_full] = material_temp
-                    globalvar.material_template_enum.append((
+                    utils.globalvar.material_templates[file_name_full] = material_temp
+                    utils.globalvar.material_template_enum.append((
                         file_name_full,
                         material_temp.get('name', file_name),
                         material_temp.get('description', file_name_full),
                     ))
-    globalvar.material_template_enum.append(
+    utils.globalvar.material_template_enum.append(
         (utils.consts.CUSTOM, "Custom", "Custom Workflow, empty material will be generated."))

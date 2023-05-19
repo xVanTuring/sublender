@@ -1,6 +1,6 @@
 from . import consts
 from . import install_lib
-
+from . import globalvar
 import asyncio
 import os
 import pathlib
@@ -11,7 +11,8 @@ import bpy
 import mathutils
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
-from .. import globalvar, settings, parser, ui, sbsarlite
+from bpy.props import (StringProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
+from .. import settings, parser, ui
 
 
 def sbsar_input_updated(_, context):
@@ -66,7 +67,7 @@ class EvalDelegate(object):
         self.clss_name = clss_name
 
     def __getitem__(self, identifier: str):
-        sbs_graph = globalvar.graph_clss.get(self.clss_name).get('sbs_graph')
+        sbs_graph = globalvar.graph_clss.get(self.clss_name, {}).get('sbs_graph')
 
         graph_setting = getattr(bpy.data.materials.get(self.material_name), self.clss_name)
         if identifier == "$outputsize":
@@ -162,6 +163,48 @@ def generate_sub_panel(group_map, graph_url):
         globalvar.sub_panel_clss_list.append(p_clss)
 
 
+sbsar_type_to_property = [
+    (
+        FloatProperty,
+        None,
+    ),
+    (
+        FloatVectorProperty,
+        2,
+    ),
+    (
+        FloatVectorProperty,
+        3,
+    ),
+    (
+        FloatVectorProperty,
+        4,
+    ),
+    (IntProperty, None),
+    (StringProperty, None),
+    (StringProperty, None),
+    (None, None),
+    (IntVectorProperty, 2),
+    (IntVectorProperty, 3),
+    (IntVectorProperty, 4),
+]
+
+format_list = [
+    ("png", "PNG", "PNG"),
+    ("jpg", "JPG", "JPG"),
+    ("tiff", "TIFF", "TIFF"),
+    ("hdr", "HDR", "HDR"),
+    ("exr", "EXR", "EXR"),
+]
+output_bit_depth = [
+    ("0", "Default", "Default"),
+    ("8", "Int 8", "Int 8"),
+    ("16", "Int 16", "Int 16"),
+    ("16f", "Float 16", "Float 16"),
+    ("32f", "Float 32", "Float 32"),
+]
+
+
 def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
     clss_name = gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
@@ -175,7 +218,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
         for input_info in all_inputs:
-            (prop_type, prop_size) = consts.sbsar_type_to_property[input_info['type']]
+            (prop_type, prop_size) = sbsar_type_to_property[input_info['type']]
             _anno_item = {}
 
             prop_input_map[input_info["prop"]] = input_info
@@ -185,15 +228,15 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             assign(input_info, _anno_item, 'min')
             assign(input_info, _anno_item, 'max')
             assign(input_info, _anno_item, 'step')
-            if input_info['type'] == consts.SBSARTypeEnum.INTEGER1:
+            if input_info['type'] == parser.sbsarlite.SBSARTypeEnum.INTEGER1:
                 if input_info.get('widget') == 'togglebutton':
                     prop_type = BoolProperty
                 if input_info.get('widget') == 'combobox' and input_info.get('combo_items') is not None:
                     prop_type = EnumProperty
                     _anno_item['items'] = input_info.get('combo_items')
-            if input_info['type'] == consts.SBSARTypeEnum.IMAGE:
+            if input_info['type'] == parser.sbsarlite.SBSARTypeEnum.IMAGE:
                 _anno_item['subtype'] = 'FILE_PATH'
-            if input_info['type'] in [consts.SBSARTypeEnum.FLOAT3, consts.SBSARTypeEnum.FLOAT4]:
+            if input_info['type'] in [parser.sbsarlite.SBSARTypeEnum.FLOAT3, parser.sbsarlite.SBSARTypeEnum.FLOAT4]:
                 if input_info.get('widget') == 'color':
                     _anno_item['min'] = 0
                     _anno_item['max'] = 1
@@ -237,12 +280,12 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             })
             _anno_obj[sb_output_format_to_prop(_output['identifier'])] = (EnumProperty, {
                 'name': 'Format',
-                'items': consts.format_list,
+                'items': format_list,
                 'default': 'png'
             })
             _anno_obj[sb_output_dep_to_prop(_output['identifier'])] = (EnumProperty, {
                 'name': 'Bit Depth',
-                'items': consts.output_bit_depth,
+                'items': output_bit_depth,
                 'default': '0'
             })
 
@@ -328,7 +371,7 @@ async def gen_clss_from_material_async(target_material, enable_visible_if, force
 def parse_sbsar_package(filepath: str):
     if not os.path.exists(filepath):
         return None
-    sbs_pkg = sbsarlite.parse_doc(filepath)
+    sbs_pkg = parser.sbsarlite.parse_doc(filepath)
     return sbs_pkg
 
 
@@ -466,8 +509,8 @@ def apply_preset(material, preset_name):
         if p_value['identifier'] != '$outputsize' and p_value['identifier'] != '$randomseed':
             parsed_value = p_value["value"]
             if isinstance(parsed_value, str):
-                parsed_value = sbsarlite.parse_str_value(parsed_value, p_value['type'])
-            if p_value["type"] == consts.SBSARTypeEnum.INTEGER1:
+                parsed_value = parser.sbsarlite.parse_str_value(parsed_value, p_value['type'])
+            if p_value["type"] == parser.sbsarlite.SBSARTypeEnum.INTEGER1:
                 input_info = prop_input_map[p_value['prop']]
                 if input_info.get('widget') == 'combobox' and input_info.get('combo_items') is not None:
                     parsed_value = "$NUM:{0}".format(parsed_value)

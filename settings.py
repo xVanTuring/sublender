@@ -2,7 +2,7 @@ import typing
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 
-from . import globalvar, utils
+from . import utils
 
 
 # region get/set idx
@@ -45,7 +45,7 @@ class Sublender_Material_MT_Setting(bpy.types.PropertyGroup):
     package_path: StringProperty(name="Package Path", subtype="FILE_PATH", update=package_path_updated)
     graph_url: StringProperty(name="Graph URL")
     show_setting: BoolProperty(name="Show Params", default=True)
-    material_template: EnumProperty(name="Material Template", items=globalvar.material_template_enum)
+    material_template: EnumProperty(name="Material Template", items=utils.globalvar.material_template_enum)
     uuid: StringProperty(name="UUID of this material", default="")
     package_missing: BoolProperty()
     package_loaded: BoolProperty(default=False)
@@ -60,17 +60,38 @@ class ImportingPreset(bpy.types.PropertyGroup):
     enable: BoolProperty(default=True)
 
 
+build_in_material_type = [
+    ('Ceramic', 'Ceramic', 'Ceramic'),
+    ('Concrete-Asphalt', 'Concrete-Asphalt', 'Concrete-Asphalt'),
+    ('Fabric', 'Fabric', 'Fabric'),
+    ('Ground', 'Ground', 'Ground'),
+    ('Leather', 'Leather', 'Leather'),
+    ('Marble-Granite', 'Marble-Granite', 'Marble-Granite'),
+    ('Metal', 'Metal', 'Metal'),
+    ('Organic', 'Organic', 'Organic'),
+    ('Paint', 'Paint', 'Paint'),
+    ('Paper', 'Paper', 'Paper'),
+    ('Plaster', 'Plaster', 'Plaster'),
+    ('Plastic-Rubber', 'Plastic-Rubber', 'Plastic-Rubber'),
+    ('Stone', 'Stone', 'Stone'),
+    ('Terracotta', 'Terracotta', 'Terracotta'),
+    ('Translucent', 'Translucent', 'Translucent'),
+    ('Wood', 'Wood', 'Wood'),
+    ('$CUSTOM$', 'Custom', 'Custom'),
+]
+
+
 class ImportingGraphItem(bpy.types.PropertyGroup):
     graph_url: StringProperty(name="Graph Url")
     enable: BoolProperty(name="Import", default=True)
-    material_template: EnumProperty(items=globalvar.material_template_enum, name='Template')
+    material_template: EnumProperty(items=utils.globalvar.material_template_enum, name='Template')
     material_name: StringProperty(name='Material Name')
     use_fake_user: BoolProperty(name="Fake User", default=True)
     assign_to_selection: BoolProperty(name='Append to selected mesh', default=False)
     library_uid: StringProperty(default="")
     preset_name: StringProperty(default="")
     importing_presets: bpy.props.CollectionProperty(type=ImportingPreset)
-    category: EnumProperty(items=utils.consts.build_in_material_type, default="$CUSTOM$")
+    category: EnumProperty(items=build_in_material_type, default="$CUSTOM$")
     category_str: StringProperty(default="")
     package_path: StringProperty(name="Package Path", subtype="FILE_PATH")
 
@@ -89,11 +110,11 @@ def new_graph_item(graph_url: str, category: str, package_path: str):
 
 def get_graph_list(_, __):
     init_graph_items()
-    return globalvar.graph_enum
+    return utils.globalvar.graph_enum
 
 
 def init_graph_items():
-    globalvar.graph_enum.clear()
+    utils.globalvar.graph_enum.clear()
     package_url_set = set()
     i = 0
     for material in bpy.data.materials:
@@ -101,7 +122,8 @@ def init_graph_items():
         if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path != ""):
             if m_sublender.graph_url not in package_url_set:
                 package_url_set.add(m_sublender.graph_url)
-                globalvar.graph_enum.append((m_sublender.graph_url, m_sublender.graph_url, m_sublender.graph_url))
+                utils.globalvar.graph_enum.append(
+                    (m_sublender.graph_url, m_sublender.graph_url, m_sublender.graph_url))
                 i += 1
 
 
@@ -111,8 +133,8 @@ def active_graph_updated(self, context):
 
 
 def init_instance_of_graph(self):
-    globalvar.instance_of_graph.clear()
-    if len(globalvar.graph_enum) == 0:
+    utils.globalvar.instance_of_graph.clear()
+    if len(utils.globalvar.graph_enum) == 0:
         return
     i = 0
     active_graph = self.active_graph
@@ -120,13 +142,13 @@ def init_instance_of_graph(self):
         m_sublender = material.sublender
         if m_sublender is not None and m_sublender.graph_url == active_graph:
             mat_name = material.name
-            globalvar.instance_of_graph.append((mat_name, mat_name, mat_name, material.preview.icon_id, i))
+            utils.globalvar.instance_of_graph.append((mat_name, mat_name, mat_name, material.preview.icon_id, i))
             i += 1
 
 
 def get_instance_of_graph(self, context):
     init_instance_of_graph(self)
-    return globalvar.instance_of_graph
+    return utils.globalvar.instance_of_graph
 
 
 instance_list_of_object = []
@@ -156,12 +178,12 @@ class SublenderSetting(bpy.types.PropertyGroup):
     show_preview: BoolProperty(name="Show Preview")
     active_graph: EnumProperty(items=get_graph_list,
                                name="Graph",
-                               get=get_idx(globalvar.graph_enum, "active_graph"),
+                               get=get_idx(utils.globalvar.graph_enum, "active_graph"),
                                set=set_idx("active_graph"),
                                update=active_graph_updated)
     active_instance: EnumProperty(items=get_instance_of_graph,
                                   name="Instance",
-                                  get=get_idx(globalvar.instance_of_graph, "active_instance"),
+                                  get=get_idx(utils.globalvar.instance_of_graph, "active_instance"),
                                   set=set_idx("active_instance"))
     # BUG: enum display error
     object_active_instance: EnumProperty(items=get_instance_list_of_object,
@@ -180,19 +202,19 @@ class SublenderSetting(bpy.types.PropertyGroup):
 
 # region SublenderLibrary
 def get_library_material_list(self, _):
-    return globalvar.library_category_material_map.get(self.categories, [])
+    return utils.globalvar.library_category_material_map.get(self.categories, [])
 
 
 def get_material_preset(self, _):
-    return globalvar.library_material_preset_map.get(self.active_material, [])
+    return utils.globalvar.library_material_preset_map.get(self.active_material, [])
 
 
 def get_category_list(_, __):
-    return globalvar.library_category_enum
+    return utils.globalvar.library_category_enum
 
 
 def category_selected(self, context):
-    material_list = globalvar.library_category_material_map.get(self.categories, [])
+    material_list = utils.globalvar.library_category_material_map.get(self.categories, [])
     if len(material_list) > 0:
         self.active_material = material_list[0][0]
 

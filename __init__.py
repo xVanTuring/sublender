@@ -2,7 +2,7 @@ import logging
 
 import bpy
 from bpy.app.handlers import persistent
-from .utils import install_lib
+from .utils import install_lib, globalvar
 
 bl_info = {
     "name": "Sublender",
@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.WARN, format='%(name)s %(message)s')
 @persistent
 def on_load_pre(_):
     """Remove all register clss, global var generate previously"""
-    from . import (globalvar)
+    from .utils import (globalvar)
     if globalvar.current_uuid == "":
         return
     for clss in globalvar.sub_panel_clss_list:
@@ -60,7 +60,6 @@ def on_save_post(_):
 
 def register():
     py7zr_state = install_lib.has_libs()
-    from . import globalvar
     globalvar.py7zr_state = py7zr_state
     log.info('Sublender@register: Starting')
     import sys

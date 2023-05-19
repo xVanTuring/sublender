@@ -3,7 +3,7 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
-from .. import globalvar, utils, async_loop, template
+from .. import utils, async_loop, template
 from ..settings import Sublender_Material_MT_Setting
 from ..utils import new_material_name, EvalDelegate
 
@@ -15,7 +15,7 @@ class SublenderOTImportGraph(Operator):
     use_same_config: BoolProperty(default=True, name="Use Same Config")
     use_fake_user: BoolProperty(name="Fake User", default=True)
     assign_to_selection: BoolProperty(name='Append to selected mesh', default=False)
-    material_template: EnumProperty(items=globalvar.material_template_enum, name='Template')
+    material_template: EnumProperty(items=utils.globalvar.material_template_enum, name='Template')
 
     def execute(self, context):
         importing_graph_items = context.scene.sublender_settings.importing_graphs
@@ -46,18 +46,18 @@ class SublenderOTImportGraph(Operator):
                 m_sublender.library_uid = importing_graph.library_uid
             bpy.context.scene.sublender_settings.active_graph = importing_graph.graph_url
             sbs_package = None
-            for graph in globalvar.sbsar_dict.get(self.package_path)['graphs']:
+            for graph in utils.globalvar.sbsar_dict.get(self.package_path)['graphs']:
                 if graph['pkgUrl'] == importing_graph.graph_url:
                     sbs_package = graph
                     break
             clss_name, clss_info = utils.dynamic_gen_clss_graph(sbs_package, importing_graph.graph_url)
             preferences = utils.get_addon_preferences(context)
             if preferences.enable_visible_if:
-                globalvar.eval_delegate_map[material.name] = EvalDelegate(material.name, clss_name)
+                utils.globalvar.eval_delegate_map[material.name] = EvalDelegate(material.name, clss_name)
 
             graph_setting = getattr(material, clss_name)
             if active_material_template != utils.consts.CUSTOM:
-                material_template = globalvar.material_templates.get(active_material_template)
+                material_template = utils.globalvar.material_templates.get(active_material_template)
                 output_info_usage: dict = clss_info['output_info']['usage']
                 for template_texture in material_template['texture']:
                     if output_info_usage.get(template_texture) is not None:
@@ -135,7 +135,7 @@ class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
             await utils.init_sublender_async(self, context)
         if self.from_library:
             active_material = context.scene.sublender_library.active_material
-            sbs_graph_info = globalvar.library["materials"].get(active_material)
+            sbs_graph_info = utils.globalvar.library["materials"].get(active_material)
             self.sbsar_path = sbs_graph_info["sbsar_path"]
             self.pkg_url = sbs_graph_info["pkg_url"]
         sbs_pkg = await utils.load_sbsar_to_dict_async(self.sbsar_path, self.report)
@@ -154,7 +154,7 @@ class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
                         label = bpy.utils.escape_identifier(importing_graph.graph_url).replace("://", "")
                     importing_graph.library_uid = "{}_{}".format(label, sbs_pkg["asmuid"])
                     active_material = context.scene.sublender_library.active_material
-                    if len(globalvar.library_material_preset_map.get(active_material)) > 0:
+                    if len(utils.globalvar.library_material_preset_map.get(active_material)) > 0:
                         if context.scene.sublender_library.material_preset != "$DEFAULT$":
                             importing_graph.preset_name = context.scene.sublender_library.material_preset
                             importing_graph.material_name = new_material_name(importing_graph.preset_name)

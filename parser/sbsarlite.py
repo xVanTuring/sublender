@@ -2,14 +2,96 @@ import os
 from collections import OrderedDict
 
 import tempfile
+import typing
 import xml
 
-from . import (parser, utils)
+from .. import parser
+import typing
+import sys
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    TypedDict = Object
 
 
-def parse_sbsar_raw(raw: OrderedDict):
+class SBSARTypeEnum:
+    FLOAT1 = 0
+    FLOAT2 = 1
+    FLOAT3 = 2
+    FLOAT4 = 3
+    INTEGER1 = 4
+    IMAGE = 5
+    STRING = 6
+    FONT = 7
+    INTEGER2 = 8
+    INTEGER3 = 9
+    INTEGER4 = 10
+
+
+class SBSARWidgetEnum:
+    togglebutton = "togglebutton"
+    slider = "slider"
+    color = "color"
+    combobox = "combobox"
+
+
+class SbsarPresetInput(TypedDict):
+    identifier: str
+    type: typing.Union[int, SBSARTypeEnum]
+    uid: str
+    prop: str
+    value: str
+
+
+class SbsarGraphOuput(TypedDict):
+    identifier: str
+    uid: str
+    label: str
+    usages: typing.List[str]
+
+
+class SbsarGraphInput(TypedDict):
+    uid: str
+    identifier: str
+    type: typing.Union[int, SBSARTypeEnum]
+    prop: str
+    default: typing.Union[str, int, float, typing.List[float], None]
+    widget: typing.Optional[SBSARWidgetEnum]
+    label: typing.Optional[str]
+    visibleIf: typing.Optional[str]
+    group: typing.Optional[str]
+    min: typing.Optional[float]
+    max: typing.Optional[float]
+    step: typing.Optional[float]
+    clamp: typing.Optional[bool]
+
+
+class SbsarGraphPreset(TypedDict):
+    preset_name: str
+    inputs: typing.List[SbsarPresetInput]
+
+
+class SbsarGraph(TypedDict):
+    pkgUrl: str
+    label: str
+    inputs: typing.List[SbsarGraphInput]
+    outputs: typing.List[SbsarGraphOuput]
+    category: str
+    description: str
+    presets: typing.Dict[str, SbsarGraphPreset]
+
+
+class SbsarPackage(TypedDict):
+    graphs: typing.List[SbsarGraph]
+    asmuid: str
+
+
+def parse_sbsar_raw(raw: OrderedDict) -> SbsarPackage:
     xml_graphs = raw['sbsdescription']['graphs']
-    parsed_sbsar = {"graphs": [], "asmuid": raw["sbsdescription"]["@asmuid"]}
+    parsed_sbsar: SbsarPackage = {
+        "graphs": [],
+        "asmuid": raw["sbsdescription"]["@asmuid"],
+    }
     graph_count = int(xml_graphs['@count'])
     if graph_count > 1:
         graph_list = xml_graphs['graph']
@@ -22,8 +104,8 @@ def parse_sbsar_raw(raw: OrderedDict):
     return parsed_sbsar
 
 
-def parse_graph(raw: OrderedDict):
-    parsed_graph = {
+def parse_graph(raw: OrderedDict) -> SbsarGraph:
+    parsed_graph: SbsarGraph = {
         'pkgUrl': raw['@pkgurl'],
         'label': raw['@label'],
         'inputs': [],
@@ -59,19 +141,22 @@ def parse_graph(raw: OrderedDict):
                 raw_preset_list = xml_presets['sbspreset']
             else:
                 raw_preset_list = [xml_presets['sbspreset']]
-        for i in range(presets_count):
-            label, preset = parse_preset(raw_preset_list[i])
-            parsed_graph['presets'][label] = preset
+            for i in range(presets_count):
+                preset_name, preset = parse_preset(raw_preset_list[i])
+                parsed_graph['presets'][preset_name] = preset
     return parsed_graph
 
 
-def parse_preset(raw: OrderedDict):
-    preset = {"preset_name": raw.get("@label"), "inputs": []}
-    inputs: list = raw.get("presetinput")
+def parse_preset(raw: OrderedDict) -> typing.Tuple[str, SbsarGraphPreset]:
+    preset: SbsarGraphPreset = {
+        "preset_name": raw.get("@label", "No Preset Name"),
+        "inputs": [],
+    }
+    inputs: typing.Any = raw.get("presetinput")
     if not isinstance(inputs, list):
         inputs = [inputs]
     for p_input in inputs:
-        input_info = {
+        input_info: SbsarPresetInput = {
             "identifier": p_input.get("@identifier"),
             "type": int(p_input.get("@type")),
             "uid": p_input.get("@uid"),
@@ -79,22 +164,23 @@ def parse_preset(raw: OrderedDict):
             "value": p_input.get("@value")
         }
         preset['inputs'].append(input_info)
-    return raw.get("@label"), preset
+    return raw.get("@label", "No Label"), preset
 
 
-def parse_output(raw: OrderedDict):
-    parsed_output = {'identifier': raw['@identifier'], 'uid': raw['@uid'], 'label': raw['outputgui']['@label']}
+def parse_output(raw: OrderedDict) -> SbsarGraphOuput:
+    parsed_output: SbsarGraphOuput = {
+        'identifier': raw['@identifier'],
+        'uid': raw['@uid'],
+        'label': raw['outputgui']['@label'],
+        'usages': []
+    }
     if raw['outputgui']['channels'] is not None:
-        usages = []
         if isinstance(raw['outputgui']['channels']['channel'], list):
             channels = raw['outputgui']['channels']['channel']
         else:
             channels = [raw['outputgui']['channels']['channel']]
         for channel in channels:
-            usages.append(channel['@names'])
-        parsed_output['usages'] = usages
-    else:
-        parsed_output['usages'] = []
+            parsed_output['usages'].append(channel['@names'])
 
     return parsed_output
 
@@ -139,24 +225,25 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
     parsed_input['group'] = raw.get('@group')
 
     if parsed_input['widget'] == 'slider':
-        if raw.get('guislider') is not None:
-            if raw.get('guislider').get('@min'):
-                parsed_input['min'] = parse_str_value(raw.get('guislider')['@min'], type_num)
+        guislider: typing.Optional[typing.Dict] = raw.get('guislider')
+        if guislider is not None:
+            if guislider.get('@min'):
+                parsed_input['min'] = parse_str_value(guislider['@min'], type_num)
                 if isinstance(parsed_input['min'], list):
                     parsed_input['min'] = parsed_input['min'][0]
 
-            if raw.get('guislider').get('@max'):
-                parsed_input['max'] = parse_str_value(raw.get('guislider')['@max'], type_num)
+            if guislider.get('@max'):
+                parsed_input['max'] = parse_str_value(guislider['@max'], type_num)
                 if isinstance(parsed_input['max'], list):
                     parsed_input['max'] = parsed_input['max'][0]
 
-            if raw.get('guislider').get('@step'):
-                parsed_input['step'] = parse_str_value(raw.get('guislider')['@step'], type_num)
-                if type_num < utils.consts.SBSARTypeEnum.INTEGER1:
+            if guislider.get('@step'):
+                parsed_input['step'] = parse_str_value(guislider['@step'], type_num)
+                if type_num < SBSARTypeEnum.INTEGER1:
                     if parsed_input['step']:
                         parsed_input['step'] = parsed_input['step'] * 100
 
-            if raw.get('guislider').get('@clamp') == "on":
+            if guislider.get('@clamp') == "on":
                 parsed_input['clamp'] = True
             else:
                 parsed_input['clamp'] = False
@@ -165,9 +252,10 @@ def parse_gui(raw: OrderedDict, type_num, parsed_input):
             # parsed_input['label2'] = raw.get('guislider').get('@label2')
             # parsed_input['label3'] = raw.get('guislider').get('@label3')
     elif parsed_input['widget'] == 'togglebutton':
-        if raw.get('guibutton') is not None:
-            parsed_input['label0'] = raw.get('guibutton').get('@label0')
-            parsed_input['label1'] = raw.get('guibutton').get('@label1')
+        guibutton: typing.Optional[typing.Dict] = raw.get('guibutton')
+        if guibutton is not None:
+            parsed_input['label0'] = guibutton.get('@label0')
+            parsed_input['label1'] = guibutton.get('@label1')
     elif parsed_input['widget'] == 'combobox':
         if raw.get('guicombobox') is not None:
             combo_item_list = []
@@ -194,7 +282,7 @@ def parse_str_value(raw_str: str, type_num):
     return raw_str
 
 
-def parse_doc(file_path: str):
+def parse_doc(file_path: str) -> typing.Optional[SbsarPackage]:
     if "py7zr" not in globals():
         import py7zr
     if "xmltodict" not in globals():
@@ -214,7 +302,7 @@ def parse_doc(file_path: str):
             try:
                 raw_sbs_xml = xmltodict.parse(raw_xml_str)
             except xml.parsers.expat.ExpatError as e:
-                e.with_traceback()
+                e.with_traceback(None)
                 raise Exception("Failed to parsed file {} as it's empty".format(sbsar_xml_path))
         return parse_sbsar_raw(raw_sbs_xml)
     return None

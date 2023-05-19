@@ -5,7 +5,7 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty, CollectionPro
 from bpy.types import Operator, OperatorFileListElement
 from bpy_extras.io_utils import ImportHelper
 
-from .. import globalvar, utils, async_loop
+from .. import utils, async_loop
 from ..settings import new_graph_item
 
 
@@ -88,7 +88,7 @@ class SublenderOTImportGraphesToLibrary(Operator):
                     continue
                 graph_item["presets"].append(preset.name)
             graphtask_list.append(graph_item)
-        globalvar.queue.put_nowait(graphtask_list)
+        utils.globalvar.queue.put_nowait(graphtask_list)
         context.scene.sublender_library.importing_graphs.clear()
         bpy.ops.sublender.render_preview_async(engine=self.engine,
                                                invert_normal=self.invert_normal,

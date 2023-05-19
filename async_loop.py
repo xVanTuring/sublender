@@ -8,7 +8,7 @@ import typing
 
 import bpy
 
-from . import globalvar
+from .utils import globalvar
 
 _loop_kicking_operator_running = False
 log = logging.getLogger(__name__)

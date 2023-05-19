@@ -4,7 +4,7 @@ import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import AddonPreferences, Operator
 
-from . import utils, globalvar, ui
+from . import utils, ui
 
 default_library_path = os.path.expanduser("~/Documents/Sublender")
 
@@ -58,7 +58,7 @@ class SublenderPreferences(AddonPreferences):
 
     def draw(self, _):
         layout = self.layout
-        if not globalvar.py7zr_state:
+        if not utils.globalvar.py7zr_state:
             ui.draw_install_deps(layout)
             return
         layout.prop(self, 'sbs_render')
