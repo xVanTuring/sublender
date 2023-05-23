@@ -486,7 +486,7 @@ async def init_sublender_async(self, context):
     refresh_panel(context)
 
 
-def apply_preset(material, preset_name):
+def apply_preset(material, preset_name: str):
     material_id = material.sublender.library_uid
     clss_name = gen_clss_name(material.sublender.graph_url)
     graph_setting = getattr(material, clss_name)
@@ -505,7 +505,22 @@ def apply_preset(material, preset_name):
                     parsed_value = "$NUM:{0}".format(parsed_value)
                 if input_info.get('widget') == 'togglebutton':
                     parsed_value = bool(parsed_value)
-            setattr(graph_setting, p_value['prop'], parsed_value)
+            try:
+                setattr(graph_setting, p_value['prop'], parsed_value)
+            except ValueError as err:
+                print("===============ERROR===============")
+                print(err)
+                err.with_traceback(None)
+                print("identifier: {}, \nproperty {}, \nvalue {}\n".format(p_value['identifier'], p_value['prop'],
+                                                                           parsed_value))
+                print("attr: {}".format(type(getattr(graph_setting, p_value['prop']))))
+                print("===================================")
+                if type(parsed_value) == list:
+                    target_size = type(graph_setting).__annotations__["sbp_2593441964"][1].get("size")
+                    if target_size is not None:
+                        if target_size < len(parsed_value):
+                            print("Trying to shrink the preset input")
+                            setattr(graph_setting, p_value['prop'], parsed_value[:target_size])
 
 
 def reset_material(material):
