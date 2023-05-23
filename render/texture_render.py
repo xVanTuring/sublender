@@ -9,7 +9,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator, ShaderNodeTexImage, Material
 
-from .. import settings, utils, async_loop, parser, render
+from .. import props, utils, async_loop, parser, render
 
 
 def generate_cmd_list(preferences, target_material_name: str, m_sublender, clss_info, graph_setting):
@@ -147,7 +147,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
             material_name = importing_graph.material_name
             self.material_name = material_name
             material_inst: bpy.types.Material = bpy.data.materials.get(importing_graph.material_name)
-            m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
+            m_sublender = material_inst.sublender
             clss_name = utils.gen_clss_name(m_sublender.graph_url)
             clss_info = utils.globalvar.graph_clss.get(clss_name)
             graph_setting = getattr(material_inst, clss_name)
@@ -186,7 +186,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
             await asyncio.sleep(0.2)
         start = datetime.datetime.now()
         material_inst: bpy.types.Material = bpy.data.materials.get(self.material_name)
-        m_sublender: settings.Sublender_Material_MT_Setting = material_inst.sublender
+        m_sublender = material_inst.sublender
         clss_name = utils.gen_clss_name(m_sublender.graph_url)
         clss_info = utils.globalvar.graph_clss.get(clss_name)
         graph_setting = getattr(material_inst, clss_name)

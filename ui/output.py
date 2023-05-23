@@ -6,7 +6,7 @@ from bpy.types import Panel
 from .. import utils, render
 
 
-class SUBLENDER_OT_SbsarOutput(Panel):
+class SUBLENDER_PT_SbsarOutput(Panel):
     bl_label = "Output"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -87,7 +87,7 @@ class SUBLENDER_OT_SbsarOutput(Panel):
                     delete_image.filepath = image_file_path
 
 
-cls_list = [SUBLENDER_OT_SbsarOutput]
+cls_list = [SUBLENDER_PT_SbsarOutput]
 
 
 def register():

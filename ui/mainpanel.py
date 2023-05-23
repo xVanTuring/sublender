@@ -3,11 +3,11 @@ import os
 import bpy
 from bpy.types import Panel
 
-from .. import settings, utils
+from .. import props, utils
 
 
 def draw_instance_item(self, context, target_mat):
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    sublender_settings = context.scene.sublender_settings
     row = self.layout.row()
     instance_info_column = row.column()
     if sublender_settings.follow_selection:
@@ -21,7 +21,7 @@ def draw_instance_item(self, context, target_mat):
 
 
 def draw_graph_item(self, context, target_mat):
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+    sublender_settings = context.scene.sublender_settings
     row = self.layout.row()
     graph_info_column = row.column()
     if sublender_settings.follow_selection:
@@ -37,7 +37,7 @@ def draw_graph_item(self, context, target_mat):
 
 
 def draw_workflow_item(self, _, target_mat):
-    mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
+    mat_setting = target_mat.sublender
     row = self.layout.row()
     row.prop(mat_setting, 'material_template', text='Workflow')
     row.operator("sublender.apply_workflow", icon='MATERIAL', text="")
@@ -53,8 +53,8 @@ def draw_texture_item(self, context, target_mat):
     render_ops = row.operator("sublender.render_texture_async", icon='TEXTURE')
     render_ops.importing_graph = False
     render_ops.texture_name = ""
-    sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
-    mat_setting: settings.Sublender_Material_MT_Setting = target_mat.sublender
+    sublender_settings = context.scene.sublender_settings
+    mat_setting = target_mat.sublender
     row.prop(sublender_settings, 'live_update', icon='FILE_REFRESH', icon_only=True)
     if sublender_settings.live_update:
         row.prop(sublender_settings, 'catch_undo', icon='PROP_CON', icon_only=True)
@@ -82,7 +82,7 @@ class SUBLENDER_PT_Main(Panel):
         if not utils.globalvar.py7zr_state:
             draw_install_deps(self.layout)
             return
-        sublender_settings: settings.SublenderSetting = context.scene.sublender_settings
+        sublender_settings = context.scene.sublender_settings
         if not utils.sublender_inited(context):
             if bpy.data.filepath == "":
                 self.layout.operator("wm.save_mainfile")

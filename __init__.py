@@ -81,7 +81,7 @@ def register():
             return new_module
 
         template = reload_mod('template')
-        settings = reload_mod('settings')
+        props = reload_mod('props')
         importer = reload_mod('importer')
         preference = reload_mod('preference')
         async_loop = reload_mod('async_loop')
@@ -89,7 +89,7 @@ def register():
         sb_operators = reload_mod('sb_operators')
         ui = reload_mod('ui')
     else:
-        from . import (template, settings, importer, preference, async_loop, render, sb_operators, ui)
+        from . import (template, props, importer, preference, async_loop, render, sb_operators, ui)
 
     template.load_material_templates()
     preference.register()
@@ -97,7 +97,7 @@ def register():
     async_loop.setup_asyncio_executor()
     async_loop.register()
     importer.register()
-    settings.register()
+    props.register()
     sb_operators.register()
     ui.register()
     render.sublender_library.ensure_library()
@@ -110,13 +110,13 @@ def register():
 
 
 def unregister():
-    from . import (settings, importer, preference, async_loop, render, sb_operators, ui, utils)
+    from . import (props, importer, preference, async_loop, render, sb_operators, ui, utils)
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
     render.unregister()
     importer.unregister()
-    settings.unregister()
+    props.unregister()
     sb_operators.unregister()
     utils.unregister()
 

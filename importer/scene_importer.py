@@ -3,8 +3,8 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
-from .. import utils, async_loop, template
-from ..settings import Sublender_Material_MT_Setting
+from .. import utils, async_loop, template, props
+# from ..props import Sublender_Material_MT_Setting
 from ..utils import new_material_name, EvalDelegate
 
 
@@ -50,12 +50,12 @@ class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
             self.pkg_url = sbs_graph_info["pkg_url"]
         sbs_pkg = await utils.load_sbsar_to_dict_async(self.sbsar_path, self.report)
         if sbs_pkg is not None:
-            importing_graph_items = context.scene.sublender_settings.importing_graphs
-            importing_graph_items.clear()
+            importing_graphs = context.scene.sublender_settings.importing_graphs
+            importing_graphs.clear()
             for graph_info in sbs_pkg['graphs']:
                 if self.pkg_url != "" and graph_info["pkgUrl"] != self.pkg_url:
                     continue
-                importing_graph = importing_graph_items.add()
+                importing_graph = importing_graphs.add()
                 importing_graph.graph_url = graph_info["pkgUrl"]
                 importing_graph.material_name = new_material_name(graph_info['label'])
                 if self.from_library:
@@ -81,8 +81,8 @@ class SublenderOTImportGraph(Operator):
     material_template: EnumProperty(items=utils.globalvar.material_template_enum, name='Template')
 
     def execute(self, context):
-        importing_graph_items = context.scene.sublender_settings.importing_graphs
-        for importing_graph in importing_graph_items:
+        importing_graphs = context.scene.sublender_settings.importing_graphs
+        for importing_graph in importing_graphs:
             if not importing_graph.enable:
                 continue
             active_material_template = (self.material_template
@@ -98,7 +98,7 @@ class SublenderOTImportGraph(Operator):
             if assign_to_selection and active_obj is not None:
                 active_obj.data.materials.append(material)
 
-            m_sublender: Sublender_Material_MT_Setting = material.sublender
+            m_sublender = material.sublender
             m_sublender.graph_url = importing_graph.graph_url
             m_sublender.package_path = self.package_path
             m_sublender.material_template = active_material_template
@@ -140,11 +140,11 @@ class SublenderOTImportGraph(Operator):
         return wm.invoke_props_dialog(self, width=350)
 
     def draw(self, context):
-        importing_graph_items = context.scene.sublender_settings.importing_graphs
-        if len(importing_graph_items) > 1:
+        importing_graphs = context.scene.sublender_settings.importing_graphs
+        if len(importing_graphs) > 1:
             self.layout.prop(self, "use_same_config", toggle=1)
         if self.use_same_config:
-            for importing_graph in importing_graph_items:
+            for importing_graph in importing_graphs:
                 self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
                 self.layout.prop(importing_graph, "material_name")
             self.layout.prop(self, "material_template")
@@ -152,7 +152,7 @@ class SublenderOTImportGraph(Operator):
             row.prop(self, "use_fake_user", icon='FAKE_USER_ON')
             row.prop(self, "assign_to_selection", toggle=1)
         else:
-            for importing_graph in importing_graph_items:
+            for importing_graph in importing_graphs:
                 self.layout.prop(importing_graph, "enable", text="Import {}".format(importing_graph.graph_url))
                 self.layout.prop(importing_graph, "material_name")
                 self.layout.prop(importing_graph, "material_template")

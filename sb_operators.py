@@ -5,7 +5,7 @@ import bpy
 from bpy.props import (StringProperty, BoolProperty)
 from bpy.types import Operator
 
-from . import settings, utils, template, async_loop, render
+from . import props, utils, template, async_loop, render
 
 
 class SublenderBaseOperator(object):
@@ -21,7 +21,7 @@ class SublenderOTApplyWorkflow(SublenderBaseOperator, Operator):
 
     def execute(self, context):
         material_inst = utils.find_active_mat(context)
-        mat_setting: settings.Sublender_Material_MT_Setting = material_inst.sublender
+        mat_setting = material_inst.sublender
         workflow_name: str = mat_setting.material_template
         self.report({"INFO"}, "Inflating material {0}".format(material_inst.name))
 
@@ -63,7 +63,7 @@ class SublenderOTRandomSeed(SublenderBaseOperator, Operator):
 
     def execute(self, context):
         material_instance = utils.find_active_mat(context)
-        m_sublender: settings.Sublender_Material_MT_Setting = material_instance.sublender
+        m_sublender = material_instance.sublender
         clss_name = utils.gen_clss_name(m_sublender.graph_url)
         pkg_setting = getattr(material_instance, clss_name)
         setattr(pkg_setting, '$randomseed', random.randint(0, 9999999))

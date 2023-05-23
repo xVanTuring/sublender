@@ -6,7 +6,7 @@ from bpy.types import Operator, OperatorFileListElement
 from bpy_extras.io_utils import ImportHelper
 
 from .. import utils, async_loop
-from ..settings import new_graph_item
+from ..props import new_graph_item
 
 
 class SublenderOTSelectSbsarLibrary(Operator, ImportHelper):
