@@ -153,7 +153,7 @@ def generate_sub_panel(group_map, graph_url):
         bl_parent_id = ''
         if parent_name != '':
             bl_parent_id = sub_panel_name(parent_name, graph_url)
-        p_clss = type(sub_panel_name(group_key, graph_url), (ui.Sublender_Prop_BasePanel, ), {
+        p_clss = type(sub_panel_name(group_key, graph_url), (ui.SublenderPTPropBase, ), {
             'bl_label': displace_name,
             'bl_parent_id': bl_parent_id,
             'graph_url': graph_url,
