@@ -86,10 +86,10 @@ def register():
         preference = reload_mod('preference')
         async_loop = reload_mod('async_loop')
         render = reload_mod('render')
-        sb_operators = reload_mod('sb_operators')
+        operators = reload_mod('operators')
         ui = reload_mod('ui')
     else:
-        from . import (template, props, importer, preference, async_loop, render, sb_operators, ui)
+        from . import (template, props, importer, preference, async_loop, render, operators, ui)
 
     template.load_material_templates()
     preference.register()
@@ -98,7 +98,7 @@ def register():
     async_loop.register()
     importer.register()
     props.register()
-    sb_operators.register()
+    operators.register()
     ui.register()
     render.sublender_library.ensure_library()
     render.sublender_library.load_library()
@@ -110,14 +110,14 @@ def register():
 
 
 def unregister():
-    from . import (props, importer, preference, async_loop, render, sb_operators, ui, utils)
+    from . import (props, importer, preference, async_loop, render, operators, ui, utils)
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
     render.unregister()
     importer.unregister()
     props.unregister()
-    sb_operators.unregister()
+    operators.unregister()
     utils.unregister()
 
     for clss in globalvar.sub_panel_clss_list:
