@@ -22,7 +22,7 @@ output_size_one_enum = [
 
 ADDON_DIR = os.path.join(os.path.dirname(__file__), "../")
 
-TEMPLATE_PATH = os.path.join(ADDON_DIR, 'workflows')
+WORKFLOW_PATH = os.path.join(ADDON_DIR, 'workflow')
 RESOURCES_PATH = os.path.join(ADDON_DIR, 'resources')
 
 output_size_x = "$sb_output_size_x"

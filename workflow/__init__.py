@@ -3,7 +3,7 @@ import os
 
 import bpy
 
-from . import utils
+from .. import utils
 
 
 def is_type(val, type_str: str):
@@ -88,8 +88,8 @@ def inflate_template(mat, template_name: str, clear_nodes=False):
     load_default_texture(mat, template)
 
 
-def load_material_templates():
-    template_path = utils.consts.TEMPLATE_PATH
+def load_material_workflows():
+    template_path = utils.consts.WORKFLOW_PATH
     files = os.listdir(template_path)
     files.sort()
 

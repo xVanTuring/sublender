@@ -80,7 +80,7 @@ def register():
             sys.modules[modname] = new_module
             return new_module
 
-        template = reload_mod('template')
+        workflow = reload_mod('workflow')
         props = reload_mod('props')
         importer = reload_mod('importer')
         preference = reload_mod('preference')
@@ -89,9 +89,9 @@ def register():
         operators = reload_mod('operators')
         ui = reload_mod('ui')
     else:
-        from . import (template, props, importer, preference, async_loop, render, operators, ui)
+        from . import (workflow, props, importer, preference, async_loop, render, operators, ui)
 
-    template.load_material_templates()
+    workflow.load_material_workflows()
     preference.register()
     render.register()
     async_loop.setup_asyncio_executor()

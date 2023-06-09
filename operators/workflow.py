@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Operator
 
 from .base import SublenderBaseOperator
-from .. import utils, template
+from .. import utils, workflow
 
 
 class SublenderOTApplyWorkflow(SublenderBaseOperator, Operator):
@@ -29,7 +29,7 @@ class SublenderOTApplyWorkflow(SublenderBaseOperator, Operator):
                     name = output_info_usage.get(template_texture)[0]
                     setattr(graph_setting, utils.sb_output_to_prop(name), True)
             setattr(graph_setting, utils.consts.SBS_CONFIGURED, True)
-            template.inflate_template(material_inst, workflow_name, True)
+            workflow.inflate_template(material_inst, workflow_name, True)
         else:
             for output_info in clss_info['output_info']['list']:
                 setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
