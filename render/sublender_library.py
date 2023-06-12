@@ -326,6 +326,17 @@ class SublenderOTSaveToPreset(Operator):
         return {'FINISHED'}
 
 
+class SublenderOTReleaseLibraryTemplate(Operator):
+    bl_idname = "sublender.release_lib_template"
+    bl_label = "Release Library Template"
+    bl_description = "Release Library Template"
+
+    def execute(self, context):
+        old_version = bpy.context.preferences.addons["sublender"].preferences.old_version_of_template
+        ensure_template_render_env(old=old_version, force=True)
+        return {'FINISHED'}
+
+
 def safe_name(name: str, exists):
     for existed_name in exists:
         if existed_name == name:
@@ -376,7 +387,7 @@ def generate_preset(preset_name: str, material_name: str):
     return preset_config
 
 
-def ensure_template_render_env():
+def ensure_template_render_env(old=False, force=False):
     sublender_library_dir = bpy.context.preferences.addons["sublender"].preferences.library_path
     sublender_library_render_dir = os.path.join(sublender_library_dir, "template")
     pathlib.Path(sublender_library_render_dir).mkdir(parents=True, exist_ok=True)
@@ -389,15 +400,14 @@ def ensure_template_render_env():
                                                                 "preview_cloth_template.blend")
     sublender_library_render_cloth_template_invert_file = os.path.join(sublender_library_render_dir,
                                                                        "preview_cloth_template_invert.blend")
-    if not os.path.exists(sublender_library_render_template_file):
-        shutil.copy(utils.consts.packed_sublender_template_file, sublender_library_render_template_file)
-    if not os.path.exists(sublender_library_render_template_invert_file):
-        shutil.copy(utils.consts.packed_sublender_template_invert_file, sublender_library_render_template_invert_file)
-    if not os.path.exists(sublender_library_render_cloth_template_file):
-        shutil.copy(utils.consts.packed_sublender_template_cloth_file, sublender_library_render_cloth_template_file)
-    if not os.path.exists(sublender_library_render_cloth_template_invert_file):
-        shutil.copy(utils.consts.packed_sublender_template_cloth_invert_file,
-                    sublender_library_render_cloth_template_invert_file)
+    if force or not os.path.exists(sublender_library_render_template_file):
+        shutil.copy(utils.consts.get_template("shader_ball", False, old), sublender_library_render_template_file)
+    if force or not os.path.exists(sublender_library_render_template_invert_file):
+        shutil.copy(utils.consts.get_template("shader_ball", True, old), sublender_library_render_template_invert_file)
+    if force or not os.path.exists(sublender_library_render_cloth_template_file):
+        shutil.copy(utils.consts.get_template("cloth", False, old), sublender_library_render_cloth_template_file)
+    if force or not os.path.exists(sublender_library_render_cloth_template_invert_file):
+        shutil.copy(utils.consts.get_template("cloth", True, old), sublender_library_render_cloth_template_invert_file)
 
 
 def ensure_library_config():
@@ -488,11 +498,8 @@ def sync_library():
 
 
 cls_list = [
-    SublenderOTRenderPreviewAsync,
-    SublenderOTRemoveMaterial,
-    SublenderOTSaveAsPreset,
-    SublenderOTApplyPreset,
-    SublenderOTSaveToPreset,
+    SublenderOTRenderPreviewAsync, SublenderOTRemoveMaterial, SublenderOTSaveAsPreset, SublenderOTApplyPreset,
+    SublenderOTSaveToPreset, SublenderOTReleaseLibraryTemplate
 ]
 
 

@@ -56,6 +56,8 @@ class SublenderPreferences(AddonPreferences):
                                  default=default_library_path,
                                  subtype='DIR_PATH')
 
+    old_version_of_template: BoolProperty(name="Old Version of Template")
+
     def draw(self, _):
         layout = self.layout
         if not utils.globalvar.py7zr_state:
@@ -80,6 +82,12 @@ class SublenderPreferences(AddonPreferences):
         if self.engine_enum == utils.consts.CUSTOM:
             layout.prop(self, 'custom_engine')
         layout.prop(self, 'library_preview_engine')
+
+        layout.separator()
+        layout.label(text="Library:")
+        column = layout.row()
+        column.prop(self, "old_version_of_template")
+        column.operator("sublender.release_lib_template")
 
         layout.separator()
         layout.label(text="Special Thanks to YOU and: ")

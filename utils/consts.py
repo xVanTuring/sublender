@@ -36,9 +36,21 @@ sublender_template_invert_file = "preview_template_invert.blend"
 
 sublender_cloth_template_file = "preview_cloth_template.blend"
 sublender_cloth_template_invert_file = "preview_cloth_template_invert.blend"
+old_sublender_template_path = "old"
 
-packed_sublender_template_file = os.path.join(ADDON_DIR, 'resources', 'preview_template.blend')
-packed_sublender_template_invert_file = os.path.join(ADDON_DIR, 'resources', 'preview_template_invert.blend')
-packed_sublender_template_cloth_file = os.path.join(ADDON_DIR, 'resources', 'preview_cloth_template.blend')
-packed_sublender_template_cloth_invert_file = os.path.join(ADDON_DIR, 'resources',
-                                                           'preview_cloth_template_invert.blend')
+
+def get_template(type, inverted_normal, old):
+    file_folder = os.path.join(ADDON_DIR, 'resources', old_sublender_template_path if old else '')
+    file_name = ''
+    if type == "shader_ball":
+        if inverted_normal:
+            file_name = 'preview_template_invert'
+        else:
+            file_name = 'preview_template'
+    elif type == "cloth":
+        if inverted_normal:
+            file_name = 'preview_cloth_template_invert'
+        else:
+            file_name = 'preview_cloth_template'
+    file_name += ".blend"
+    return os.path.join(file_folder, file_name)
