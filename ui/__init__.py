@@ -30,7 +30,8 @@ class SublenderPTPropBase(Panel):
                 else:
                     # assign again, undo/redo will change the memory address
                     utils.globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
-                visible = calc_group_visibility(utils.globalvar.eval_delegate_map.get(active_mat.name), cls.group_info)
+                visible = prop.calc_group_visibility(utils.globalvar.eval_delegate_map.get(active_mat.name),
+                                                     cls.group_info)
                 return visible
             return True
         return False
