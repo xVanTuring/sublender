@@ -58,6 +58,8 @@ class SublenderPreferences(AddonPreferences):
 
     old_version_of_template: BoolProperty(name="Old Version of Template")
 
+    rerender_affected_texture: BoolProperty(name="Render texture affected by inputs", default=True)
+
     def draw(self, _):
         layout = self.layout
         if not utils.globalvar.py7zr_state:
@@ -82,6 +84,8 @@ class SublenderPreferences(AddonPreferences):
         if self.engine_enum == utils.consts.CUSTOM:
             layout.prop(self, 'custom_engine')
         layout.prop(self, 'library_preview_engine')
+        #  toggle=1, icon='LINKED'
+        layout.prop(self, 'rerender_affected_texture')
 
         layout.separator()
         layout.label(text="Library:")

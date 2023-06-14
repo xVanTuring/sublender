@@ -18,6 +18,15 @@ def sbsar_input_updated(_, context):
         bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
 
 
+def sbsar_input_updated_uid(input_id: str):
+    def sbsar_input_updated(_, context):
+        if context.scene.sublender_settings.live_update and not globalvar.applying_preset:
+            # TODO pass input id
+            bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='', input_id=input_id)
+
+    return sbsar_input_updated
+
+
 def sbsar_output_updated_name(sbs_id: str):
     def sbsar_output_updated(self, _):
         prop_name = sb_output_to_prop(sbs_id)
@@ -240,7 +249,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                     _anno_item['max'] = 1
                     _anno_item['subtype'] = 'COLOR'
 
-            _anno_item['update'] = sbsar_input_updated
+            _anno_item['update'] = sbsar_input_updated_uid(input_info['uid'])
             if input_info['identifier'] == '$outputsize':
                 preferences = bpy.context.preferences
                 addon_prefs = preferences.addons["sublender"].preferences
@@ -249,13 +258,10 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
                     'default': addon_prefs.output_size_x,
                     'update': output_size_x_updated,
                 })
-                _anno_obj[consts.output_size_y] = (
-                    EnumProperty,
-                    {
-                        'items': consts.output_size_one_enum,
-                        'default': addon_prefs.output_size_x,
-                        # 'update': output_size_x_updated,
-                    })
+                _anno_obj[consts.output_size_y] = (EnumProperty, {
+                    'items': consts.output_size_one_enum,
+                    'default': addon_prefs.output_size_x,
+                })
                 _anno_obj[consts.output_size_lock] = (BoolProperty, {
                     'default': addon_prefs.output_size_lock,
                     'update': output_size_x_updated

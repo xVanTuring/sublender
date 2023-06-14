@@ -86,6 +86,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
     package_path: StringProperty()
 
     texture_name: StringProperty(default="")
+    input_id: StringProperty(default="")
 
     process_list: typing.List[asyncio.subprocess.Process] = list()
     material_name = ""
@@ -183,6 +184,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
         preferences = context.preferences.addons["sublender"].preferences
         if self.texture_name == "":
             # Wait for further property changes
+            # TODO preference
             await asyncio.sleep(0.2)
         start = datetime.datetime.now()
         material_inst: bpy.types.Material = bpy.data.materials.get(self.material_name)
@@ -192,11 +194,24 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
         graph_setting = getattr(material_inst, clss_name)
         param_list = generate_cmd_list(preferences, self.material_name, m_sublender, clss_info, graph_setting)
         target_dir = render.texture_output_dir(self.material_name)
-
+        use_alternodes = preferences.rerender_affected_texture
+        alter_outputs = None
         if self.texture_name == "":
+            if use_alternodes:
+                all_inputs = clss_info['input']
+                for input in all_inputs:
+                    if input["uid"] == self.input_id:
+                        alter_outputs = input.get("alteroutputs")
+                        if alter_outputs is not None:
+                            print(alter_outputs)
+                        break
+
             build_list = []
             output_info_list = clss_info['output_info']['list']
             for output in output_info_list:
+                if alter_outputs is not None:
+                    if output["uid"] not in alter_outputs:
+                        continue
                 if getattr(graph_setting, utils.sb_output_to_prop(output['name'])):
                     build_list.append(output['name'])
             worker_list = []

@@ -215,6 +215,10 @@ def parse_input(raw: OrderedDict):
         parsed_input['label0'] = None
         parsed_input['label1'] = None
         parsed_input['combo_items'] = None
+
+    if raw.get("@alteroutputs") is not None:
+        alteroutputs = raw.get("@alteroutputs").split(",")
+        parsed_input["alteroutputs"] = alteroutputs
     return parsed_input
 
 
