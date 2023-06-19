@@ -54,3 +54,6 @@ def get_template(type, inverted_normal, old):
             file_name = 'preview_cloth_template'
     file_name += ".blend"
     return os.path.join(file_folder, file_name)
+
+
+sublender_status_url = "https://cdn.jsdelivr.net/gh/xVanTuring/sublender_issues/db.json"

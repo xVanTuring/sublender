@@ -2,7 +2,7 @@ bl_info = {
     "name": "Sublender",
     "author": "xVanTuring(@foxmail.com)",
     "blender": (2, 80, 0),
-    "version": (2, 0, 0),
+    "version": (2, 0, 2),
     "location": "View3D > Properties > Sublender",
     "description": "An add-on for sbsar",
     "category": "Material"
@@ -33,6 +33,7 @@ def on_load_pre(_):
 
 @persistent
 def on_load_post(_):
+    operators.sublender_update.auto_check()
     if bpy.data.filepath != "" and bpy.context.scene.sublender_settings.uuid != "":
         bpy.ops.sublender.init_async(pop_import=False)
 
@@ -58,6 +59,7 @@ def on_save_post(_):
 
 
 def register():
+    globalvar.version = bl_info["version"]
     py7zr_state = install_lib.has_libs()
     globalvar.py7zr_state = py7zr_state
     log.info('Sublender@register: Starting')

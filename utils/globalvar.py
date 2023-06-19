@@ -37,6 +37,8 @@ task_id = 0
 queue: asyncio.Queue = asyncio.Queue()
 consumer_started = False
 
+version = (0, 0, 0)
+
 
 def clear():
     global current_uuid
