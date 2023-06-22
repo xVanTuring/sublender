@@ -96,8 +96,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
         while self.process_list:
             process = self.process_list.pop()
             if process.returncode is None:
-                print("{} Cancelling Task!".format(self.task_id))
-                process.terminate()
+                process.kill()
 
     def invoke(self, context, event):
         if self.importing_graph:
