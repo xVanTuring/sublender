@@ -1,5 +1,6 @@
 from bpy.types import Panel
 from . import library, mainpanel, output, prop
+from .prop import calc_prop_visibility
 from .. import utils
 
 

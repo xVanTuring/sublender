@@ -12,6 +12,7 @@ import logging
 import bpy
 from bpy.app.handlers import persistent
 from .utils import install_lib, globalvar
+
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN, format='%(name)s %(message)s')
 

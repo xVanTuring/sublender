@@ -428,7 +428,7 @@ def find_active_graph(context):
                 or len(bpy.context.view_layer.objects.active.material_slots) == 0):
             return None, None
         if context.scene.sublender_settings.object_active_instance == "":
-            props.scene.init_instance_list_of_object(context)
+            props.scene.build_instance_list_of_object(context)
         active_material_enum = props.scene.instance_list_of_object
         if len(active_material_enum) == 0:
             return None, None

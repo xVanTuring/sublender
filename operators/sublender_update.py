@@ -37,7 +37,7 @@ class SublenderOTCheckVersion(async_loop.AsyncModalOperatorMixin, Operator):
         if latest_version > globalvar.version:
             preferences.latest_version = ",".join(map(str, latest_version))
             preferences.latest_changelog = latest_info["changelog"]
-            self.report({"INFO"}, "Update Avaliable")
+            self.report({"INFO"}, "Update Available")
         else:
             preferences.latest_version = ""
             preferences.latest_changelog = latest_info["changelog"]

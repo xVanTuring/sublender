@@ -52,11 +52,11 @@ instance_list_of_object = []
 
 
 def get_instance_list_of_object(_, context):
-    init_instance_list_of_object(context)
+    build_instance_list_of_object(context)
     return instance_list_of_object
 
 
-def init_instance_list_of_object(context):
+def build_instance_list_of_object(context):
     instance_list_of_object.clear()
     if context.view_layer.objects.active is None or len(context.view_layer.objects.active.material_slots) == 0:
         return instance_list_of_object
@@ -99,7 +99,7 @@ class SublenderSetting(bpy.types.PropertyGroup):
                                          name="Object Active Instance",
                                          get=get_idx(instance_list_of_object, "object_active_instance"),
                                          set=set_idx("object_active_instance"))
-    catch_undo: BoolProperty(name="Catch Undo", default=False, description="Tender texture after undo/redo")
+    catch_undo: BoolProperty(name="Catch Undo", default=False, description="Render texture after undo/redo")
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(name="Live Update", description="Live Update")
     follow_selection: BoolProperty(name="Follow Selection", default=False)
