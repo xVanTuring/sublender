@@ -56,4 +56,5 @@ def get_template(type, inverted_normal, old):
     return os.path.join(file_folder, file_name)
 
 
+# TODO: migrate to sublender repo
 sublender_status_url = "https://cdn.jsdelivr.net/gh/xVanTuring/sublender_issues/db.json"

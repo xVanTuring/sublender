@@ -11,11 +11,11 @@ def get_idx(enum_items, name: str):
             if len_of_x <= self[name]:
                 if len_of_x > 0:
                     return 0
-                return -1
+                return 0
             return self[name]
         elif len_of_x > 0:
             return 0
-        return -1
+        return 0
 
     return get_x
 

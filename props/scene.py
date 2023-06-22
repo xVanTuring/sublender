@@ -51,6 +51,7 @@ def get_instance_of_graph(self, context):
 instance_list_of_object = []
 
 
+# OPTI: get called multiple times
 def get_instance_list_of_object(_, context):
     build_instance_list_of_object(context)
     return instance_list_of_object
@@ -94,7 +95,6 @@ class SublenderSetting(bpy.types.PropertyGroup):
                                   name="Instance",
                                   get=get_idx(utils.globalvar.instance_of_graph, "active_instance"),
                                   set=set_idx("active_instance"))
-    # BUG: enum display error
     object_active_instance: EnumProperty(items=get_instance_list_of_object,
                                          name="Object Active Instance",
                                          get=get_idx(instance_list_of_object, "object_active_instance"),

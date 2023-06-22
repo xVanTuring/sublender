@@ -186,6 +186,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
             # Wait for further property changes
             # TODO preference
             await asyncio.sleep(0.2)
+        self.report({"INFO"}, "Starting Render")
         start = datetime.datetime.now()
         material_inst: bpy.types.Material = bpy.data.materials.get(self.material_name)
         m_sublender = material_inst.sublender
@@ -199,9 +200,9 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
         if self.texture_name == "":
             if use_alternodes:
                 all_inputs = clss_info['input']
-                for input in all_inputs:
-                    if input["uid"] == self.input_id:
-                        alter_outputs = input.get("alteroutputs")
+                for m_input in all_inputs:
+                    if m_input["uid"] == self.input_id:
+                        alter_outputs = m_input.get("alteroutputs")
                         if alter_outputs is not None:
                             print(alter_outputs)
                         break
