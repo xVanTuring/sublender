@@ -69,6 +69,9 @@ def draw_install_deps(layout):
         box.operator("wm.quit_blender")
     else:
         box.label(text="Install Dependencies and restart blender afterwards.")
+        box.label(text="    • py7zr: extract sbsar file")
+        box.label(text="    • xmltodict: parse sbsar config")
+        box.label(text="    • aiohttp: release information")
         box.operator("sublender.install_deps")
 
 
