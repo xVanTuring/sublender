@@ -1,5 +1,4 @@
 import bpy
-from bpy.types import Operator
 from ..utils import consts, globalvar
 from .. import async_loop
 import datetime
@@ -22,7 +21,7 @@ async def fetch_status():
             pass
 
 
-class SublenderOTCheckVersion(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTCheckVersion(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
     bl_idname = "sublender.check_version"
     bl_label = "Check Version"
     bl_description = "Remove target image"

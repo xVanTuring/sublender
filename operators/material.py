@@ -1,5 +1,4 @@
 import bpy
-from bpy.types import Operator
 from bpy.props import StringProperty
 import random
 
@@ -7,7 +6,7 @@ from .base import SublenderBaseOperator
 from .. import utils, render, async_loop
 
 
-class SublenderOTRandomSeed(SublenderBaseOperator, Operator):
+class SublenderOTRandomSeed(SublenderBaseOperator, bpy.types.Operator):
     bl_idname = "sublender.randomseed"
     bl_label = "Random Seed"
     bl_description = "Random Seed"
@@ -21,7 +20,7 @@ class SublenderOTRandomSeed(SublenderBaseOperator, Operator):
         return {'FINISHED'}
 
 
-class SublenderOTCopyTexturePath(SublenderBaseOperator, Operator):
+class SublenderOTCopyTexturePath(SublenderBaseOperator, bpy.types.Operator):
     bl_idname = "sublender.copy_texture_path"
     bl_label = "Copy Texture Path"
     bl_description = ""
@@ -34,7 +33,7 @@ class SublenderOTCopyTexturePath(SublenderBaseOperator, Operator):
         return {'FINISHED'}
 
 
-class SublenderOTLoadMissingSbsar(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTLoadMissingSbsar(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
     bl_idname = "sublender.load_missing_sbsar"
     bl_label = "Load Sbsar"
     bl_description = "Load Sbsar"
@@ -55,7 +54,7 @@ class SublenderOTLoadMissingSbsar(async_loop.AsyncModalOperatorMixin, Operator):
             force = False
 
 
-class SublenderOTNewInstance(SublenderBaseOperator, Operator):
+class SublenderOTNewInstance(SublenderBaseOperator, bpy.types.Operator):
     bl_idname = "sublender.new_instance"
     bl_label = "New Instance"
     bl_description = "New Instance"

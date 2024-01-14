@@ -7,7 +7,6 @@ import asyncio
 import bpy
 import os
 from bpy.props import StringProperty, BoolProperty
-from bpy.types import Operator
 from bpy.utils import previews
 
 from .. import async_loop, utils, parser
@@ -54,7 +53,7 @@ def generate_cmd_list(context, target_dir: str, package_path, graph_url, preset_
     return param_list
 
 
-class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
     bl_idname = "sublender.render_preview_async"
     bl_label = "Render Preview"
     bl_description = "Render Preview"
@@ -229,7 +228,7 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, Operator
                 # self.report({"INFO"}, "Render Done! Time spent: {0}s.".format((end - start).total_seconds()))
 
 
-class SublenderOTRemoveMaterial(Operator):
+class SublenderOTRemoveMaterial(bpy.types.Operator):
     # TODO error after removing
     bl_idname = "sublender.remove_material"
     bl_label = "Remove"
@@ -254,7 +253,7 @@ class SublenderOTRemoveMaterial(Operator):
         return {'FINISHED'}
 
 
-class SublenderOTSaveAsPreset(Operator):
+class SublenderOTSaveAsPreset(bpy.types.Operator):
     bl_idname = "sublender.save_as_preset"
     bl_label = "Save as Preset"
     bl_description = "Save current material as a preset"
@@ -284,7 +283,7 @@ class SublenderOTSaveAsPreset(Operator):
         return {'FINISHED'}
 
 
-class SublenderOTApplyPreset(Operator):
+class SublenderOTApplyPreset(bpy.types.Operator):
     bl_idname = "sublender.apply_preset"
     bl_label = "Apply Preset"
     bl_description = "Apply preset to selected instance"
@@ -310,7 +309,7 @@ class SublenderOTApplyPreset(Operator):
         return {'FINISHED'}
 
 
-class SublenderOTSaveToPreset(Operator):
+class SublenderOTSaveToPreset(bpy.types.Operator):
     bl_idname = "sublender.save_to_preset"
     bl_label = "Save to Preset"
     bl_description = "Save current parameters to Preset"
@@ -326,7 +325,7 @@ class SublenderOTSaveToPreset(Operator):
         return {'FINISHED'}
 
 
-class SublenderOTReleaseLibraryTemplate(Operator):
+class SublenderOTReleaseLibraryTemplate(bpy.types.Operator):
     bl_idname = "sublender.release_lib_template"
     bl_label = "Release Library Template"
     bl_description = "Release Library Template"

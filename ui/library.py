@@ -1,9 +1,8 @@
 import bpy
-from bpy.types import Panel
 from .. import utils
 
 
-class SUBLENDER_PT_Library(Panel):
+class SUBLENDER_PT_Library(bpy.types.Panel):
     bl_label = "Library"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

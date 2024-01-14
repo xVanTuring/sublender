@@ -1,11 +1,10 @@
 import bpy
-from bpy.types import Operator
 
 from .base import SublenderBaseOperator
 from .. import utils, workflow
 
 
-class SublenderOTApplyWorkflow(SublenderBaseOperator, Operator):
+class SublenderOTApplyWorkflow(SublenderBaseOperator, bpy.types.Operator):
     bl_idname = "sublender.apply_workflow"
     bl_label = "Apply Workflow"
     bl_description = "Apply Workflow, this will remove all existing nodes"

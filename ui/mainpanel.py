@@ -1,7 +1,6 @@
 import os
 
 import bpy
-from bpy.types import Panel
 
 from .. import props, utils
 
@@ -62,7 +61,7 @@ def draw_texture_item(self, context, target_mat):
         row.enabled = False
 
 
-class SUBLENDER_PT_Main(Panel):
+class SUBLENDER_PT_Main(bpy.types.Panel):
     bl_label = "Sublender"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

@@ -1,12 +1,11 @@
 import os
 
 import bpy
-from bpy.types import Panel
 
 from .. import utils, render
 
 
-class SUBLENDER_PT_SbsarOutput(Panel):
+class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
     bl_label = "Output"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

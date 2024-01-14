@@ -1,10 +1,10 @@
-from bpy.types import Panel
+import bpy
 from . import library, mainpanel, output, prop
 from .prop import calc_prop_visibility
 from .. import utils
 
 
-class SublenderPTPropBase(Panel):
+class SublenderPTPropBase(bpy.types.Panel):
     bl_label = ""
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

@@ -1,12 +1,11 @@
 import bpy
-from bpy.types import Operator
 from bpy.props import StringProperty
 import os
 
 from .. import utils
 
 
-class SublenderOTDeleteImage(Operator):
+class SublenderOTDeleteImage(bpy.types.Operator):
     bl_idname = "sublender.delete_image"
     bl_label = "Delete image"
     bl_description = "Remove target image"
@@ -23,7 +22,7 @@ class SublenderOTDeleteImage(Operator):
         return {'FINISHED'}
 
 
-class SublenderOTLoadImage(Operator):
+class SublenderOTLoadImage(bpy.types.Operator):
     bl_idname = "sublender.load_image"
     bl_label = "Load image"
     bl_description = "Load target image"
@@ -40,7 +39,7 @@ class SublenderOTLoadImage(Operator):
         return {'FINISHED'}
 
 
-class SublenderOTApplyImage(Operator):
+class SublenderOTApplyImage(bpy.types.Operator):
     bl_idname = "sublender.apply_image"
     bl_label = "Apply image"
     bl_description = "Apply target image into material"

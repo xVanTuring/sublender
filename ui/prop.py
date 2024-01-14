@@ -1,7 +1,6 @@
 import os
 
 import bpy
-from bpy.types import Panel
 
 from .. import utils
 
@@ -32,7 +31,7 @@ def calc_group_visibility(eval_delegate, group_info: dict, debug=False):
     return False
 
 
-class SUBLENDER_PT_MaterialProp(Panel):
+class SUBLENDER_PT_MaterialProp(bpy.types.Panel):
     bl_label = "Material Parameters"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"

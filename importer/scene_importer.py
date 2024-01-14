@@ -1,6 +1,5 @@
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty)
-from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
 from .. import utils, async_loop, workflow
@@ -10,7 +9,7 @@ from ..utils import new_material_name, EvalDelegate
 
 # TODO batch import
 # TODO register importer to import menu
-class SublenderOTSelectSbsar(Operator, ImportHelper):
+class SublenderOTSelectSbsar(bpy.types.Operator, ImportHelper):
     bl_idname = "sublender.select_sbsar"
     bl_label = "Import Sbsar"
     bl_description = "Import Sbsar"
@@ -27,7 +26,7 @@ class SublenderOTSelectSbsar(Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
     bl_idname = "sublender.import_sbsar"
     bl_label = "Import"
     bl_description = "Import"
@@ -71,7 +70,7 @@ class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, Operator):
             bpy.ops.sublender.import_graph('INVOKE_DEFAULT', package_path=self.sbsar_path)
 
 
-class SublenderOTImportGraph(Operator):
+class SublenderOTImportGraph(bpy.types.Operator):
     bl_idname = "sublender.import_graph"
     bl_label = "Import Graph"
     package_path: StringProperty(name='Current Graph')

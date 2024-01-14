@@ -7,7 +7,6 @@ import typing
 
 import bpy
 from bpy.props import StringProperty, BoolProperty
-from bpy.types import Operator, ShaderNodeTexImage, Material
 
 from .. import props, utils, async_loop, parser, render
 
@@ -77,7 +76,7 @@ def generate_cmd_list(preferences, target_material_name: str, m_sublender, clss_
     return param_list
 
 
-class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
     bl_idname = "sublender.render_texture_async"
     bl_label = "Render Texture"
     bl_description = "Render Texture"
@@ -90,7 +89,6 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
 
     process_list: typing.List[asyncio.subprocess.Process] = list()
     material_name = ""
-    single_task = True
 
     def clean(self, context):
         while self.process_list:
@@ -130,9 +128,9 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, Operator):
         if not output_info['usages'] or output_info['usages'][0] not in utils.consts.usage_color_dict:
             texture_image.colorspace_settings.name = 'Non-Color'
         if output_info['usages'] is not None:
-            material_instance: Material = bpy.data.materials.get(self.material_name)
+            material_instance: bpy.types.Material = bpy.data.materials.get(self.material_name)
             if material_instance is not None:
-                image_node: ShaderNodeTexImage = material_instance.node_tree.nodes.get(output_info['usages'][0])
+                image_node: bpy.types.ShaderNodeTexImage = material_instance.node_tree.nodes.get(output_info['usages'][0])
                 if image_node is not None:
                     if image_node.image is None or image_node.image.filepath != texture_image.filepath:
                         image_node.image = texture_image

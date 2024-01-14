@@ -1,11 +1,10 @@
 import bpy
-from bpy.types import Operator
 from bpy.props import BoolProperty
 from .. import utils, async_loop
 from . import workflow, material, output, sublender_update
 
 
-class SublenderOTInitAsync(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTInitAsync(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
     bl_idname = "sublender.init_async"
     bl_label = "Init & Import"
     bl_description = "Init Sublender"

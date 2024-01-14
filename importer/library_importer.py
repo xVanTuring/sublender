@@ -2,21 +2,20 @@ import pathlib
 
 import bpy
 from bpy.props import (StringProperty, BoolProperty, EnumProperty, CollectionProperty)
-from bpy.types import Operator, OperatorFileListElement
 from bpy_extras.io_utils import ImportHelper
 
 from .. import utils, async_loop
 from ..props import new_graph_item
 
 
-class SublenderOTSelectSbsarLibrary(Operator, ImportHelper):
+class SublenderOTSelectSbsarLibrary(bpy.types.Operator, ImportHelper):
     bl_idname = "sublender.select_sbsar_to_library"
     bl_label = "Import Sbsar to Library"
     bl_description = "Import Sbsar to Library"
     filename_ext = ".sbsar"
     filter_glob: StringProperty(default="*.sbsar", options={'HIDDEN'}, maxlen=255)
     # https://gist.github.com/batFINGER/2c0604be3620def01c4eeaff6ceb22f4
-    files: CollectionProperty(name="Sbsar files", type=OperatorFileListElement)
+    files: CollectionProperty(name="Sbsar files", type=bpy.types.OperatorFileListElement)
     directory: StringProperty(subtype='DIR_PATH')
 
     @classmethod
@@ -36,7 +35,7 @@ class SublenderOTSelectSbsarLibrary(Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class SublenderOTParseSelectedSbsars(async_loop.AsyncModalOperatorMixin, Operator):
+class SublenderOTParseSelectedSbsars(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
     bl_idname = "sublender.parse_selected_sbsars"
     bl_label = "Parse Sbsars"
     bl_description = "Parse Sbsars"
@@ -62,7 +61,7 @@ class SublenderOTParseSelectedSbsars(async_loop.AsyncModalOperatorMixin, Operato
         bpy.ops.sublender.import_graphs_to_library('INVOKE_DEFAULT')
 
 
-class SublenderOTImportGraphesToLibrary(Operator):
+class SublenderOTImportGraphesToLibrary(bpy.types.Operator):
     bl_idname = "sublender.import_graphs_to_library"
     bl_label = "Import Package"
     engine: EnumProperty(items=[("eevee", "Eevee", ""), ("cycles", "Cycles", "")], name="Engine")

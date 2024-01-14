@@ -2,9 +2,8 @@ import bpy
 import platform
 import os
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
-from bpy.types import AddonPreferences
 
-from . import utils, ui
+from . import utils
 
 default_library_path = os.path.expanduser("~/Documents/Sublender")
 
