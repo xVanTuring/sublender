@@ -2,3 +2,4 @@
 *.sbsar
 *.pyc
 main.py
+venv
