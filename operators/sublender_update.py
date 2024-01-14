@@ -2,23 +2,23 @@ import bpy
 from ..utils import consts, globalvar
 from .. import async_loop
 import datetime
+import asyncio
+import logging
+
+log = logging.getLogger(__name__)
 
 
-async def fetch_status():
-    if "aiohttp" not in globals():
-        import aiohttp
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(consts.sublender_status_url) as resp:
-                return await resp.json()
-        # blender build-in python requires ssl=False
-        except aiohttp.client_exceptions.ClientConnectorError as e:
-            print(e)
-            async with session.get(consts.sublender_status_url, ssl=False) as resp:
-                return await resp.json()
-        except aiohttp.client_exceptions.ClientConnectorError as e:
-            # UX
-            pass
+def fetch_status():
+    import urllib.request
+    import json
+    try:
+        with urllib.request.urlopen(consts.sublender_status_url) as response:
+            data = response.read()
+            json_str = str(data, encoding='utf-8')
+            return json.loads(json_str)
+    except Exception as e:
+        log.exception("Error fetching sublender %s", e)
+        return []
 
 
 class SublenderOTCheckVersion(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
@@ -28,11 +28,10 @@ class SublenderOTCheckVersion(async_loop.AsyncModalOperatorMixin, bpy.types.Oper
     task_id = "SublenderOTCheckVersion"
 
     async def async_execute(self, context):
-        status = await fetch_status()
+        status = await asyncio.get_event_loop().run_in_executor(None, fetch_status)
         latest_info = status[0]
         latest_version = tuple(map(int, latest_info["version"].split(".")))
         preferences = context.preferences.addons["sublender"].preferences
-        print(latest_version, globalvar.version)
         if latest_version > globalvar.version:
             preferences.latest_version = ",".join(map(str, latest_version))
             preferences.latest_changelog = latest_info["changelog"]
@@ -50,7 +49,6 @@ def auto_check():
         now = datetime.datetime.now()
         last_check_datetime = datetime.datetime.fromtimestamp(last_check_stamp)
         if (now - last_check_datetime) > datetime.timedelta(hours=12):
-            print("Checking Update Now")
             bpy.ops.sublender.check_version()
 
 
