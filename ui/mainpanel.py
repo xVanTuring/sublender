@@ -62,19 +62,6 @@ def draw_texture_item(self, context, target_mat):
         row.enabled = False
 
 
-def draw_install_deps(layout):
-    box = layout.box()
-    if utils.globalvar.display_restart:
-        box.label(text="Installation completed! Please restart blender")
-        box.operator("wm.quit_blender")
-    else:
-        box.label(text="Install Dependencies and restart blender afterwards.")
-        box.label(text="    • py7zr: extract sbsar file")
-        box.label(text="    • xmltodict: parse sbsar config")
-        box.label(text="    • aiohttp: release information")
-        box.operator("sublender.install_deps")
-
-
 class SUBLENDER_PT_Main(Panel):
     bl_label = "Sublender"
     bl_space_type = "VIEW_3D"
@@ -82,9 +69,6 @@ class SUBLENDER_PT_Main(Panel):
     bl_category = 'Sublender'
 
     def draw(self, context):
-        if not utils.globalvar.py7zr_state:
-            draw_install_deps(self.layout)
-            return
         sublender_settings = context.scene.sublender_settings
         if not utils.sublender_inited(context):
             if bpy.data.filepath == "":

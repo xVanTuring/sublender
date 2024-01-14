@@ -10,9 +10,6 @@ class SUBLENDER_PT_Library(Panel):
     bl_category = 'Sublender'
     bl_order = 1
 
-    @classmethod
-    def poll(cls, _):
-        return utils.globalvar.py7zr_state
 
     def draw(self, context):
         self.layout.operator(

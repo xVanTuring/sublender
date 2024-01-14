@@ -1,6 +1,5 @@
 from . import consts
 from . import globalvar
-from . import install_lib
 import asyncio
 import os
 import uuid

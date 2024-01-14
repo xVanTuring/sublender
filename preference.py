@@ -25,7 +25,7 @@ thank_list = ["kalish", "miurahr", "martinblech"]
 
 
 # noinspection PyTypeChecker
-class SublenderPreferences(AddonPreferences):
+class SublenderPreferences(bpy.types.AddonPreferences):
     # this must match the add-on name, use '__package__'
     # when defining this in a submodule of a python package.
     bl_idname = __package__
@@ -68,9 +68,6 @@ class SublenderPreferences(AddonPreferences):
 
     def draw(self, _):
         layout = self.layout
-        if not utils.globalvar.py7zr_state:
-            ui.mainpanel.draw_install_deps(layout)
-            return
         layout.prop(self, 'sbs_render')
         layout.prop(self, 'library_path')
         row = layout.row()

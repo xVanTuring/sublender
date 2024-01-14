@@ -30,7 +30,6 @@ instance_of_graph: typing.List = []
 
 applying_preset = False
 
-py7zr_state = True
 display_restart = False
 
 task_id = 0

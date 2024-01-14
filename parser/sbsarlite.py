@@ -2,12 +2,14 @@ import os
 from collections import OrderedDict
 
 import tempfile
-import typing
 import xml
 
 from .. import parser
 import typing
 import sys
+import py7zr
+import xmltodict
+
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
@@ -287,10 +289,6 @@ def parse_str_value(raw_str: str, type_num):
 
 
 def parse_doc(file_path: str) -> typing.Optional[SbsarPackage]:
-    if "py7zr" not in globals():
-        import py7zr
-    if "xmltodict" not in globals():
-        import xmltodict
     archive = py7zr.SevenZipFile(file_path, mode='r')
     allfiles = archive.getnames()
     sbsar_xml_path = None

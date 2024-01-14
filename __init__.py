@@ -2,7 +2,7 @@ bl_info = {
     "name": "Sublender",
     "author": "xVanTuring(@foxmail.com)",
     "blender": (2, 80, 0),
-    "version": (2, 0, 2),
+    "version": (2, 1, 1),
     "location": "View3D > Properties > Sublender",
     "description": "An add-on for sbsar",
     "category": "Material"
@@ -11,10 +11,23 @@ import logging
 
 import bpy
 from bpy.app.handlers import persistent
-from .utils import install_lib, globalvar
 
+# Support reloading
+if "py7zr" in locals():
+    import importlib
+
+    wheels = importlib.reload(wheels)
+    wheels.load_wheels()
+else:
+    from . import wheels
+    wheels.load_wheels()
+
+from .utils import globalvar
+
+logging.basicConfig(level=logging.DEBUG, format='%(name)s %(message)s')
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.WARN, format='%(name)s %(message)s')
+
+saved = False
 
 
 @persistent
@@ -34,12 +47,10 @@ def on_load_pre(_):
 
 @persistent
 def on_load_post(_):
+    from . import (operators)
     operators.sublender_update.auto_check()
     if bpy.data.filepath != "" and bpy.context.scene.sublender_settings.uuid != "":
         bpy.ops.sublender.init_async(pop_import=False)
-
-
-saved = False
 
 
 @persistent
@@ -60,9 +71,8 @@ def on_save_post(_):
 
 
 def register():
+    """Late-loads and registers the Blender-dependent submodules."""
     globalvar.version = bl_info["version"]
-    py7zr_state = install_lib.has_libs()
-    globalvar.py7zr_state = py7zr_state
     log.info('Sublender@register: Starting')
     import sys
 
@@ -93,10 +103,10 @@ def register():
         ui = reload_mod('ui')
     else:
         from . import (workflow, props, importer, preference, async_loop, render, operators, ui)
-
     workflow.load_material_workflows()
     preference.register()
     render.register()
+
     async_loop.setup_asyncio_executor()
     async_loop.register()
     importer.register()

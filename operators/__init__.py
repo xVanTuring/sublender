@@ -29,22 +29,7 @@ def ShowMessageBox(message="", title="Message Box", icon='INFO'):
     bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
 
-class SublenderOTInstallDeps(Operator):
-    bl_idname = "sublender.install_deps"
-    bl_label = "Install Dependencies"
-    bl_description = "Install Dependencies"
-
-    def execute(self, context):
-        state = utils.install_lib.ensure_libs()
-        utils.refresh_panel(context)
-        if state:
-            utils.globalvar.display_restart = True
-        else:
-            ShowMessageBox("Something went wrong! Please contact the developer.")
-        return {'FINISHED'}
-
-
-cls_list = [SublenderOTInitAsync, SublenderOTInstallDeps]
+cls_list = [SublenderOTInitAsync]
 mod_list = [workflow, material, output, sublender_update]
 
 
