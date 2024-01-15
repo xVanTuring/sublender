@@ -11,9 +11,12 @@ Sublender is a tool for blender loading sbsar file.
 5. works in both Windows and Linux  (tested).
 ## Some Example And Screenshot
 ![example](doc/images/example.jpg)
+
 ## Support Version
-* 2.8*
+* 2.8
+* 4.0
 
 ## RoadMap
-1. Update to support latest version of blender
-2. Better documentation
+1. ~~Update to support latest version of blender~~
+2. 🔨 Stable release
+3. 🚧 Better documentation
