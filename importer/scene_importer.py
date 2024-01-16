@@ -3,8 +3,7 @@ from bpy.props import (StringProperty, BoolProperty, EnumProperty)
 from bpy_extras.io_utils import ImportHelper
 
 from .. import utils, async_loop, workflow
-# from ..props import Sublender_Material_MT_Setting
-from ..utils import new_material_name, EvalDelegate
+from ..utils import new_material_name
 
 
 # TODO batch import
@@ -111,10 +110,10 @@ class SublenderOTImportGraph(bpy.types.Operator):
                 if graph['pkgUrl'] == importing_graph.graph_url:
                     sbs_package = graph
                     break
-            clss_name, clss_info = utils.dynamic_gen_clss_graph(sbs_package, importing_graph.graph_url)
+            clss_name, clss_info = utils.ensure_graph_property_group(sbs_package, importing_graph.graph_url)
             preferences = utils.get_addon_preferences(context)
             if preferences.enable_visible_if:
-                utils.globalvar.eval_delegate_map[material.name] = EvalDelegate(material.name, clss_name)
+                utils.globalvar.eval_delegate_map[material.name] = utils.helper_class.EvalDelegate(material.name, clss_name)
 
             graph_setting = getattr(material, clss_name)
             if active_material_template != utils.consts.CUSTOM:

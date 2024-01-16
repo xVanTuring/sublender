@@ -1,4 +1,6 @@
 import bpy
+
+import utils.helper_class
 from . import library, mainpanel, output, prop
 from .prop import calc_prop_visibility
 from .. import utils
@@ -27,7 +29,7 @@ class SublenderPTPropBase(bpy.types.Panel):
             if preferences.enable_visible_if:
                 clss_name = utils.gen_clss_name(cls.graph_url)
                 if utils.globalvar.eval_delegate_map.get(active_mat.name) is None:
-                    utils.globalvar.eval_delegate_map[active_mat.name] = utils.EvalDelegate(active_mat.name, clss_name)
+                    utils.globalvar.eval_delegate_map[active_mat.name] = utils.helper_class.EvalDelegate(active_mat.name, clss_name)
                 else:
                     # assign again, undo/redo will change the memory address
                     utils.globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)

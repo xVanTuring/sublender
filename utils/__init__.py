@@ -1,14 +1,15 @@
 from . import consts
 from . import globalvar
+from . import helper_class
 import asyncio
 import os
 import uuid
 
 import bpy
-import mathutils
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
 from bpy.props import (StringProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
+
 from .. import props, parser, ui
 
 
@@ -18,12 +19,12 @@ def sbsar_input_updated(_, context):
 
 
 def sbsar_input_updated_uid(input_id: str):
-    def sbsar_input_updated(_, context):
+    def fn(_, context):
         if context.scene.sublender_settings.live_update and not globalvar.applying_preset:
             # TODO pass input id
             bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='', input_id=input_id)
 
-    return sbsar_input_updated
+    return fn
 
 
 def sbsar_output_updated_name(sbs_id: str):
@@ -41,65 +42,6 @@ def gen_image_name(material_name, output_info):
     else:
         graph_identifier = output_info['name']
         return '{0}_{1}'.format(material_name, graph_identifier)
-
-
-class VectorWrapper(object):
-    def __init__(self, vec):
-        self.vec = vec
-
-    @property
-    def x(self):
-        return self.vec[0]
-
-    @property
-    def y(self):
-        return self.vec[1]
-
-    @property
-    def z(self):
-        return self.vec[2]
-
-    @property
-    def w(self):
-        return self.vec[3]
-
-
-class EvalDelegate(object):
-    material_name = ""
-    clss_name = ""
-
-    def __init__(self, material_name, clss_name):
-        self.material_name = material_name
-        self.clss_name = clss_name
-
-    def __getitem__(self, identifier: str):
-        sbs_graph = globalvar.graph_clss.get(self.clss_name, {}).get('sbs_graph')
-
-        graph_setting = getattr(bpy.data.materials.get(self.material_name), self.clss_name)
-        if identifier == "$outputsize":
-            if getattr(graph_setting, consts.output_size_lock):
-                return VectorWrapper([
-                    int(getattr(graph_setting, consts.output_size_x)),
-                    int(getattr(graph_setting, consts.output_size_x))
-                ])
-            else:
-                return VectorWrapper([
-                    int(getattr(graph_setting, consts.output_size_x)),
-                    int(getattr(graph_setting, consts.output_size_y))
-                ])
-        prop_name = None
-
-        for i in sbs_graph['inputs']:
-            if i['identifier'] == identifier:
-                prop_name = parser.uid_prop(i['uid'])
-        if prop_name is None:
-            return False
-        value = getattr(graph_setting, prop_name, None)
-        if isinstance(value, mathutils.Color) or isinstance(value, bpy.types.bpy_prop_array):
-            return VectorWrapper(value)
-        if isinstance(value, str) and value.startswith("$NUM:"):
-            value = int(value.replace("$NUM:", ""))
-        return value
 
 
 def new_material_name(material_name: str) -> str:
@@ -159,7 +101,7 @@ def generate_sub_panel(group_map, graph_url):
         bl_parent_id = ''
         if parent_name != '':
             bl_parent_id = sub_panel_name(parent_name, graph_url)
-        p_clss = type(sub_panel_name(group_key, graph_url), (ui.SublenderPTPropBase, ), {
+        p_clss = type(sub_panel_name(group_key, graph_url), (ui.SublenderPTPropBase,), {
             'bl_label': displace_name,
             'bl_parent_id': bl_parent_id,
             'graph_url': graph_url,
@@ -211,7 +153,7 @@ output_bit_depth = [
 ]
 
 
-def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
+def ensure_graph_property_group(sbs_graph, graph_url: str):
     clss_name = gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
         all_inputs = sbs_graph['inputs']
@@ -285,7 +227,7 @@ def dynamic_gen_clss_graph(sbs_graph, graph_url: str):
             name="SBS Configured",
             default=False,
         )
-        clss = type(clss_name, (bpy.types.PropertyGroup, ), {'__annotations__': _anno_obj})
+        clss = type(clss_name, (bpy.types.PropertyGroup,), {'__annotations__': _anno_obj})
         register_class(clss)
 
         globalvar.graph_clss[clss_name] = {
@@ -342,10 +284,11 @@ async def gen_clss_from_material_async(target_material, enable_visible_if, force
         for graph in sbs_package['graphs']:
             if graph['pkgUrl'] == m_sublender.graph_url:
                 sbs_graph = graph
-        clss_name, _ = dynamic_gen_clss_graph(sbs_graph, m_sublender.graph_url)
+        clss_name, _ = ensure_graph_property_group(sbs_graph, m_sublender.graph_url)
         m_sublender.package_missing = False
         if enable_visible_if:
-            globalvar.eval_delegate_map[target_material.name] = EvalDelegate(target_material.name, clss_name)
+            globalvar.eval_delegate_map[target_material.name] = helper_class.EvalDelegate(target_material.name,
+                                                                                          clss_name)
         graph_setting = getattr(target_material, clss_name)
         setattr(graph_setting, consts.SBS_CONFIGURED, True)
         if report is not None:
