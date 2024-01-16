@@ -14,7 +14,7 @@ class SublenderOTRandomSeed(SublenderBaseOperator, bpy.types.Operator):
     def execute(self, context):
         material_instance = utils.find_active_mat(context)
         m_sublender = material_instance.sublender
-        clss_name = utils.gen_clss_name(m_sublender.graph_url)
+        clss_name = utils.format.gen_clss_name(m_sublender.graph_url)
         pkg_setting = getattr(material_instance, clss_name)
         setattr(pkg_setting, '$randomseed', random.randint(0, 9999999))
         return {'FINISHED'}

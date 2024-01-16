@@ -1,6 +1,6 @@
 import bpy
 
-import utils.helper_class
+
 from . import library, mainpanel, output, prop
 from .prop import calc_prop_visibility
 from .. import utils
@@ -27,9 +27,10 @@ class SublenderPTPropBase(bpy.types.Panel):
             return False
         if active_graph == cls.graph_url and not active_mat.sublender.package_missing:
             if preferences.enable_visible_if:
-                clss_name = utils.gen_clss_name(cls.graph_url)
+                clss_name = utils.format.gen_clss_name(cls.graph_url)
                 if utils.globalvar.eval_delegate_map.get(active_mat.name) is None:
-                    utils.globalvar.eval_delegate_map[active_mat.name] = utils.helper_class.EvalDelegate(active_mat.name, clss_name)
+                    utils.globalvar.eval_delegate_map[active_mat.name] = utils.helper_class.EvalDelegate(
+                        active_mat.name, clss_name)
                 else:
                     # assign again, undo/redo will change the memory address
                     utils.globalvar.eval_delegate_map[active_mat.name].graph_setting = getattr(active_mat, clss_name)
@@ -43,7 +44,7 @@ class SublenderPTPropBase(bpy.types.Panel):
         layout = self.layout
         target_mat = utils.find_active_mat(context)
         sublender_setting = target_mat.sublender
-        clss_name = utils.gen_clss_name(sublender_setting.graph_url)
+        clss_name = utils.format.gen_clss_name(sublender_setting.graph_url)
         graph_setting = getattr(target_mat, clss_name)
         preferences = context.preferences.addons["sublender"].preferences
         eval_dele = utils.globalvar.eval_delegate_map.get(target_mat.name)

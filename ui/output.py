@@ -19,7 +19,7 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
-        clss_name = utils.gen_clss_name(active_graph)
+        clss_name = utils.format.gen_clss_name(active_graph)
         if utils.globalvar.graph_clss.get(clss_name) is None:
             # class removed
             return False
@@ -27,7 +27,7 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
 
     def draw(self, context):
         active_mat, active_graph = utils.find_active_graph(context)
-        clss_name = utils.gen_clss_name(active_graph)
+        clss_name = utils.format.gen_clss_name(active_graph)
         graph_setting = getattr(active_mat, clss_name)
         open_texture_dir = self.layout.operator("wm.path_open", text="Open Texture Folder", icon="VIEWZOOM")
         material_output_folder = render.texture_output_dir(active_mat.name)
@@ -35,15 +35,15 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
         display_output_params = context.preferences.addons["sublender"].preferences.enable_output_params
 
         for output_info in utils.globalvar.graph_clss.get(clss_name)['output_info']['list']:
-            sbo_prop_name = utils.sb_output_to_prop(output_info['name'])
-            sbo_format_name = utils.sb_output_format_to_prop(output_info['name'])
-            sbo_dep_name = utils.sb_output_dep_to_prop(output_info['name'])
+            sbo_prop_name = utils.format.sb_output_to_prop(output_info['name'])
+            sbo_format_name = utils.format.sb_output_format_to_prop(output_info['name'])
+            sbo_dep_name = utils.format.sb_output_dep_to_prop(output_info['name'])
             row = self.layout.row()
             row.prop(graph_setting, sbo_prop_name)
             if display_output_params:
                 row.prop(graph_setting, sbo_format_name, text="")
                 row.prop(graph_setting, sbo_dep_name, text="")
-            bl_img_name = utils.gen_image_name(active_mat.name, output_info)
+            bl_img_name = utils.format.gen_image_name(active_mat.name, output_info)
             bpy_image = bpy.data.images.get(bl_img_name)
             if getattr(graph_setting, sbo_prop_name):
                 render_texture = row.operator("sublender.render_texture_async", text="", icon="RENDER_STILL")
@@ -67,7 +67,8 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
                 delete_image.filepath = bpy.path.abspath(bpy_image.filepath)
                 delete_image.bl_img_name = bl_img_name
             else:
-                output_format = getattr(graph_setting, utils.sb_output_format_to_prop(output_info['name']), "png")
+                output_format = getattr(graph_setting, utils.format.sb_output_format_to_prop(output_info['name']),
+                                        "png")
                 image_file_path = os.path.join(material_output_folder,
                                                "{0}.{1}".format(output_info['name'], output_format))
                 if utils.globalvar.file_existence_dict.get(image_file_path) is None:

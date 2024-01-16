@@ -1,5 +1,7 @@
 import os
 
+from bpy.props import FloatProperty, FloatVectorProperty, IntProperty, StringProperty, IntVectorProperty
+
 UNGROUPED = '$UNGROUPED$'
 SBS_CONFIGURED = "$CONFIGURED"
 CUSTOM = "$CUSTOM$"
@@ -58,3 +60,42 @@ def get_template(type, inverted_normal, old):
 
 # TODO: migrate to sublender repo
 sublender_status_url = "https://cdn.jsdelivr.net/gh/xVanTuring/sublender_issues/db.json"
+sbsar_type_to_property = [
+    (
+        FloatProperty,
+        None,
+    ),
+    (
+        FloatVectorProperty,
+        2,
+    ),
+    (
+        FloatVectorProperty,
+        3,
+    ),
+    (
+        FloatVectorProperty,
+        4,
+    ),
+    (IntProperty, None),
+    (StringProperty, None),
+    (StringProperty, None),
+    (None, None),
+    (IntVectorProperty, 2),
+    (IntVectorProperty, 3),
+    (IntVectorProperty, 4),
+]
+format_list = [
+    ("png", "PNG", "PNG"),
+    ("jpg", "JPG", "JPG"),
+    ("tiff", "TIFF", "TIFF"),
+    ("hdr", "HDR", "HDR"),
+    ("exr", "EXR", "EXR"),
+]
+output_bit_depth = [
+    ("0", "Default", "Default"),
+    ("8", "Int 8", "Int 8"),
+    ("16", "Int 16", "Int 16"),
+    ("16f", "Float 16", "Float 16"),
+    ("32f", "Float 32", "Float 32"),
+]

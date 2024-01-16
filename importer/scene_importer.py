@@ -122,11 +122,11 @@ class SublenderOTImportGraph(bpy.types.Operator):
                 for template_texture in material_template['texture']:
                     if output_info_usage.get(template_texture) is not None:
                         name = output_info_usage.get(template_texture)[0]
-                        setattr(graph_setting, utils.sb_output_to_prop(name), True)
+                        setattr(graph_setting, utils.format.sb_output_to_prop(name), True)
                 workflow.inflate_template(material, self.material_template, True)
             else:
                 for output_info in clss_info['output_info']['list']:
-                    setattr(graph_setting, utils.sb_output_to_prop(output_info['name']), True)
+                    setattr(graph_setting, utils.format.sb_output_to_prop(output_info['name']), True)
             setattr(graph_setting, utils.consts.SBS_CONFIGURED, True)
             if importing_graph.preset_name != "":
                 utils.apply_preset(material, importing_graph.preset_name)

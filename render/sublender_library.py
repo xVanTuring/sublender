@@ -351,7 +351,7 @@ def safe_name(name: str, exists):
 def generate_preset(preset_name: str, material_name: str):
     material_inst = bpy.data.materials.get(material_name)
     m_sublender = material_inst.sublender
-    clss_name = utils.gen_clss_name(m_sublender.graph_url)
+    clss_name = utils.format.gen_clss_name(m_sublender.graph_url)
 
     clss_info = utils.globalvar.graph_clss.get(clss_name)
     input_list = clss_info['input']

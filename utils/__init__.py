@@ -1,6 +1,3 @@
-from . import consts
-from . import globalvar
-from . import helper_class
 import asyncio
 import os
 import uuid
@@ -8,14 +5,12 @@ import uuid
 import bpy
 from bpy.props import (BoolProperty, EnumProperty)
 from bpy.utils import register_class
-from bpy.props import (StringProperty, FloatProperty, IntProperty, FloatVectorProperty, IntVectorProperty)
 
+from . import consts
+from . import format
+from . import globalvar
+from . import helper_class
 from .. import props, parser, ui
-
-
-def sbsar_input_updated(_, context):
-    if context.scene.sublender_settings.live_update and not globalvar.applying_preset:
-        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
 
 
 def sbsar_input_updated_uid(input_id: str):
@@ -29,34 +24,11 @@ def sbsar_input_updated_uid(input_id: str):
 
 def sbsar_output_updated_name(sbs_id: str):
     def sbsar_output_updated(self, _):
-        prop_name = sb_output_to_prop(sbs_id)
+        prop_name = format.sb_output_to_prop(sbs_id)
         if getattr(self, consts.SBS_CONFIGURED) and getattr(self, prop_name):
             bpy.ops.sublender.render_texture_async(texture_name=sbs_id, importing_graph=False)
 
     return sbsar_output_updated
-
-
-def gen_image_name(material_name, output_info):
-    if len(output_info['usages']) > 0:
-        return '{0}_{1}'.format(material_name, output_info['usages'][0])
-    else:
-        graph_identifier = output_info['name']
-        return '{0}_{1}'.format(material_name, graph_identifier)
-
-
-def new_material_name(material_name: str) -> str:
-    """Make Sure No Name Conflict"""
-    for mat in bpy.data.materials:
-        name: str = mat.name
-        if name == material_name:
-            try:
-                base, suffix = name.rsplit('.', 1)
-                num = int(suffix, 10)
-                material_name = base + "." + '%03d' % (num + 1)
-            except ValueError:
-                material_name = material_name + ".001"
-
-    return material_name
 
 
 def output_size_x_updated(self, context):
@@ -65,31 +37,8 @@ def output_size_x_updated(self, context):
                                                            consts.output_size_x):
         setattr(self, consts.output_size_y, getattr(self, consts.output_size_x))
         if getattr(self, consts.update_when_sizing):
-            sbsar_input_updated(self, context)
-
-
-def substance_group_to_toggle_name(name: str) -> str:
-    return "sb_{0}_gptl".format(bpy.path.clean_name(str(hash(name))))
-
-
-def sb_output_to_prop(uid: str):
-    return "sbo_{0}".format(uid)
-
-
-def sb_output_format_to_prop(uid: str):
-    return "sbo_format_{0}".format(uid)
-
-
-def sb_output_dep_to_prop(uid: str):
-    return "sbo_dep_{0}".format(uid)
-
-
-def gen_clss_name(graph_url: str):
-    return "sb" + graph_url.replace("pkg://", "_")
-
-
-def sub_panel_name(group_key: str, graph_url: str):
-    return "SBS_PT_k{0}".format(str(hash(group_key + graph_url)).replace('-', '_'))
+            if context.scene.sublender_settings.live_update and not globalvar.applying_preset:
+                bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name='')
 
 
 def generate_sub_panel(group_map, graph_url):
@@ -100,8 +49,8 @@ def generate_sub_panel(group_map, graph_url):
         parent_name = '/'.join(group_key.split('/')[:-1])
         bl_parent_id = ''
         if parent_name != '':
-            bl_parent_id = sub_panel_name(parent_name, graph_url)
-        p_clss = type(sub_panel_name(group_key, graph_url), (ui.SublenderPTPropBase,), {
+            bl_parent_id = format.sub_panel_name(parent_name, graph_url)
+        p_clss = type(format.sub_panel_name(group_key, graph_url), (ui.SublenderPTPropBase,), {
             'bl_label': displace_name,
             'bl_parent_id': bl_parent_id,
             'graph_url': graph_url,
@@ -111,50 +60,8 @@ def generate_sub_panel(group_map, graph_url):
         globalvar.sub_panel_clss_list.append(p_clss)
 
 
-sbsar_type_to_property = [
-    (
-        FloatProperty,
-        None,
-    ),
-    (
-        FloatVectorProperty,
-        2,
-    ),
-    (
-        FloatVectorProperty,
-        3,
-    ),
-    (
-        FloatVectorProperty,
-        4,
-    ),
-    (IntProperty, None),
-    (StringProperty, None),
-    (StringProperty, None),
-    (None, None),
-    (IntVectorProperty, 2),
-    (IntVectorProperty, 3),
-    (IntVectorProperty, 4),
-]
-
-format_list = [
-    ("png", "PNG", "PNG"),
-    ("jpg", "JPG", "JPG"),
-    ("tiff", "TIFF", "TIFF"),
-    ("hdr", "HDR", "HDR"),
-    ("exr", "EXR", "EXR"),
-]
-output_bit_depth = [
-    ("0", "Default", "Default"),
-    ("8", "Int 8", "Int 8"),
-    ("16", "Int 16", "Int 16"),
-    ("16f", "Float 16", "Float 16"),
-    ("32f", "Float 32", "Float 32"),
-]
-
-
 def ensure_graph_property_group(sbs_graph, graph_url: str):
-    clss_name = gen_clss_name(graph_url)
+    clss_name = format.gen_clss_name(graph_url)
     if globalvar.graph_clss.get(clss_name) is None:
         all_inputs = sbs_graph['inputs']
         all_outputs = sbs_graph['outputs']
@@ -166,7 +73,7 @@ def ensure_graph_property_group(sbs_graph, graph_url: str):
                 obj_to[m_prop_name] = obj_from.get(m_prop_name)
 
         for input_info in all_inputs:
-            (prop_type, prop_size) = sbsar_type_to_property[input_info['type']]
+            (prop_type, prop_size) = consts.sbsar_type_to_property[input_info['type']]
             _anno_item = {}
 
             prop_input_map[input_info["prop"]] = input_info
@@ -208,16 +115,16 @@ def ensure_graph_property_group(sbs_graph, graph_url: str):
                 _anno_obj[input_info['prop']] = prop_type(**_anno_item)
 
         def parse_output(_output):
-            _anno_obj[sb_output_to_prop(_output['identifier'])] = BoolProperty(name=_output['label'],
-                                                                               default=False,
-                                                                               update=sbsar_output_updated_name(
-                                                                                   _output['identifier']))
-            _anno_obj[sb_output_format_to_prop(_output['identifier'])] = EnumProperty(name='Format',
-                                                                                      items=format_list,
-                                                                                      default='png')
-            _anno_obj[sb_output_dep_to_prop(_output['identifier'])] = EnumProperty(name='Bit Depth',
-                                                                                   items=output_bit_depth,
-                                                                                   default='0')
+            _anno_obj[format.sb_output_to_prop(_output['identifier'])] = BoolProperty(name=_output['label'],
+                                                                                      default=False,
+                                                                                      update=sbsar_output_updated_name(
+                                                                                          _output['identifier']))
+            _anno_obj[format.sb_output_format_to_prop(_output['identifier'])] = EnumProperty(name='Format',
+                                                                                             items=consts.format_list,
+                                                                                             default='png')
+            _anno_obj[format.sb_output_dep_to_prop(_output['identifier'])] = EnumProperty(name='Bit Depth',
+                                                                                          items=consts.output_bit_depth,
+                                                                                          default='0')
 
         output_list_dict, output_list, output_usage_dict = graph_output_parse(all_outputs, parse_output)
 
@@ -419,7 +326,7 @@ async def init_sublender_async(self, context):
 
 def apply_preset(material, preset_name: str):
     material_id = material.sublender.library_uid
-    clss_name = gen_clss_name(material.sublender.graph_url)
+    clss_name = format.gen_clss_name(material.sublender.graph_url)
     graph_setting = getattr(material, clss_name)
     clss_info = globalvar.graph_clss.get(clss_name)
     prop_input_map = clss_info['prop_input_map']
@@ -455,7 +362,7 @@ def apply_preset(material, preset_name: str):
 
 
 def reset_material(material):
-    clss_name = gen_clss_name(material.sublender.graph_url)
+    clss_name = format.gen_clss_name(material.sublender.graph_url)
     graph_setting = getattr(material, clss_name)
     clss_info = globalvar.graph_clss.get(clss_name)
     for p_input in clss_info["input"]:
@@ -470,6 +377,21 @@ def sublender_inited(context):
 
 def get_addon_preferences(context):
     return context.preferences.addons["sublender"].preferences
+
+
+def new_material_name(material_name: str) -> str:
+    """Make Sure No Name Conflict"""
+    for mat in bpy.data.materials:
+        name: str = mat.name
+        if name == material_name:
+            try:
+                base, suffix = name.rsplit('.', 1)
+                num = int(suffix, 10)
+                material_name = base + "." + '%03d' % (num + 1)
+            except ValueError:
+                material_name = material_name + ".001"
+
+    return material_name
 
 
 def on_blender_undo(scene):
