@@ -3,3 +3,4 @@
 *.pyc
 main.py
 venv
+*.whl
