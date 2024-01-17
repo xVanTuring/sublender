@@ -4,3 +4,4 @@
 main.py
 venv
 *.whl
+dist

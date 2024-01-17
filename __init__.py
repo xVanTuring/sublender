@@ -5,7 +5,7 @@ bl_info = {
     "version": (2, 1, 1),
     "location": "View3D > Properties > Sublender",
     "description": "An add-on for sbsar",
-    "category": "Material"
+    "category": "Material",
 }
 import logging
 
@@ -20,11 +20,12 @@ if "py7zr" in locals():
     wheels.load_wheels()
 else:
     from . import wheels
+
     wheels.load_wheels()
 
 from .utils import globalvar
 
-logging.basicConfig(level=logging.DEBUG, format='%(name)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format="%(name)s %(message)s")
 log = logging.getLogger(__name__)
 
 saved = False
@@ -33,7 +34,8 @@ saved = False
 @persistent
 def on_load_pre(_):
     """Remove all register clss, global var generate previously"""
-    from .utils import (globalvar)
+    from .utils import globalvar
+
     if globalvar.current_uuid == "":
         return
     for clss in globalvar.sub_panel_clss_list:
@@ -41,13 +43,14 @@ def on_load_pre(_):
     globalvar.sub_panel_clss_list.clear()
     for class_name in globalvar.graph_clss:
         class_info = globalvar.graph_clss.get(class_name)
-        bpy.utils.unregister_class(class_info['clss'])
+        bpy.utils.unregister_class(class_info["clss"])
     globalvar.clear()
 
 
 @persistent
 def on_load_post(_):
-    from . import (operators)
+    from . import operators
+
     operators.sublender_update.auto_check()
     if bpy.data.filepath != "" and bpy.context.scene.sublender_settings.uuid != "":
         bpy.ops.sublender.init_async(pop_import=False)
@@ -62,7 +65,8 @@ def on_save_pre(_):
 
 @persistent
 def on_save_post(_):
-    from . import (utils)
+    from . import utils
+
     global saved
     if saved:
         return
@@ -73,15 +77,15 @@ def on_save_post(_):
 def register():
     """Late-loads and registers the Blender-dependent submodules."""
     globalvar.version = bl_info["version"]
-    log.info('Sublender@register: Starting')
+    log.info("Sublender@register: Starting")
     import sys
 
     # Support reloading
-    if '%s.blender' % __name__ in sys.modules:
+    if "%s.blender" % __name__ in sys.modules:
         import importlib
 
         def reload_mod(name):
-            modname = '%s.%s' % (__name__, name)
+            modname = "%s.%s" % (__name__, name)
             try:
                 old_module = sys.modules[modname]
             except KeyError:
@@ -93,16 +97,26 @@ def register():
             sys.modules[modname] = new_module
             return new_module
 
-        workflow = reload_mod('workflow')
-        props = reload_mod('props')
-        importer = reload_mod('importer')
-        preference = reload_mod('preference')
-        async_loop = reload_mod('async_loop')
-        render = reload_mod('render')
-        operators = reload_mod('operators')
-        ui = reload_mod('ui')
+        workflow = reload_mod("workflow")
+        props = reload_mod("props")
+        importer = reload_mod("importer")
+        preference = reload_mod("preference")
+        async_loop = reload_mod("async_loop")
+        render = reload_mod("render")
+        operators = reload_mod("operators")
+        ui = reload_mod("ui")
     else:
-        from . import (workflow, props, importer, preference, async_loop, render, operators, ui)
+        from . import (
+            workflow,
+            props,
+            importer,
+            preference,
+            async_loop,
+            render,
+            operators,
+            ui,
+            wheels,
+        )
     workflow.load_material_workflows()
     preference.register()
     render.register()
@@ -119,11 +133,12 @@ def register():
     bpy.app.handlers.save_pre.append(on_save_pre)
     bpy.app.handlers.save_post.append(on_save_post)
     bpy.app.handlers.load_post.append(on_load_post)
-    log.info('Sublender@register: Done')
+    log.info("Sublender@register: Done")
 
 
 def unregister():
-    from . import (props, importer, preference, async_loop, render, operators, ui, utils)
+    from . import props, importer, preference, async_loop, render, operators, ui, utils
+
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
@@ -137,7 +152,7 @@ def unregister():
         bpy.utils.unregister_class(clss)
     for class_name in globalvar.graph_clss:
         class_info = globalvar.graph_clss.get(class_name)
-        bpy.utils.unregister_class(class_info['clss'])
+        bpy.utils.unregister_class(class_info["clss"])
     globalvar.clear()
 
     bpy.app.handlers.load_pre.remove(on_load_pre)
