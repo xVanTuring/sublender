@@ -7,8 +7,6 @@ import zipfile
 matrix = {"windows": ["x64"], "linux": ["x64"], "macos": ["x64", "arm64"]}
 blender_matrix = {"310": "bl3.3-bl4.0"}
 project_path = pathlib.Path(__file__).parent.parent.absolute()
-wheel_dir = project_path.joinpath("wheels")
-dist_path = project_path.joinpath("dist")
 
 
 def do_pack(wheel_dir: pathlib.Path, dist_path: pathlib.Path, platform_key: str):
@@ -44,7 +42,9 @@ def do_pack(wheel_dir: pathlib.Path, dist_path: pathlib.Path, platform_key: str)
                 zfile.write(wheel, f"sublender/wheels/{os.path.basename(wheel)}")
 
 
-if __name__ == "__main__":
+def main():
+    wheel_dir = project_path.joinpath("wheels")
+    dist_path = project_path.joinpath("dist")
     print(f"Project is located at {str(project_path)}")
     if not dist_path.exists():
         print(f"Creating dist_folder at {dist_path}")
@@ -54,3 +54,7 @@ if __name__ == "__main__":
         for arch in arches:
             platform_key = f"{platform}_{arch}"
             do_pack(wheel_dir, dist_path, platform_key)
+
+
+if __name__ == "__main__":
+    main()
