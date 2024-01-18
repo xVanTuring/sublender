@@ -1,91 +1,16 @@
 import asyncio
 import datetime
 import os
-import pathlib
-from typing import List
 import typing
+import logging
 
 import bpy
 from bpy.props import StringProperty, BoolProperty
 
-from .. import utils, async_loop, parser, render
+from .. import utils, async_loop, render
+from . import command_line
 
-
-def generate_cmd_list(
-    preferences, target_material_name: str, m_sublender, clss_info, graph_setting
-):
-    input_list = clss_info["input"]
-    param_list = [
-        "render",
-        "--input",
-        m_sublender.package_path,
-        "--input-graph",
-        m_sublender.graph_url,
-    ]
-    for input_info in input_list:
-        if input_info["identifier"] == "$outputsize":
-            locked = getattr(graph_setting, utils.consts.output_size_lock, True)
-            param_list.append("--set-value")
-            width = getattr(graph_setting, utils.consts.output_size_x)
-            if locked:
-                param_list.append("{0}@{1},{1}".format(input_info["identifier"], width))
-            else:
-                height = getattr(graph_setting, utils.consts.output_size_x)
-                param_list.append(
-                    "{0}@{1},{2}".format(input_info["identifier"], width, height)
-                )
-        else:
-            is_image = input_info["type"] == parser.sbsarlite.SBSARTypeEnum.IMAGE
-            value = graph_setting.get(input_info["prop"])
-            if value is not None:
-                if input_info.get("enum_items") is not None:
-                    value = input_info.get("enum_items")[value][0]
-                if is_image:
-                    if value == "":
-                        continue
-                    else:
-                        if not os.path.exists(value):
-                            print("Image is missing")
-                        param_list.append("--set-entry")
-                else:
-                    param_list.append("--set-value")
-                to_list = getattr(value, "to_list", None)
-                if to_list is not None:
-                    if isinstance(value[0], float):
-                        value = ",".join(map(lambda x: ("%0.3f" % x), to_list()))
-                    else:
-                        value = ",".join(map(str, to_list()))
-                if isinstance(value, float):
-                    value = "%.3f" % value
-                if input_info.get("widget") == "combobox":
-                    value = getattr(graph_setting, input_info["prop"]).replace(
-                        "$NUM:", ""
-                    )
-                param_list.append("{0}@{1}".format(input_info["identifier"], value))
-    param_list.append("--output-path")
-    target_dir = render.texture_output_dir(target_material_name)
-    pathlib.Path(target_dir).mkdir(parents=True, exist_ok=True)
-    param_list.append(target_dir)
-    param_list.append("--output-name")
-    param_list.append("{outputNodeName}")
-    engine_value = preferences.engine_enum
-    if engine_value != "$default$":
-        if engine_value != utils.consts.CUSTOM:
-            param_list.append("--engine")
-            param_list.append(engine_value)
-            print("Render engine is {0}".format(engine_value))
-        else:
-            custom_value = preferences.custom_engine
-            if custom_value != "":
-                param_list.append("--engine")
-                param_list.append(custom_value)
-                print("Render engine is {0}".format(custom_value))
-    else:
-        print("Use Default Engine")
-    memory_budget = preferences.memory_budget
-    param_list.append("--memory-budget")
-    param_list.append("{0}".format(memory_budget))
-    return param_list
+log = logging.getLogger(__name__)
 
 
 class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
@@ -122,11 +47,11 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Ope
 
     async def render_map(
         self,
-        cmd_list: List[str],
+        cmd_list: typing.List[str],
         output_id: str,
         output_dir: str,
         output_dict: dict,
-        format: str,
+        image_format: str,
     ):
         sbs_render_path = bpy.context.preferences.addons[
             "sublender"
@@ -138,7 +63,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Ope
         await process.wait()
         self.report({"INFO"}, "Texture {0} Render done!".format(output_id))
         texture_path = bpy.path.relpath(
-            os.path.join(output_dir, "{0}.{1}".format(output_id, format))
+            os.path.join(output_dir, "{0}.{1}".format(output_id, image_format))
         )
         output_info = output_dict.get(output_id)
         bl_img_name = utils.format.gen_image_name(self.material_name, output_info)
@@ -186,8 +111,12 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Ope
             clss_name = utils.format.gen_clss_name(m_sublender.graph_url)
             clss_info = utils.globalvar.graph_clss.get(clss_name)
             graph_setting = getattr(material_inst, clss_name)
-            param_list = generate_cmd_list(
-                preferences, material_name, m_sublender, clss_info, graph_setting
+            param_list = command_line.generate_cmd_list(
+                preferences,
+                material_name,
+                m_sublender,
+                clss_info["input"],
+                graph_setting,
             )
             target_dir = render.texture_output_dir(material_name)
             build_list = []
@@ -238,14 +167,18 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Ope
         clss_name = utils.format.gen_clss_name(m_sublender.graph_url)
         clss_info = utils.globalvar.graph_clss.get(clss_name)
         graph_setting = getattr(material_inst, clss_name)
-        param_list = generate_cmd_list(
-            preferences, self.material_name, m_sublender, clss_info, graph_setting
+        param_list = command_line.generate_cmd_list(
+            preferences,
+            self.material_name,
+            m_sublender,
+            clss_info["input"],
+            graph_setting,
         )
         target_dir = render.texture_output_dir(self.material_name)
-        use_alternodes = preferences.rerender_affected_texture
+        use_altered_nodes = preferences.rerender_affected_texture
         alter_outputs = None
         if self.texture_name == "":
-            if use_alternodes:
+            if use_altered_nodes:
                 all_inputs = clss_info["input"]
                 for m_input in all_inputs:
                     if m_input["uid"] == self.input_id:

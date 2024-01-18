@@ -179,7 +179,7 @@ class AsyncLoopModalOperator(bpy.types.Operator):
 
 # noinspection PyAttributeOutsideInit
 class AsyncModalOperatorMixin:
-    # task_id = None
+    task_id = None
     async_task = None  # asyncio task for fetching thumbnails
 
     signalling_future = (
