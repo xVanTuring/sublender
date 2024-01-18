@@ -230,7 +230,7 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Ope
     async def update_texture(self, context):
         preferences = context.preferences.addons["sublender"].preferences
         if self.texture_name == "":
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(preferences.render_delay)
         self.report({"INFO"}, "Starting Render")
         start = datetime.datetime.now()
         material_inst: bpy.types.Material = bpy.data.materials.get(self.material_name)

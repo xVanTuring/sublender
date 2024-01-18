@@ -1,7 +1,13 @@
 import bpy
 import platform
 import os
-from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
+from bpy.props import (
+    StringProperty,
+    BoolProperty,
+    EnumProperty,
+    IntProperty,
+    FloatProperty,
+)
 
 from . import utils
 
@@ -96,6 +102,9 @@ class SublenderPreferences(bpy.types.AddonPreferences):
     show_changelog: BoolProperty(default=True, name="Show Changelog")
     auto_check_every_day: BoolProperty(default=False, name="Check update everyday")
     last_check: IntProperty(default=0)
+    render_delay: FloatProperty(
+        default=0.2, name="Seconds to wait for new render request"
+    )
 
     def draw(self, _):
         layout = self.layout
