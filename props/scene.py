@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import (StringProperty, BoolProperty, EnumProperty)
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 from .. import utils
 from .utils import get_idx, set_idx
@@ -16,11 +16,20 @@ def init_graph_items():
     i = 0
     for material in bpy.data.materials:
         m_sublender = material.sublender
-        if (m_sublender is not None) and (m_sublender.graph_url != "") and (m_sublender.package_path != ""):
+        if (
+            (m_sublender is not None)
+            and (m_sublender.graph_url != "")
+            and (m_sublender.package_path != "")
+        ):
             if m_sublender.graph_url not in package_url_set:
                 package_url_set.add(m_sublender.graph_url)
                 utils.globalvar.graph_enum.append(
-                    (m_sublender.graph_url, m_sublender.graph_url, m_sublender.graph_url))
+                    (
+                        m_sublender.graph_url,
+                        m_sublender.graph_url,
+                        m_sublender.graph_url,
+                    )
+                )
                 i += 1
 
 
@@ -39,7 +48,9 @@ def init_instance_of_graph(self):
         m_sublender = material.sublender
         if m_sublender is not None and m_sublender.graph_url == active_graph:
             mat_name = material.name
-            utils.globalvar.instance_of_graph.append((mat_name, mat_name, mat_name, material.preview.icon_id, i))
+            utils.globalvar.instance_of_graph.append(
+                (mat_name, mat_name, mat_name, material.preview.icon_id, i)
+            )
             i += 1
 
 
@@ -59,7 +70,10 @@ def get_instance_list_of_object(_, context):
 
 def build_instance_list_of_object(context):
     instance_list_of_object.clear()
-    if context.view_layer.objects.active is None or len(context.view_layer.objects.active.material_slots) == 0:
+    if (
+        context.view_layer.objects.active is None
+        or len(context.view_layer.objects.active.material_slots) == 0
+    ):
         return instance_list_of_object
 
     for i, mat_slot in enumerate(context.view_layer.objects.active.material_slots):
@@ -67,39 +81,51 @@ def build_instance_list_of_object(context):
         if mat is None:
             continue
         mat_setting = mat.sublender
-        if mat_setting.package_path != '' and mat_setting.graph_url != '':
+        if mat_setting.package_path != "" and mat_setting.graph_url != "":
             mat_name = mat.name
-            instance_list_of_object.append((mat_name, mat_name, mat_name, mat.preview.icon_id, i))
+            instance_list_of_object.append(
+                (mat_name, mat_name, mat_name, mat.preview.icon_id, i)
+            )
 
 
 class ImportingGraphItem(bpy.types.PropertyGroup):
     graph_url: StringProperty(name="Graph Url")
-    material_name: StringProperty(name='Material Name')
+    material_name: StringProperty(name="Material Name")
     enable: BoolProperty(name="Import", default=True)
     preset_name: StringProperty(default="")
     library_uid: StringProperty(default="")
-    material_template: EnumProperty(items=utils.globalvar.material_template_enum, name='Template')
+    material_template: EnumProperty(
+        items=utils.globalvar.material_template_enum, name="Template"
+    )
     use_fake_user: BoolProperty(name="Fake User", default=True)
-    assign_to_selection: BoolProperty(name='Append to selected mesh', default=False)
+    assign_to_selection: BoolProperty(name="Append to selected mesh", default=False)
     package_path: StringProperty(name="Package Path", subtype="FILE_PATH")
 
 
 class SublenderSetting(bpy.types.PropertyGroup):
     show_preview: BoolProperty(name="Show Preview")
-    active_graph: EnumProperty(items=get_graph_list,
-                               name="Graph",
-                               get=get_idx(utils.globalvar.graph_enum, "active_graph"),
-                               set=set_idx("active_graph"),
-                               update=active_graph_updated)
-    active_instance: EnumProperty(items=get_instance_of_graph,
-                                  name="Instance",
-                                  get=get_idx(utils.globalvar.instance_of_graph, "active_instance"),
-                                  set=set_idx("active_instance"))
-    object_active_instance: EnumProperty(items=get_instance_list_of_object,
-                                         name="Object Active Instance",
-                                         get=get_idx(instance_list_of_object, "object_active_instance"),
-                                         set=set_idx("object_active_instance"))
-    catch_undo: BoolProperty(name="Catch Undo", default=False, description="Render texture after undo/redo")
+    active_graph: EnumProperty(
+        items=get_graph_list,
+        name="Graph",
+        get=get_idx(utils.globalvar.graph_enum, "active_graph"),
+        set=set_idx("active_graph"),
+        update=active_graph_updated,
+    )
+    active_instance: EnumProperty(
+        items=get_instance_of_graph,
+        name="Instance",
+        get=get_idx(utils.globalvar.instance_of_graph, "active_instance"),
+        set=set_idx("active_instance"),
+    )
+    object_active_instance: EnumProperty(
+        items=get_instance_list_of_object,
+        name="Object Active Instance",
+        get=get_idx(instance_list_of_object, "object_active_instance"),
+        set=set_idx("object_active_instance"),
+    )
+    catch_undo: BoolProperty(
+        name="Catch Undo", default=False, description="Render texture after undo/redo"
+    )
     uuid: StringProperty(name="UUID of this blender file", default="")
     live_update: BoolProperty(name="Live Update", description="Live Update")
     follow_selection: BoolProperty(name="Follow Selection", default=False)
@@ -112,7 +138,9 @@ cls_list = [ImportingGraphItem, SublenderSetting]
 def register():
     for cls in cls_list:
         bpy.utils.register_class(cls)
-    bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(type=SublenderSetting, name="Sublender")
+    bpy.types.Scene.sublender_settings = bpy.props.PointerProperty(
+        type=SublenderSetting, name="Sublender"
+    )
 
 
 def unregister():

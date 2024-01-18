@@ -15,12 +15,12 @@ def gen_clss_name(graph_url: str):
 
 
 def sub_panel_name(group_key: str, graph_url: str):
-    return "SBS_PT_k{0}".format(str(hash(group_key + graph_url)).replace('-', '_'))
+    return "SBS_PT_k{0}".format(str(hash(group_key + graph_url)).replace("-", "_"))
 
 
 def gen_image_name(material_name, output_info):
-    if len(output_info['usages']) > 0:
-        return '{0}_{1}'.format(material_name, output_info['usages'][0])
+    if len(output_info["usages"]) > 0:
+        return "{0}_{1}".format(material_name, output_info["usages"][0])
     else:
-        graph_identifier = output_info['name']
-        return '{0}_{1}'.format(material_name, graph_identifier)
+        graph_identifier = output_info["name"]
+        return "{0}_{1}".format(material_name, graph_identifier)

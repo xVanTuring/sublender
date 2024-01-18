@@ -16,8 +16,8 @@ class SublenderOTRandomSeed(SublenderBaseOperator, bpy.types.Operator):
         m_sublender = material_instance.sublender
         clss_name = utils.format.gen_clss_name(m_sublender.graph_url)
         pkg_setting = getattr(material_instance, clss_name)
-        setattr(pkg_setting, '$randomseed', random.randint(0, 9999999))
-        return {'FINISHED'}
+        setattr(pkg_setting, "$randomseed", random.randint(0, 9999999))
+        return {"FINISHED"}
 
 
 class SublenderOTCopyTexturePath(SublenderBaseOperator, bpy.types.Operator):
@@ -30,10 +30,12 @@ class SublenderOTCopyTexturePath(SublenderBaseOperator, bpy.types.Operator):
         output_dir = render.texture_output_dir(material_instance.name)
         bpy.context.window_manager.clipboard = output_dir
         self.report({"INFO"}, "Copied")
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
-class SublenderOTLoadMissingSbsar(async_loop.AsyncModalOperatorMixin, bpy.types.Operator):
+class SublenderOTLoadMissingSbsar(
+    async_loop.AsyncModalOperatorMixin, bpy.types.Operator
+):
     bl_idname = "sublender.load_missing_sbsar"
     bl_label = "Load Sbsar"
     bl_description = "Load Sbsar"
@@ -45,10 +47,15 @@ class SublenderOTLoadMissingSbsar(async_loop.AsyncModalOperatorMixin, bpy.types.
         force = True
         for material in bpy.data.materials:
             m_sublender = material.sublender
-            if (m_sublender is not None and m_sublender.graph_url != ""
-                    and m_sublender.package_path == self.sbsar_path):
+            if (
+                m_sublender is not None
+                and m_sublender.graph_url != ""
+                and m_sublender.package_path == self.sbsar_path
+            ):
                 m_sublender.package_loaded = False
-            await utils.gen_clss_from_material_async(material, preferences.enable_visible_if, force, self.report)
+            await utils.gen_clss_from_material_async(
+                material, preferences.enable_visible_if, force, self.report
+            )
             m_sublender.package_loaded = True
             # only force load once
             force = False
@@ -63,7 +70,7 @@ class SublenderOTNewInstance(SublenderBaseOperator, bpy.types.Operator):
     def execute(self, context):
         material_instance = utils.find_active_mat(context)
         material_instance.copy()
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 # class SublenderOTSelectActive(Operator):

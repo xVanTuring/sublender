@@ -38,7 +38,7 @@ def setup_asyncio_executor():
 
     import sys
 
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
         asyncio.get_event_loop().close()
         # On Windows, the default event loop is SelectorEventLoop, which does
         # not support subprocesses. ProactorEventLoop should be used instead.
@@ -94,12 +94,12 @@ def kick_async_loop() -> bool:
             # noinspection PyBroadException
             try:
                 res = task.result()
-                log.debug('   task #%i: result=%r', task_idx, res)
+                log.debug("   task #%i: result=%r", task_idx, res)
             except asyncio.CancelledError:
                 # No problem, we want to stop anyway.
                 log.debug("   task #%i: cancelled", task_idx)
             except Exception:
-                log.warning('{}: resulted in exception'.format(task))
+                log.warning("{}: resulted in exception".format(task))
                 traceback.print_exc()
     loop.stop()
     loop.run_forever()
@@ -108,9 +108,9 @@ def kick_async_loop() -> bool:
 
 
 def ensure_async_loop():
-    log.debug('Starting asyncio loop')
+    log.debug("Starting asyncio loop")
     result = bpy.ops.asyncio.loop()
-    log.debug('Result of starting modal operator is %r', result)
+    log.debug("Result of starting modal operator is %r", result)
 
 
 def erase_async_loop():
@@ -127,7 +127,7 @@ class AsyncLoopModalOperator(bpy.types.Operator):
     bl_label = "Runs the asyncio main loop"
 
     timer = None
-    log = logging.getLogger(__name__ + '.SublenderAsyncLoopModalOperator')
+    log = logging.getLogger(__name__ + ".SublenderAsyncLoopModalOperator")
 
     def __del__(self):
         global _loop_kicking_operator_running
@@ -144,15 +144,15 @@ class AsyncLoopModalOperator(bpy.types.Operator):
         global _loop_kicking_operator_running
 
         if _loop_kicking_operator_running:
-            self.log.debug('Another loop-kicking operator is already running.')
-            return {'PASS_THROUGH'}
+            self.log.debug("Another loop-kicking operator is already running.")
+            return {"PASS_THROUGH"}
 
         context.window_manager.modal_handler_add(self)
         _loop_kicking_operator_running = True
 
         wm = context.window_manager
         self.timer = wm.event_timer_add(0.00001, window=context.window)
-        return {'RUNNING_MODAL'}
+        return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
         global _loop_kicking_operator_running
@@ -161,20 +161,20 @@ class AsyncLoopModalOperator(bpy.types.Operator):
         # erase_async_loop(). This is a signal that we really should stop
         # running.
         if not _loop_kicking_operator_running:
-            return {'FINISHED'}
+            return {"FINISHED"}
 
-        if event.type != 'TIMER':
-            return {'PASS_THROUGH'}
+        if event.type != "TIMER":
+            return {"PASS_THROUGH"}
 
         stop_after_this_kick = kick_async_loop()
         if stop_after_this_kick:
             context.window_manager.event_timer_remove(self.timer)
             _loop_kicking_operator_running = False
 
-            self.log.debug('Stopped asyncio loop kicking')
-            return {'FINISHED'}
+            self.log.debug("Stopped asyncio loop kicking")
+            return {"FINISHED"}
 
-        return {'RUNNING_MODAL'}
+        return {"RUNNING_MODAL"}
 
 
 # noinspection PyAttributeOutsideInit
@@ -185,18 +185,20 @@ class AsyncModalOperatorMixin:
     signalling_future = (
         None  # asyncio future for signalling that we want to cancel everything.
     )
-    log = logging.getLogger('%s.AsyncModalOperatorMixin' % __name__)
+    log = logging.getLogger("%s.AsyncModalOperatorMixin" % __name__)
 
     _state = "INITIALIZING"
     stop_upon_exception = False
 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
-        self.timer = context.window_manager.event_timer_add(1 / 15, window=context.window)
+        self.timer = context.window_manager.event_timer_add(
+            1 / 15, window=context.window
+        )
 
         self.log.info("Starting")
         self._new_async_task(self.async_execute(context))
-        return {'RUNNING_MODAL'}
+        return {"RUNNING_MODAL"}
 
     async def async_execute(self, context):
         """Entry point of the asynchronous operator.
@@ -238,7 +240,7 @@ class AsyncModalOperatorMixin:
         context.window_manager.event_timer_remove(self.timer)
 
     def _new_async_task(
-            self, async_task: typing.Coroutine, future: asyncio.Future = None
+        self, async_task: typing.Coroutine, future: asyncio.Future = None
     ):
         """Stops the currently running async task, and starts another one."""
 

@@ -1,8 +1,14 @@
 import os
 
-from bpy.props import FloatProperty, FloatVectorProperty, IntProperty, StringProperty, IntVectorProperty
+from bpy.props import (
+    FloatProperty,
+    FloatVectorProperty,
+    IntProperty,
+    StringProperty,
+    IntVectorProperty,
+)
 
-UNGROUPED = '$UNGROUPED$'
+UNGROUPED = "$UNGROUPED$"
 SBS_CONFIGURED = "$CONFIGURED"
 CUSTOM = "$CUSTOM$"
 output_size_one_enum = [
@@ -24,14 +30,14 @@ output_size_one_enum = [
 
 ADDON_DIR = os.path.join(os.path.dirname(__file__), "../")
 
-WORKFLOW_PATH = os.path.join(ADDON_DIR, 'workflow')
-RESOURCES_PATH = os.path.join(ADDON_DIR, 'resources')
+WORKFLOW_PATH = os.path.join(ADDON_DIR, "workflow")
+RESOURCES_PATH = os.path.join(ADDON_DIR, "resources")
 
 output_size_x = "$sb_output_size_x"
 output_size_y = "$sb_output_size_y"
 output_size_lock = "$sb_output_size_lock"
 update_when_sizing = "$update_when_sizing"
-usage_color_dict = ['baseColor', 'ambientOcclusion']
+usage_color_dict = ["baseColor", "ambientOcclusion"]
 
 sublender_default_template_file = "preview_template.blend"
 sublender_template_invert_file = "preview_template_invert.blend"
@@ -42,18 +48,20 @@ old_sublender_template_path = "old"
 
 
 def get_template(type, inverted_normal, old):
-    file_folder = os.path.join(ADDON_DIR, 'resources', old_sublender_template_path if old else '')
-    file_name = ''
+    file_folder = os.path.join(
+        ADDON_DIR, "resources", old_sublender_template_path if old else ""
+    )
+    file_name = ""
     if type == "shader_ball":
         if inverted_normal:
-            file_name = 'preview_template_invert'
+            file_name = "preview_template_invert"
         else:
-            file_name = 'preview_template'
+            file_name = "preview_template"
     elif type == "cloth":
         if inverted_normal:
-            file_name = 'preview_cloth_template_invert'
+            file_name = "preview_cloth_template_invert"
         else:
-            file_name = 'preview_cloth_template'
+            file_name = "preview_cloth_template"
     file_name += ".blend"
     return os.path.join(file_folder, file_name)
 

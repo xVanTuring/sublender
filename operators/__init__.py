@@ -18,10 +18,10 @@ class SublenderOTInitAsync(async_loop.AsyncModalOperatorMixin, bpy.types.Operato
     async def async_execute(self, context):
         await utils.init_sublender_async(self, context)
         if self.pop_import:
-            bpy.ops.sublender.select_sbsar('INVOKE_DEFAULT')
+            bpy.ops.sublender.select_sbsar("INVOKE_DEFAULT")
 
 
-def ShowMessageBox(message="", title="Message Box", icon='INFO'):
+def ShowMessageBox(message="", title="Message Box", icon="INFO"):
     def draw(self, context):
         self.layout.label(text=message)
 

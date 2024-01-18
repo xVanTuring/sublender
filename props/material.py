@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import (StringProperty, BoolProperty, EnumProperty)
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 from .. import utils
 
 
@@ -9,10 +9,14 @@ def package_path_updated(self, _):
 
 
 class SublenderMaterialSetting(bpy.types.PropertyGroup):
-    package_path: StringProperty(name="Package Path", subtype="FILE_PATH", update=package_path_updated)
+    package_path: StringProperty(
+        name="Package Path", subtype="FILE_PATH", update=package_path_updated
+    )
     graph_url: StringProperty(name="Graph URL")
     show_setting: BoolProperty(name="Show Params", default=True)
-    material_template: EnumProperty(name="Material Template", items=utils.globalvar.material_template_enum)
+    material_template: EnumProperty(
+        name="Material Template", items=utils.globalvar.material_template_enum
+    )
     uuid: StringProperty(name="UUID of this material", default="")
     package_missing: BoolProperty()
     package_loaded: BoolProperty(default=False)
@@ -25,7 +29,9 @@ cls_list = [SublenderMaterialSetting]
 def register():
     for cls in cls_list:
         bpy.utils.register_class(cls)
-    bpy.types.Material.sublender = bpy.props.PointerProperty(type=SublenderMaterialSetting)
+    bpy.types.Material.sublender = bpy.props.PointerProperty(
+        type=SublenderMaterialSetting
+    )
 
 
 def unregister():

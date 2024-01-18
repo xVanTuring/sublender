@@ -11,10 +11,11 @@ log = logging.getLogger(__name__)
 def fetch_status():
     import urllib.request
     import json
+
     try:
         with urllib.request.urlopen(consts.sublender_status_url) as response:
             data = response.read()
-            json_str = str(data, encoding='utf-8')
+            json_str = str(data, encoding="utf-8")
             return json.loads(json_str)
     except Exception as e:
         log.exception("Error fetching sublender %s", e)
