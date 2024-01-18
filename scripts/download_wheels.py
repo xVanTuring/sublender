@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-deps = ["py7zr", "xmltodict", "platformdirs"]
+deps = ["py7zr==0.20.8", "xmltodict==0.13.0", "platformdirs==4.1.0"]
 
 
 # https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/
