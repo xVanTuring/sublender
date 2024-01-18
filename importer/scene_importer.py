@@ -6,8 +6,6 @@ from .. import utils, async_loop, workflow
 from ..utils import new_material_name
 
 
-# TODO batch import
-# TODO register importer to import menu
 class SublenderOTSelectSbsar(bpy.types.Operator, ImportHelper):
     bl_idname = "sublender.select_sbsar"
     bl_label = "Import Sbsar"

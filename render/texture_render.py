@@ -181,8 +181,6 @@ class SublenderOTRenderTexture(async_loop.AsyncModalOperatorMixin, bpy.types.Ope
     async def update_texture(self, context):
         preferences = context.preferences.addons["sublender"].preferences
         if self.texture_name == "":
-            # Wait for further property changes
-            # TODO preference
             await asyncio.sleep(0.2)
         self.report({"INFO"}, "Starting Render")
         start = datetime.datetime.now()

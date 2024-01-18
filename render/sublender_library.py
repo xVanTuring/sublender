@@ -229,7 +229,6 @@ class SublenderOTRenderPreviewAsync(async_loop.AsyncModalOperatorMixin, bpy.type
 
 
 class SublenderOTRemoveMaterial(bpy.types.Operator):
-    # TODO error after removing
     bl_idname = "sublender.remove_material"
     bl_label = "Remove"
     bl_description = "Remove selected material"
