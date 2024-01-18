@@ -44,15 +44,17 @@ def handle_output(param_list: typing.List[str], target_material_name: str):
     param_list.append("{outputNodeName}")
 
 
-def handle_render_engine(param_list: typing.List[str], preferences):
-    engine_value = preferences.engine_enum
+def handle_render_engine(
+    param_list: typing.List[str],
+    engine_param,
+):
+    engine_value, custom_value = engine_param.engine_enum, engine_param.custom_engine
     if engine_value != "$default$":
         if engine_value != utils.consts.CUSTOM:
             param_list.append("--engine")
             param_list.append(engine_value)
             log.debug("using render engine  {0}".format(engine_value))
         else:
-            custom_value = preferences.custom_engine
             if custom_value != "":
                 param_list.append("--engine")
                 param_list.append(custom_value)
