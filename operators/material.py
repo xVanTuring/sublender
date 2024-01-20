@@ -2,8 +2,9 @@ import bpy
 from bpy.props import StringProperty
 import random
 
+from ..preference import get_preferences
 from .base import SublenderBaseOperator
-from .. import utils, render, async_loop
+from .. import utils, render, async_loop, formatting, sbsar_import
 
 
 class SublenderOTRandomSeed(SublenderBaseOperator, bpy.types.Operator):
@@ -12,9 +13,9 @@ class SublenderOTRandomSeed(SublenderBaseOperator, bpy.types.Operator):
     bl_description = "Random Seed"
 
     def execute(self, context):
-        material_instance = utils.find_active_mat(context)
+        material_instance = utils.find_active_material(context)
         m_sublender = material_instance.sublender
-        clss_name = utils.format.gen_clss_name(m_sublender.graph_url)
+        clss_name = formatting.gen_clss_name(m_sublender.graph_url)
         pkg_setting = getattr(material_instance, clss_name)
         setattr(pkg_setting, "$randomseed", random.randint(0, 9999999))
         return {"FINISHED"}
@@ -26,7 +27,7 @@ class SublenderOTCopyTexturePath(SublenderBaseOperator, bpy.types.Operator):
     bl_description = ""
 
     def execute(self, context):
-        material_instance = utils.find_active_mat(context)
+        material_instance = utils.find_active_material(context)
         output_dir = render.texture_output_dir(material_instance.name)
         bpy.context.window_manager.clipboard = output_dir
         self.report({"INFO"}, "Copied")
@@ -43,17 +44,17 @@ class SublenderOTLoadMissingSbsar(
     task_id = "Sublender_Load_Missing_SBSAR"
 
     async def async_execute(self, _):
-        preferences = bpy.context.preferences.addons["sublender"].preferences
+        preferences = get_preferences()
         force = True
         for material in bpy.data.materials:
             m_sublender = material.sublender
             if (
-                m_sublender is not None
-                and m_sublender.graph_url != ""
-                and m_sublender.package_path == self.sbsar_path
+                    m_sublender is not None
+                    and m_sublender.graph_url != ""
+                    and m_sublender.package_path == self.sbsar_path
             ):
                 m_sublender.package_loaded = False
-            await utils.gen_clss_from_material_async(
+            await sbsar_import.gen_clss_from_material_async(
                 material, preferences.enable_visible_if, force, self.report
             )
             m_sublender.package_loaded = True
@@ -68,7 +69,7 @@ class SublenderOTNewInstance(SublenderBaseOperator, bpy.types.Operator):
     target_material: StringProperty()
 
     def execute(self, context):
-        material_instance = utils.find_active_mat(context)
+        material_instance = utils.find_active_material(context)
         material_instance.copy()
         return {"FINISHED"}
 

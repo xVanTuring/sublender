@@ -27,8 +27,6 @@ import typing
 
 import bpy
 
-from .utils import globalvar
-
 _loop_kicking_operator_running = False
 log = logging.getLogger(__name__)
 
@@ -214,6 +212,10 @@ class AsyncModalOperatorMixin:
     def execute(self, context):
         return self.invoke(context, None)
 
+    def quit(self):
+        """Signals the state machine to stop this operator from running."""
+        self._state = "QUIT"
+
     def modal(self, context, _):
         task = self.async_task
 
@@ -221,7 +223,8 @@ class AsyncModalOperatorMixin:
             ex = task.exception()
             if ex is not None:
                 self._state = "EXCEPTION"
-                self.log.error("Exception while running task: %s", ex)
+                self.log.exception("Exception while running task: %s", ex)
+                print(task)
                 if self.stop_upon_exception:
                     self.quit()
                     self._finish(context)
@@ -240,7 +243,7 @@ class AsyncModalOperatorMixin:
         context.window_manager.event_timer_remove(self.timer)
 
     def _new_async_task(
-        self, async_task: typing.Coroutine, future: asyncio.Future = None
+            self, async_task: typing.Coroutine, future: asyncio.Future = None
     ):
         """Stops the currently running async task, and starts another one."""
 

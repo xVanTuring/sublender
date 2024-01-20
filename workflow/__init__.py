@@ -3,7 +3,7 @@ import os
 
 import bpy
 
-from .. import utils
+from .. import globalvar, consts
 
 
 def is_type(val, type_str: str):
@@ -65,8 +65,8 @@ def ensure_options(mat, template):
 
 
 def load_default_texture(mat, template):
-    default_color = os.path.join(utils.consts.RESOURCES_PATH, "default_color.png")
-    default_normal = os.path.join(utils.consts.RESOURCES_PATH, "default_normal.png")
+    default_color = os.path.join(consts.RESOURCES_PATH, "default_color.png")
+    default_normal = os.path.join(consts.RESOURCES_PATH, "default_normal.png")
     default_color_node = bpy.data.images.load(default_color, check_existing=True)
     default_normal_node = bpy.data.images.load(default_normal, check_existing=True)
     for texture in template["texture"]:
@@ -79,7 +79,7 @@ def load_default_texture(mat, template):
 
 
 def inflate_template(mat, template_name: str, clear_nodes=False):
-    template = utils.globalvar.material_templates.get(template_name)
+    template = globalvar.material_templates.get(template_name)
     if template is None:
         return
     ensure_nodes(mat, template, clear_nodes)
@@ -89,12 +89,12 @@ def inflate_template(mat, template_name: str, clear_nodes=False):
 
 
 def load_material_workflows():
-    template_path = utils.consts.WORKFLOW_PATH
+    template_path = consts.WORKFLOW_PATH
     files = os.listdir(template_path)
     files.sort()
 
-    utils.globalvar.material_template_enum.clear()
-    utils.globalvar.material_templates.clear()
+    globalvar.material_template_enum.clear()
+    globalvar.material_templates.clear()
 
     for file_name_full in files:
         full_file_path = os.path.join(template_path, file_name_full)
@@ -103,17 +103,17 @@ def load_material_workflows():
             if file_ext == ".json":
                 with open(full_file_path, "r") as f:
                     material_temp = json.load(f)
-                    utils.globalvar.material_templates[file_name_full] = material_temp
-                    utils.globalvar.material_template_enum.append(
+                    globalvar.material_templates[file_name_full] = material_temp
+                    globalvar.material_template_enum.append(
                         (
                             file_name_full,
                             material_temp.get("name", file_name),
                             material_temp.get("description", file_name_full),
                         )
                     )
-    utils.globalvar.material_template_enum.append(
+    globalvar.material_template_enum.append(
         (
-            utils.consts.CUSTOM,
+            consts.CUSTOM,
             "Custom",
             "Custom Workflow, empty material will be generated.",
         )

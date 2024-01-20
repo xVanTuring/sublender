@@ -1,15 +1,14 @@
-import os
-
 import bpy
 
-from .. import utils
+from .. import utils, globalvar
+from ..parser import GroupInputInfoData, GroupInfoData
 
 
-def calc_prop_visibility(eval_delegate, input_info: dict):
-    if input_info.get("visibleIf") is None:
+def calc_prop_visibility(eval_delegate, input_info: GroupInputInfoData):
+    if input_info.visibleIf is None:
         return True
     eval_str: str = (
-        input_info.get("visibleIf")
+        input_info.visibleIf
         .replace("&&", " and ")
         .replace("||", " or ")
         .replace("!", " not ")
@@ -22,19 +21,19 @@ def calc_prop_visibility(eval_delegate, input_info: dict):
     return False
 
 
-def calc_group_visibility(eval_delegate, group_info: dict, debug=False):
-    for input_info in group_info["inputs"]:
+def calc_group_visibility(eval_delegate, group_info: GroupInfoData, debug=False):
+    for input_info in group_info.inputs:
         input_visibility = calc_prop_visibility(eval_delegate, input_info)
         if debug:
             print(
                 "Calc Prop Visi {0}:{1}".format(
-                    input_info.get("visibleIf"), input_visibility
+                    input_info.visibleIf, input_visibility
                 )
             )
         if input_visibility:
             return True
 
-    for group_info in group_info["sub_group"]:
+    for group_info in group_info.sub_group:
         if calc_group_visibility(eval_delegate, group_info, debug):
             return True
     return False
@@ -49,7 +48,7 @@ class SUBLENDER_PT_MaterialProp(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.sublender_inited(context) or len(utils.globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
             return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
@@ -57,11 +56,11 @@ class SUBLENDER_PT_MaterialProp(bpy.types.Panel):
         return True
 
     def draw(self, context):
-        active_mat = utils.find_active_mat(context)
+        active_mat = utils.find_active_material(context)
 
         ao_intensity = active_mat.node_tree.nodes.get("AO Intensity")
         if ao_intensity is not None and isinstance(
-            ao_intensity, bpy.types.ShaderNodeMixRGB
+                ao_intensity, bpy.types.ShaderNodeMixRGB
         ):
             self.layout.prop(
                 ao_intensity.inputs.get("Fac"), "default_value", text="AO Intensity"
@@ -69,7 +68,7 @@ class SUBLENDER_PT_MaterialProp(bpy.types.Panel):
 
         normal_node = active_mat.node_tree.nodes.get("Normal Map")
         if normal_node is not None and isinstance(
-            normal_node, bpy.types.ShaderNodeNormalMap
+                normal_node, bpy.types.ShaderNodeNormalMap
         ):
             self.layout.prop(
                 normal_node.inputs.get("Strength"),
@@ -78,7 +77,7 @@ class SUBLENDER_PT_MaterialProp(bpy.types.Panel):
             )
         displacement_node = active_mat.node_tree.nodes.get("Displacement")
         if displacement_node is not None and isinstance(
-            displacement_node, bpy.types.ShaderNodeDisplacement
+                displacement_node, bpy.types.ShaderNodeDisplacement
         ):
             self.layout.prop(
                 displacement_node.inputs.get("Midlevel"),

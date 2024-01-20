@@ -2,7 +2,7 @@ import os
 
 import bpy
 
-from .. import utils, render
+from .. import utils, render, formatting, globalvar
 
 
 class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
@@ -14,20 +14,20 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if not utils.sublender_inited(context) or len(utils.globalvar.graph_enum) == 0:
+        if not utils.sublender_inited(context) or len(globalvar.graph_enum) == 0:
             return False
         active_mat, active_graph = utils.find_active_graph(context)
         if active_mat is None or active_graph is None:
             return False
-        clss_name = utils.format.gen_clss_name(active_graph)
-        if utils.globalvar.graph_clss.get(clss_name) is None:
+        clss_name = formatting.gen_clss_name(active_graph)
+        if globalvar.graph_clss.get(clss_name) is None:
             # class removed
             return False
         return True
 
     def draw(self, context):
         active_mat, active_graph = utils.find_active_graph(context)
-        clss_name = utils.format.gen_clss_name(active_graph)
+        clss_name = formatting.gen_clss_name(active_graph)
         graph_setting = getattr(active_mat, clss_name)
         open_texture_dir = self.layout.operator(
             "wm.path_open", text="Open Texture Folder", icon="VIEWZOOM"
@@ -38,30 +38,28 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
             "sublender"
         ].preferences.enable_output_params
 
-        for output_info in utils.globalvar.graph_clss.get(clss_name)["output_info"][
-            "list"
-        ]:
-            sbo_prop_name = utils.format.sb_output_to_prop(output_info["name"])
-            sbo_format_name = utils.format.sb_output_format_to_prop(output_info["name"])
-            sbo_dep_name = utils.format.sb_output_dep_to_prop(output_info["name"])
+        for output_info in globalvar.graph_clss.get(clss_name).output_info.list:
+            sbo_prop_name = formatting.sb_output_to_prop(output_info.name)
+            sbo_format_name = formatting.sb_output_format_to_prop(output_info.name)
+            sbo_dep_name = formatting.sb_output_dep_to_prop(output_info.name)
             row = self.layout.row()
             row.prop(graph_setting, sbo_prop_name)
             if display_output_params:
                 row.prop(graph_setting, sbo_format_name, text="")
                 row.prop(graph_setting, sbo_dep_name, text="")
-            bl_img_name = utils.format.gen_image_name(active_mat.name, output_info)
+            bl_img_name = formatting.gen_image_name(active_mat.name, output_info)
             bpy_image = bpy.data.images.get(bl_img_name)
             if getattr(graph_setting, sbo_prop_name):
                 render_texture = row.operator(
                     "sublender.render_texture_async", text="", icon="RENDER_STILL"
                 )
-                render_texture.texture_name = output_info["name"]
+                render_texture.texture_name = output_info.name
                 render_texture.importing_graph = False
             if bpy_image is not None:
-                if len(output_info["usages"]) > 0:
-                    apply_image_node_name = output_info["usages"][0]
+                if len(output_info.usages) > 0:
+                    apply_image_node_name = output_info.usages[0]
                 else:
-                    apply_image_node_name = output_info["name"]
+                    apply_image_node_name = output_info.name
                 apply_image = row.operator(
                     "sublender.apply_image", text="", icon="NODE_TEXTURE"
                 )
@@ -81,25 +79,25 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
             else:
                 output_format = getattr(
                     graph_setting,
-                    utils.format.sb_output_format_to_prop(output_info["name"]),
+                    formatting.sb_output_format_to_prop(output_info.name),
                     "png",
                 )
                 image_file_path = os.path.join(
                     material_output_folder,
-                    "{0}.{1}".format(output_info["name"], output_format),
+                    "{0}.{1}".format(output_info.name, output_format),
                 )
-                if utils.globalvar.file_existence_dict.get(image_file_path) is None:
-                    utils.globalvar.file_existence_dict[
+                if globalvar.file_existence_dict.get(image_file_path) is None:
+                    globalvar.file_existence_dict[
                         image_file_path
                     ] = os.path.exists(image_file_path)
-                if utils.globalvar.file_existence_dict.get(image_file_path, False):
+                if globalvar.file_existence_dict.get(image_file_path, False):
                     load_image = row.operator(
                         "sublender.load_image", text="", icon="IMPORT"
                     )
                     load_image.filepath = image_file_path
                     load_image.bl_img_name = bl_img_name
-                    if output_info["usages"]:
-                        load_image.usage = output_info["usages"][0]
+                    if output_info.usages:
+                        load_image.usage = output_info.usages[0]
 
                     open_image = row.operator("wm.path_open", text="", icon="HIDE_OFF")
                     open_image.filepath = image_file_path

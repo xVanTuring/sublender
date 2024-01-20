@@ -1,9 +1,12 @@
-import bpy
-from ..utils import consts, globalvar
-from .. import async_loop
-import datetime
 import asyncio
+import datetime
 import logging
+
+import bpy
+
+from .. import async_loop
+from .. import consts, globalvar
+from ..preference import get_preferences
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +35,7 @@ class SublenderOTCheckVersion(async_loop.AsyncModalOperatorMixin, bpy.types.Oper
         status = await asyncio.get_event_loop().run_in_executor(None, fetch_status)
         latest_info = status[0]
         latest_version = tuple(map(int, latest_info["version"].split(".")))
-        preferences = context.preferences.addons["sublender"].preferences
+        preferences = get_preferences()
         if latest_version > globalvar.version:
             preferences.latest_version = ",".join(map(str, latest_version))
             preferences.latest_changelog = latest_info["changelog"]
@@ -44,7 +47,7 @@ class SublenderOTCheckVersion(async_loop.AsyncModalOperatorMixin, bpy.types.Oper
 
 
 def auto_check():
-    preferences = bpy.context.preferences.addons["sublender"].preferences
+    preferences = get_preferences()
     if preferences.auto_check_every_day:
         last_check_stamp = preferences.last_check
         now = datetime.datetime.now()

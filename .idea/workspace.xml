@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9cb88d71-f7ef-4c9e-af6f-13c7b69dd906" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/BlendCharmSettings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/consts/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/datatypes/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/formatting/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/globalvar/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/operators/startup.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/property_group/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sbsar_import/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sbsar_import/to_blender.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sbsar_import/to_dict.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/graph.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/materials.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/presets.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/startup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/USER.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/xvan.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sublender.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sublender.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/async_loop.py" beforeDir="false" afterPath="$PROJECT_DIR$/async_loop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/importer/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/importer/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/importer/library_importer.py" beforeDir="false" afterPath="$PROJECT_DIR$/importer/library_importer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/importer/scene_importer.py" beforeDir="false" afterPath="$PROJECT_DIR$/importer/scene_importer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operators/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/operators/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operators/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/operators/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operators/material.py" beforeDir="false" afterPath="$PROJECT_DIR$/operators/material.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operators/output.py" beforeDir="false" afterPath="$PROJECT_DIR$/operators/image.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operators/sublender_update.py" beforeDir="false" afterPath="$PROJECT_DIR$/operators/sublender_update.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operators/workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/operators/workflow.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parser/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/parser/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parser/sbsarlite.py" beforeDir="false" afterPath="$PROJECT_DIR$/parser/sbsarlite.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/preference.py" beforeDir="false" afterPath="$PROJECT_DIR$/preference.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/props/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/props/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/props/library.py" beforeDir="false" afterPath="$PROJECT_DIR$/props/library.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/props/material.py" beforeDir="false" afterPath="$PROJECT_DIR$/props/material.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/props/scene.py" beforeDir="false" afterPath="$PROJECT_DIR$/props/scene.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/props/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/props/enum_index_helper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/render/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/render/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/render/command_line.py" beforeDir="false" afterPath="$PROJECT_DIR$/render/command_line.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/render/sublender_library.py" beforeDir="false" afterPath="$PROJECT_DIR$/render/sublender_library.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/render/texture_render.py" beforeDir="false" afterPath="$PROJECT_DIR$/render/texture_render.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/render/texture_render_base.py" beforeDir="false" afterPath="$PROJECT_DIR$/render/texture_render_base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/library.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/library.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/mainpanel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/mainpanel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/output.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/output.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/prop.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/prop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/consts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/format.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/globalvar.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/helper_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/sbsar_import/helper_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/workflow/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/workflow/__init__.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="2bCrRVzNaPjVEW7uzr0zoKgIdN5" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python Debug Server.Debug.executor": "Debug",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "dev",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "editor.preferences.import",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\Workspace\blender\addons\sublender\sbsar_import" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Debug" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug">
+      <module name="sublender" />
+      <option name="PORT" value="5678" />
+      <option name="HOST" value="localhost" />
+      <PathMappingSettings>
+        <option name="pathMappings">
+          <list />
+        </option>
+      </PathMappingSettings>
+      <option name="REDIRECT_OUTPUT" value="true" />
+      <option name="SUSPEND_AFTER_CONNECT" value="true" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-50da183f06c8-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13135.95" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9cb88d71-f7ef-4c9e-af6f-13c7b69dd906" name="Changes" comment="" />
+      <created>1705729895642</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1705729895642</updated>
+      <workItem from="1705729897983" duration="12953000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

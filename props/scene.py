@@ -1,29 +1,30 @@
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
-from .. import utils
-from .utils import get_idx, set_idx
+from .material import get_material_sublender
+from .enum_index_helper import get_idx, set_idx
+from .. import globalvar
 
 
 def get_graph_list(_, __):
     init_graph_items()
-    return utils.globalvar.graph_enum
+    return globalvar.graph_enum
 
 
 def init_graph_items():
-    utils.globalvar.graph_enum.clear()
+    globalvar.graph_enum.clear()
     package_url_set = set()
     i = 0
     for material in bpy.data.materials:
         m_sublender = material.sublender
         if (
-            (m_sublender is not None)
-            and (m_sublender.graph_url != "")
-            and (m_sublender.package_path != "")
+                (m_sublender is not None)
+                and (m_sublender.graph_url != "")
+                and (m_sublender.package_path != "")
         ):
             if m_sublender.graph_url not in package_url_set:
                 package_url_set.add(m_sublender.graph_url)
-                utils.globalvar.graph_enum.append(
+                globalvar.graph_enum.append(
                     (
                         m_sublender.graph_url,
                         m_sublender.graph_url,
@@ -33,30 +34,31 @@ def init_graph_items():
                 i += 1
 
 
-def active_graph_updated(self, context):
+def active_graph_updated(self, _):
     # manually update
     init_instance_of_graph(self)
 
 
 def init_instance_of_graph(self):
-    utils.globalvar.instance_of_graph.clear()
-    if len(utils.globalvar.graph_enum) == 0:
+    globalvar.instance_of_graph.clear()
+    if len(globalvar.graph_enum) == 0:
         return
     i = 0
     active_graph = self.active_graph
     for material in bpy.data.materials:
-        m_sublender = material.sublender
+        m_sublender = get_material_sublender(material)
         if m_sublender is not None and m_sublender.graph_url == active_graph:
             mat_name = material.name
-            utils.globalvar.instance_of_graph.append(
+            material.preview_ensure()
+            globalvar.instance_of_graph.append(
                 (mat_name, mat_name, mat_name, material.preview.icon_id, i)
             )
             i += 1
 
 
-def get_instance_of_graph(self, context):
+def get_instance_of_graph(self, _):
     init_instance_of_graph(self)
-    return utils.globalvar.instance_of_graph
+    return globalvar.instance_of_graph
 
 
 instance_list_of_object = []
@@ -71,8 +73,8 @@ def get_instance_list_of_object(_, context):
 def build_instance_list_of_object(context):
     instance_list_of_object.clear()
     if (
-        context.view_layer.objects.active is None
-        or len(context.view_layer.objects.active.material_slots) == 0
+            context.view_layer.objects.active is None
+            or len(context.view_layer.objects.active.material_slots) == 0
     ):
         return instance_list_of_object
 
@@ -95,7 +97,7 @@ class ImportingGraphItem(bpy.types.PropertyGroup):
     preset_name: StringProperty(default="")
     library_uid: StringProperty(default="")
     material_template: EnumProperty(
-        items=utils.globalvar.material_template_enum, name="Template"
+        items=globalvar.material_template_enum, name="Template"
     )
     use_fake_user: BoolProperty(name="Fake User", default=True)
     assign_to_selection: BoolProperty(name="Append to selected mesh", default=False)
@@ -107,14 +109,14 @@ class SublenderSetting(bpy.types.PropertyGroup):
     active_graph: EnumProperty(
         items=get_graph_list,
         name="Graph",
-        get=get_idx(utils.globalvar.graph_enum, "active_graph"),
+        get=get_idx(globalvar.graph_enum, "active_graph"),
         set=set_idx("active_graph"),
         update=active_graph_updated,
     )
     active_instance: EnumProperty(
         items=get_instance_of_graph,
         name="Instance",
-        get=get_idx(utils.globalvar.instance_of_graph, "active_instance"),
+        get=get_idx(globalvar.instance_of_graph, "active_instance"),
         set=set_idx("active_instance"),
     )
     object_active_instance: EnumProperty(
@@ -130,6 +132,15 @@ class SublenderSetting(bpy.types.PropertyGroup):
     live_update: BoolProperty(name="Live Update", description="Live Update")
     follow_selection: BoolProperty(name="Follow Selection", default=False)
     importing_graphs: bpy.props.CollectionProperty(type=ImportingGraphItem)
+    """
+    typing.List[ImportingGraphItem]
+    """
+
+
+def get_scene_setting(context=None) -> SublenderSetting:
+    if context is None:
+        return bpy.context.scene.sublender_settings
+    return context.scene.sublender_settings
 
 
 cls_list = [ImportingGraphItem, SublenderSetting]

@@ -1,5 +1,5 @@
-from . import scene_importer
 from . import library_importer
+from . import scene_importer
 
 
 def register():

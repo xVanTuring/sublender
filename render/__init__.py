@@ -1,8 +1,10 @@
 import bpy
-import pathlib, tempfile, os
+import pathlib
+import tempfile
+import os
 from . import texture_render
 from . import sublender_library
-from ..utils import globalvar
+from .. import globalvar
 
 
 def texture_output_dir(material_name: str):

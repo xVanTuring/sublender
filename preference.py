@@ -1,6 +1,7 @@
-import bpy
-import platform
 import os
+import platform
+
+import bpy
 from bpy.props import (
     StringProperty,
     BoolProperty,
@@ -9,7 +10,7 @@ from bpy.props import (
     FloatProperty,
 )
 
-from . import utils
+from . import consts
 
 default_library_path = os.path.expanduser("~/Documents/Sublender")
 
@@ -40,10 +41,10 @@ class SublenderPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
     output_size_x: EnumProperty(
-        name="Width", items=utils.consts.output_size_one_enum, default="8"
+        name="Width", items=consts.output_size_one_enum, default="8"
     )
     output_size_y: EnumProperty(
-        name="Height", items=utils.consts.output_size_one_enum, default="8"
+        name="Height", items=consts.output_size_one_enum, default="8"
     )
     output_size_lock: BoolProperty(default=True, update=output_size_x_updated)
 
@@ -69,7 +70,7 @@ class SublenderPreferences(bpy.types.AddonPreferences):
                 "d3d10pc(GPU,2019)",
                 "similar to d3d11pc, but for substance 2019",
             ),
-            (utils.consts.CUSTOM, "Custom", "Custom"),
+            (consts.CUSTOM, "Custom", "Custom"),
         ],
         default="$default$",
         name="Substance Render Engine",
@@ -124,7 +125,7 @@ class SublenderPreferences(bpy.types.AddonPreferences):
         row.prop(self, "memory_budget")
         row.prop(self, "hide_channels", toggle=1)
         layout.prop(self, "engine_enum")
-        if self.engine_enum == utils.consts.CUSTOM:
+        if self.engine_enum == consts.CUSTOM:
             layout.prop(self, "custom_engine")
         layout.prop(self, "library_preview_engine")
 
@@ -154,6 +155,10 @@ class SublenderPreferences(bpy.types.AddonPreferences):
         layout.separator()
         layout.label(text="Special Thanks to YOU and: ")
         layout.label(text=", ".join(thank_list))
+
+
+def get_preferences() -> SublenderPreferences:
+    return bpy.context.preferences.addons["sublender"].preferences
 
 
 def register():

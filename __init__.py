@@ -23,7 +23,7 @@ else:
 
     wheels.load_wheels()
 
-from .utils import globalvar
+from . import globalvar
 
 logging.basicConfig(level=logging.DEBUG, format="%(name)s %(message)s")
 log = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ saved = False
 @persistent
 def on_load_pre(_):
     """Remove all register clss, global var generate previously"""
-    from .utils import globalvar
+    from . import globalvar
 
     if globalvar.current_uuid == "":
         return
@@ -43,16 +43,16 @@ def on_load_pre(_):
     globalvar.sub_panel_clss_list.clear()
     for class_name in globalvar.graph_clss:
         class_info = globalvar.graph_clss.get(class_name)
-        bpy.utils.unregister_class(class_info["clss"])
+        bpy.utils.unregister_class(class_info.clss)
     globalvar.clear()
 
 
 @persistent
 def on_load_post(_):
     from . import operators
-
+    from .props.scene import get_scene_setting
     operators.sublender_update.auto_check()
-    if bpy.data.filepath != "" and bpy.context.scene.sublender_settings.uuid != "":
+    if bpy.data.filepath != "" and get_scene_setting().uuid != "":
         bpy.ops.sublender.init_async(pop_import=False)
 
 
@@ -152,7 +152,7 @@ def unregister():
         bpy.utils.unregister_class(clss)
     for class_name in globalvar.graph_clss:
         class_info = globalvar.graph_clss.get(class_name)
-        bpy.utils.unregister_class(class_info["clss"])
+        bpy.utils.unregister_class(class_info.clss)
     globalvar.clear()
 
     bpy.app.handlers.load_pre.remove(on_load_pre)

@@ -4,8 +4,7 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty, CollectionProperty
 from bpy_extras.io_utils import ImportHelper
 
-from .. import utils, async_loop
-from ..props import new_graph_item
+from .. import sbsar_import, async_loop, preference, props, globalvar
 
 
 class SublenderOTSelectSbsarLibrary(bpy.types.Operator, ImportHelper):
@@ -52,14 +51,14 @@ class SublenderOTParseSelectedSbsars(
         importing_graphs.clear()
         sbsar_files = filter(lambda x: x, self.files_list.split("|"))
         for sbsar_path in sbsar_files:
-            sbs_pkg = await utils.load_sbsar_to_dict_async(sbsar_path, self.report)
+            sbs_pkg = await sbsar_import.load_sbsar_to_dict_async(sbsar_path, self.report)
             if sbs_pkg is not None:
-                for graph_info in sbs_pkg["graphs"]:
+                for graph_info in sbs_pkg.graphs:
                     adding_graph = importing_graphs.add()
-                    adding_graph.graph_url = graph_info["pkgUrl"]
-                    adding_graph.category_str = graph_info["category"]
+                    adding_graph.graph_url = graph_info.pkgUrl
+                    adding_graph.category_str = graph_info.category
                     adding_graph.package_path = sbsar_path
-                    for preset_name in graph_info["presets"].keys():
+                    for preset_name in graph_info.presets.keys():
                         importing_preset = adding_graph.importing_presets.add()
                         importing_preset.name = preset_name
         bpy.ops.sublender.import_graphs_to_library("INVOKE_DEFAULT")
@@ -74,9 +73,9 @@ class SublenderOTImportGraphesToLibrary(bpy.types.Operator):
     invert_normal: BoolProperty(
         name="Invert Normal",
         description="Blender use OpenGL's Normal Format, while most substance materials use DirectX's "
-        "Normal Format. "
-        "Usually there is parameter included in the substance material controlling the Normal Format. "
-        "Conversion can be done by inverting the G channel of Normal texture.",
+                    "Normal Format. "
+                    "Usually there is parameter included in the substance material controlling the Normal Format. "
+                    "Conversion can be done by inverting the G channel of Normal texture.",
     )
     cloth_template: BoolProperty(default=False, name="Use Cloth Template")
 
@@ -88,7 +87,7 @@ class SublenderOTImportGraphesToLibrary(bpy.types.Operator):
             category = importing_graph.category
             if category == "$CUSTOM$":
                 category = importing_graph.category_str
-            graph_item = new_graph_item(
+            graph_item = props.new_graph_item(
                 importing_graph.graph_url, category, importing_graph.package_path
             )
             for preset in importing_graph.importing_presets:
@@ -96,7 +95,7 @@ class SublenderOTImportGraphesToLibrary(bpy.types.Operator):
                     continue
                 graph_item["presets"].append(preset.name)
             graphtask_list.append(graph_item)
-        utils.globalvar.queue.put_nowait(graphtask_list)
+        globalvar.queue.put_nowait(graphtask_list)
         context.scene.sublender_library.importing_graphs.clear()
         bpy.ops.sublender.render_preview_async(
             engine=self.engine,
@@ -110,7 +109,7 @@ class SublenderOTImportGraphesToLibrary(bpy.types.Operator):
 
     def invoke(self, context, _):
         wm = context.window_manager
-        preferences = utils.get_addon_preferences(context)
+        preferences = preference.get_preferences()
         self.engine = preferences.library_preview_engine
         return wm.invoke_props_dialog(self)
 

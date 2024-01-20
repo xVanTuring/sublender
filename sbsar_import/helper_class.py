@@ -1,8 +1,8 @@
 import bpy
 import mathutils
 
+from .. import globalvar, consts
 from .. import parser
-from . import globalvar, consts
 
 
 class VectorWrapper(object):

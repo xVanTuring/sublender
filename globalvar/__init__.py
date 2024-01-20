@@ -1,10 +1,13 @@
 import asyncio
 import typing
 
-sbsar_dict: typing.Dict[str, typing.Any] = {}
+from ..parser.sbsarlite import SbsarPackageData
+from ..datatypes import GraphClassInfoData
 
-graph_clss: typing.Dict = {}
-"""clss_name->{clss,input...}"""
+sbsar_dict: typing.Dict[str, SbsarPackageData] = {}
+
+graph_clss: typing.Dict[str, GraphClassInfoData] = {}
+
 sub_panel_clss_list: typing.List = []
 
 material_templates: typing.Dict = {}
@@ -26,7 +29,7 @@ library_category_material_map: typing.Dict[str, typing.List[MaterialTuple]] = {
 }
 
 graph_enum: typing.List = []
-instance_of_graph: typing.List = []
+instance_of_graph: list[tuple[str, str, str, str, int] | tuple[str, str, str]] = []
 
 applying_preset = False
 

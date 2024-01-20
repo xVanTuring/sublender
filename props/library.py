@@ -1,24 +1,24 @@
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
-from .. import utils
-from .utils import get_idx, set_idx
+from .. import globalvar
+from .enum_index_helper import get_idx, set_idx
 
 
 def get_library_material_list(self, _):
-    return utils.globalvar.library_category_material_map.get(self.categories, [])
+    return globalvar.library_category_material_map.get(self.categories, [])
 
 
 def get_material_preset(self, _):
-    return utils.globalvar.library_material_preset_map.get(self.active_material, [])
+    return globalvar.library_material_preset_map.get(self.active_material, [])
 
 
 def get_category_list(_, __):
-    return utils.globalvar.library_category_enum
+    return globalvar.library_category_enum
 
 
-def category_selected(self, context):
-    material_list = utils.globalvar.library_category_material_map.get(
+def category_selected(self, _):
+    material_list = globalvar.library_category_material_map.get(
         self.categories, []
     )
     if len(material_list) > 0:

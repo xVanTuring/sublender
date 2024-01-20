@@ -15,7 +15,7 @@ def get_idx(enum_items, name: str):
             return self[name]
         elif len_of_x > 0:
             return 0
-        return 0
+        return None
 
     return get_x
 

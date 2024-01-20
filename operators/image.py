@@ -2,7 +2,7 @@ import bpy
 from bpy.props import StringProperty
 import os
 
-from .. import utils
+from .. import globalvar, consts
 
 
 class SublenderOTDeleteImage(bpy.types.Operator):
@@ -18,7 +18,7 @@ class SublenderOTDeleteImage(bpy.types.Operator):
             if bl_image is not None:
                 bpy.data.images.remove(bl_image)
         os.remove(self.filepath)
-        utils.globalvar.file_existence_dict[self.filepath] = False
+        globalvar.file_existence_dict[self.filepath] = False
         return {"FINISHED"}
 
 
@@ -33,8 +33,8 @@ class SublenderOTLoadImage(bpy.types.Operator):
     def execute(self, _):
         bl_img = bpy.data.images.load(self.filepath, check_existing=True)
         bl_img.name = self.bl_img_name
-        utils.globalvar.file_existence_dict[self.filepath] = True
-        if self.usage != "" and self.usage not in utils.consts.usage_color_dict:
+        globalvar.file_existence_dict[self.filepath] = True
+        if self.usage != "" and self.usage not in consts.usage_color_dict:
             bl_img.colorspace_settings.name = "Non-Color"
         return {"FINISHED"}
 
@@ -61,7 +61,7 @@ class SublenderOTApplyImage(bpy.types.Operator):
         if target_mat is not None:
             target_node = target_mat.node_tree.nodes.get(self.node_name)
             if target_node is not None and isinstance(
-                target_node, bpy.types.ShaderNodeTexImage
+                    target_node, bpy.types.ShaderNodeTexImage
             ):
                 target_node.image = bpy.data.images.get(self.bl_img_name)
             else:
@@ -73,14 +73,6 @@ class SublenderOTApplyImage(bpy.types.Operator):
                 )
         return {"FINISHED"}
 
-
-# class SublenderOTRenderAll(Operator):
-#     bl_idname = "sublender.render_all"
-#     bl_label = "Render All Texture"
-#     bl_description = ""
-
-#     def execute(self, _):
-#         return {'FINISHED'}
 
 cls_list = [SublenderOTDeleteImage, SublenderOTLoadImage, SublenderOTApplyImage]
 
