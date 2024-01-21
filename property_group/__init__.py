@@ -115,7 +115,6 @@ def sbsar_input_updated_uid(input_id: str):
                 props.get_scene_setting(context).live_update
                 and not globalvar.applying_preset
         ):
-            # TODO pass input id
             bpy.ops.sublender.render_texture_async(
                 importing_graph=False, texture_name="", input_id=input_id
             )

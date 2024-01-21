@@ -97,10 +97,10 @@ class SublenderOTRenderPreviewAsync(
             if graph.pkgUrl == pkg_url:
                 current_graph = graph
                 output_info = property_group.graph_output_parse(graph.outputs)
-                output_usage_dict = output_info.dict
+                output_usage_dict = output_info.usage
                 for usage in output_usage_dict:
                     if usage in default_usage_list:
-                        build_list.append((output_usage_dict[usage].name, usage))  # FIXME: library is not working
+                        build_list.append((output_usage_dict[usage][0], usage))
                 break
         label = ""
         if not is_preset:
