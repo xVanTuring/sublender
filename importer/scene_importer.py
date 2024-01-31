@@ -2,8 +2,20 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy_extras.io_utils import ImportHelper
 
-from .. import utils, async_loop, workflow, preference, props, globalvar, consts, property_group, sbsar_import, \
-    formatting
+from .. import (
+    utils,
+    async_loop,
+    workflow,
+    preference,
+    props,
+    globalvar,
+    consts,
+    property_group,
+    sbsar_import,
+    formatting,
+)
+from ..parser import SbsarPackageData, SbsarGraphData
+from ..props import ImportingGraphItem
 
 
 class SublenderOTSelectSbsar(bpy.types.Operator, ImportHelper):
@@ -27,62 +39,71 @@ class SublenderOTImportSbsar(async_loop.AsyncModalOperatorMixin, bpy.types.Opera
     bl_idname = "sublender.import_sbsar"
     bl_label = "Import"
     bl_description = "Import"
-    sbsar_path: StringProperty()
     task_id = "SublenderOTImportSbsar"
     from_library: BoolProperty(default=False)
+    sbsar_path: StringProperty()
     pkg_url = ""
 
     @classmethod
     def poll(cls, _):
         return not bpy.data.filepath == ""
 
+    def load_from_library(self, context: bpy.types.Context):
+        active_material = context.scene.sublender_library.active_material
+        sbs_graph_info = globalvar.library["materials"].get(active_material)
+        self.sbsar_path = sbs_graph_info["sbsar_path"]
+        self.pkg_url = sbs_graph_info["pkg_url"]
+
     async def async_execute(self, context):
         if not utils.sublender_inited(context):
             await utils.init_sublender_async(self, context)
         if self.from_library:
-            active_material = context.scene.sublender_library.active_material
-            sbs_graph_info = globalvar.library["materials"].get(active_material)
-            self.sbsar_path = sbs_graph_info["sbsar_path"]
-            self.pkg_url = sbs_graph_info["pkg_url"]
-        sbs_pkg = await sbsar_import.load_sbsar_to_dict_async(self.sbsar_path, self.report)
-        if sbs_pkg is not None:
-            importing_graphs = props.scene.get_scene_setting(context).importing_graphs
-            importing_graphs.clear()
-            for graph_info in sbs_pkg.graphs:
-                if self.pkg_url != "" and graph_info.pkgUrl != self.pkg_url:
-                    continue
-                importing_graph = importing_graphs.add()
-                importing_graph.graph_url = graph_info.pkgUrl
-                importing_graph.material_name = formatting.new_material_name(graph_info.label)
-                if self.from_library:
-                    label = graph_info.label
-                    if label == "":
-                        label = bpy.utils.escape_identifier(
-                            importing_graph.graph_url
-                        ).replace("://", "")
-                    importing_graph.library_uid = "{}_{}".format(label, sbs_pkg.asmuid)
-                    active_material = context.scene.sublender_library.active_material
-                    if (
-                            len(
-                                globalvar.library_material_preset_map.get(
-                                    active_material
-                                )
-                            )
-                            > 0
-                    ):
-                        if (
-                                context.scene.sublender_library.material_preset
-                                != "$DEFAULT$"
-                        ):
-                            importing_graph.preset_name = (
-                                context.scene.sublender_library.material_preset
-                            )
-                            importing_graph.material_name = formatting.new_material_name(
-                                importing_graph.preset_name
-                            )
-            bpy.ops.sublender.import_graph(
-                "INVOKE_DEFAULT", package_path=self.sbsar_path
+            self.load_from_library(context)
+
+        sbs_pkg = await sbsar_import.load_sbsar_to_dict_async(
+            self.sbsar_path, self.report
+        )
+        if sbs_pkg is None:
+            # TODO: warning not found!
+            return
+
+        importing_graphs = props.scene.get_scene_setting(context).importing_graphs
+        importing_graphs.clear()
+
+        for graph_info in sbs_pkg.graphs:
+            if self.pkg_url != "" and graph_info.pkgUrl != self.pkg_url:
+                continue
+            importing_graph: ImportingGraphItem = importing_graphs.add()
+            importing_graph.graph_url = graph_info.pkgUrl
+            importing_graph.material_name = formatting.new_material_name(
+                graph_info.label
             )
+            if not self.from_library:
+                continue
+            self.load_from_library_after(context, sbs_pkg, graph_info, importing_graph)
+        bpy.ops.sublender.import_graph("INVOKE_DEFAULT", package_path=self.sbsar_path)
+
+    def load_from_library_after(
+        self,
+        context: bpy.types.Context,
+        sbs_pkg: SbsarPackageData,
+        graph_info: SbsarGraphData,
+        importing_graph: ImportingGraphItem,
+    ):
+        label = graph_info.label or bpy.utils.escape_identifier(
+            importing_graph.graph_url
+        ).replace("://", "")
+        importing_graph.library_uid = "{}_{}".format(label, sbs_pkg.asmuid)
+        active_material = context.scene.sublender_library.active_material
+        if len(globalvar.library_material_preset_map.get(active_material)) == 0:
+            return
+        if context.scene.sublender_library.material_preset == "$DEFAULT$":
+            return
+
+        importing_graph.preset_name = context.scene.sublender_library.material_preset
+        importing_graph.material_name = formatting.new_material_name(
+            importing_graph.preset_name
+        )
 
 
 class SublenderOTImportGraph(bpy.types.Operator):
@@ -132,9 +153,9 @@ class SublenderOTImportGraph(bpy.types.Operator):
 
             if importing_graph.library_uid != "":
                 m_sublender.library_uid = importing_graph.library_uid
-            props.scene.get_scene_setting(context).active_graph = (
-                importing_graph.graph_url
-            )
+            props.scene.get_scene_setting(
+                context
+            ).active_graph = importing_graph.graph_url
             sbs_package = None
             for graph in globalvar.sbsar_dict.get(self.package_path).graphs:
                 if graph.pkgUrl == importing_graph.graph_url:
@@ -158,9 +179,7 @@ class SublenderOTImportGraph(bpy.types.Operator):
                 for template_texture in material_template["texture"]:
                     if output_info_usage.get(template_texture) is not None:
                         name = output_info_usage.get(template_texture)[0]
-                        setattr(
-                            graph_setting, formatting.sb_output_to_prop(name), True
-                        )
+                        setattr(graph_setting, formatting.sb_output_to_prop(name), True)
                 workflow.inflate_template(material, self.material_template, True)
             else:
                 for output_info in clss_info.output_info.list:
