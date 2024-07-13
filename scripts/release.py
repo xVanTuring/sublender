@@ -4,6 +4,7 @@ import subprocess
 import zipfile
 import sys
 import platform
+import build_wheel
 
 platform_name_alias = {
     "Windows": "win",
@@ -56,9 +57,10 @@ def main():
 
     assert platform.system() in platform_name_alias
     platform_key = f"{platform_name_alias[platform.system()]}_{platform.machine()}"
-
     python_code = f"{sys.version_info.major}{sys.version_info.minor}"
     assert python_code in blender_matrix
+
+    build_wheel.download_all(str(wheel_dir))
     output_file = do_pack(wheel_dir, dist_path, blender_matrix[python_code], platform_key)
     print(f"Output file localed at {output_file}")
 

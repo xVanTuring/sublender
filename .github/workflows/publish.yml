@@ -19,10 +19,16 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Pack Addon
-        run: bash ./scripts/release.sh
+        run: python ./scripts/release.py
 
       - name: Get file name
+        if: matrix.os == 'windows-latest'
+        run: echo "FILENAME=$(ls ./dist)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Get file name
+        if: matrix.os != 'windows-latest'
         run: echo "FILENAME=$(ls ./dist)" >> $GITHUB_ENV
 
       - name: Upload artifact
