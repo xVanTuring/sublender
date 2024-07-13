@@ -1,45 +1,49 @@
 import os
 import pathlib
 import subprocess
-# import download_wheels
 import zipfile
+import sys
+import platform
 
-matrix = {"windows": ["x64"], "linux": ["x64"], "macos": ["x64", "arm64"]}
-blender_matrix = {"310": "bl3.3-bl4.0",
-                  "311": "bl4.1"}
+platform_name_alias = {
+    "Windows": "win",
+    "Linux": "linux",
+    "Darwin": "macOS"
+}
+blender_matrix = {"310": "blender3.3-4.0", "311": "blender4.1"}
 
 project_path = pathlib.Path(__file__).parent.parent.absolute()
 
 
-def do_pack(wheel_dir: pathlib.Path, dist_path: pathlib.Path, platform_key: str):
+def do_pack(wheel_dir: pathlib.Path, dist_path: pathlib.Path, blender_version: str, platform_key: str):
     branch = "dev"
-    for python_version, blender_version in blender_matrix.items():
-        packing_file = f"sublender-{blender_version}-{platform_key}.zip"
-        print(f"Packing for {packing_file}")
-        packing_file = str(dist_path.joinpath(packing_file))
-        subprocess.run(
-            [
-                "git",
-                "archive",
-                "--format",
-                "zip",
-                "--output",
-                packing_file,
-                branch,
-                "--prefix",
-                "sublender/",
-            ]
-        )
+    packing_file = f"sublender-{blender_version}-{platform_key}.zip"
+    print(f"Packing for {packing_file}")
+    packing_file = str(dist_path.joinpath(packing_file))
+    subprocess.run(
+        [
+            "git",
+            "archive",
+            "--format",
+            "zip",
+            "--output",
+            packing_file,
+            branch,
+            "--prefix",
+            "sublender/",
+        ]
+    )
 
-        wheels = list(
-            map(
-                lambda x: str(wheel_dir.joinpath(x)),
-                filter(lambda x: x.endswith(".whl"), os.listdir(wheel_dir)),
-            )
+    wheels = list(
+        map(
+            lambda x: str(wheel_dir.joinpath(x)),
+            filter(lambda x: x.endswith(".whl"), os.listdir(wheel_dir)),
         )
-        for wheel in wheels:
-            with zipfile.ZipFile(packing_file, "a") as zfile:
-                zfile.write(wheel, f"sublender/wheels/{os.path.basename(wheel)}")
+    )
+    for wheel in wheels:
+        with zipfile.ZipFile(packing_file, "a") as zfile:
+            zfile.write(wheel, f"sublender/wheels/{os.path.basename(wheel)}")
+    return packing_file
 
 
 def main():
@@ -50,10 +54,13 @@ def main():
         print(f"Creating dist_folder at {dist_path}")
         os.mkdir(dist_path)
 
-    for platform, arches in matrix.items():
-        for arch in arches:
-            platform_key = f"{platform}_{arch}"
-            do_pack(wheel_dir, dist_path, platform_key)
+    assert platform.system() in platform_name_alias
+    platform_key = f"{platform_name_alias[platform.system()]}_{platform.machine()}"
+
+    python_code = f"{sys.version_info.major}{sys.version_info.minor}"
+    assert python_code in blender_matrix
+    output_file = do_pack(wheel_dir, dist_path, blender_matrix[python_code], platform_key)
+    print(f"Output file localed at {output_file}")
 
 
 if __name__ == "__main__":
