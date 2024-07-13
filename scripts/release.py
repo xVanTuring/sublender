@@ -1,19 +1,19 @@
 import os
 import pathlib
 import subprocess
-import download_wheels
+# import download_wheels
 import zipfile
 
 matrix = {"windows": ["x64"], "linux": ["x64"], "macos": ["x64", "arm64"]}
-blender_matrix = {"310": "bl3.3-bl4.0"}
+blender_matrix = {"310": "bl3.3-bl4.0",
+                  "311": "bl4.1"}
+
 project_path = pathlib.Path(__file__).parent.parent.absolute()
 
 
 def do_pack(wheel_dir: pathlib.Path, dist_path: pathlib.Path, platform_key: str):
     branch = "dev"
     for python_version, blender_version in blender_matrix.items():
-        print(f"Download deps for {python_version}")
-        download_wheels.download(str(wheel_dir), platform_key, python_version)
         packing_file = f"sublender-{blender_version}-{platform_key}.zip"
         print(f"Packing for {packing_file}")
         packing_file = str(dist_path.joinpath(packing_file))

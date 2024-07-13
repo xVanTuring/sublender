@@ -53,6 +53,12 @@ def load_wheel(module_name, fname_prefix):
     log.debug("Loaded %s from %s", module_name, module.__file__)
 
 
+def wheel_dist_info_folder_name(whl_filepath: str):
+    assert whl_filepath.endswith(".whl")
+    name_chunk = os.path.basename(whl_filepath).split('-')
+    return f"{name_chunk[0]}-{name_chunk[1]}.dist-info"
+
+
 def wheel_filename(fname_prefix: str) -> str:
     path_pattern = os.path.join(my_dir, "%s*.whl" % fname_prefix)
     wheels = glob.glob(path_pattern)
@@ -79,21 +85,37 @@ def load_wheels():
         os.mkdir(deps_fodler)
 
     sys.path.append(deps_fodler)
-    load_wheels_unpack("bcj", "pybcj", deps_fodler)
-    load_wheels_unpack("psutil", "psutil", deps_fodler)
-    load_wheels_unpack("pyppmd", "pyppmd", deps_fodler)
-    load_wheels_unpack("pyzstd", "pyzstd", deps_fodler)
-    load_wheels_unpack("brotli", "Brotli", deps_fodler)
-    load_wheels_unpack("Cryptodome", "pycryptodomex", deps_fodler)
-    load_wheels_unpack("texttable", "texttable", deps_fodler)
-    load_wheels_unpack("inflate64", "inflate64", deps_fodler)
-    load_wheels_unpack("multivolumefile", "multivolumefile", deps_fodler)
 
-    load_wheel("py7zr", "py7zr")
-    load_wheel("xmltodict", "xmltodict")
+    wheel_unpack("cffi", deps_fodler)
+    wheel_unpack("ppmd_cffi", deps_fodler)
+    wheel_unpack("bcj_cffi", deps_fodler)
+    wheel_unpack("pybcj", deps_fodler)
+    wheel_unpack("pyppmd", deps_fodler)
+    wheel_unpack("psutil", deps_fodler)
+    wheel_unpack("pyzstd", deps_fodler)
+    wheel_unpack("Brotli", deps_fodler)
+    wheel_unpack("pycryptodomex", deps_fodler)
+    wheel_unpack("texttable", deps_fodler)
+    wheel_unpack("inflate64", deps_fodler)
+    wheel_unpack("multivolumefile", deps_fodler)
+
+    load_wheel_unpack("py7zr", "py7zr", deps_fodler)
+    load_wheel_unpack("xmltodict", "xmltodict", deps_fodler)
 
 
-def load_wheels_unpack(module_name: str, fname_prefix: str, dep_unzip_folder: str):
+def wheel_unpack(fname_prefix: str, dep_unzip_folder: str):
+    wheel_file = wheel_filename(fname_prefix)
+
+    target_dir = os.path.join(dep_unzip_folder, wheel_dist_info_folder_name(wheel_file))
+    if os.path.exists(target_dir):
+        log.debug("Unpacked wheel %s canceled (already exists)", fname_prefix)
+        return
+    with zipfile.ZipFile(wheel_file, "r") as whl:
+        whl.extractall(dep_unzip_folder)
+    log.debug("Unpacked wheel %s", fname_prefix)
+
+
+def load_wheel_unpack(module_name: str, fname_prefix: str, dep_unzip_folder: str):
     """Loads a wheel from 'fname_prefix*.whl', unless the named module can be imported.
 
     This allows us to use system-installed packages before falling back to the shipped wheels.
@@ -114,8 +136,8 @@ def load_wheels_unpack(module_name: str, fname_prefix: str, dep_unzip_folder: st
         return
     wheel_file = wheel_filename(fname_prefix)
 
-    targetDir = os.path.join(dep_unzip_folder, module_name)
-    if not os.path.exists(targetDir):
+    target_dir = os.path.join(dep_unzip_folder, wheel_dist_info_folder_name(wheel_file))
+    if not os.path.exists(target_dir):
         with zipfile.ZipFile(wheel_file, "r") as whl:
             whl.extractall(dep_unzip_folder)
     module = __import__(module_name)
@@ -123,5 +145,4 @@ def load_wheels_unpack(module_name: str, fname_prefix: str, dep_unzip_folder: st
 
 
 if __name__ == "__main__":
-    wheel = wheel_filename("xmltodict")
-    print(f"Wheel: {wheel}")
+    load_wheels()
