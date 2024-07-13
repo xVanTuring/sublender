@@ -21,9 +21,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Pack Addon
         run: bash ./scripts/release.sh
+
+      - name: Get file name
+        run: echo "FILENAME=$(ls ./dist)" >> $GITHUB_ENV
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          path: ./dist/*.zip
+          name: ${{ env.FILENAME }}
+          path: "./dist/${{ env.FILENAME }}"
 
 
