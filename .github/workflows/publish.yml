@@ -25,7 +25,7 @@ jobs:
 
       - name: Get file name
         if: matrix.os == 'windows-latest'
-        run: echo "FILENAME=$(ls ./dist)" | Out-File -FilePath $env:GITHUB_ENV -Append
+        run: echo "FILENAME=$($(Get-ChildItem ./dist/).Name)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Get file name
         if: matrix.os != 'windows-latest'
