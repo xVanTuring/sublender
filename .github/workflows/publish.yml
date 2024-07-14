@@ -24,17 +24,19 @@ jobs:
         run: python ./scripts/release.py
 
       - name: Get file name
-        if: matrix.os == 'windows-latest'
-        run: echo "FILENAME=$($(Get-ChildItem ./dist/).Name)" | Out-File -FilePath $env:GITHUB_ENV -Append
+        run: |
+          echo "FILEPATH=$(Get-ChildItem ./dist/)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "BASENAME=$($(Get-ChildItem ./dist/).BaseName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+        shell: pwsh
 
-      - name: Get file name
-        if: matrix.os != 'windows-latest'
-        run: echo "FILENAME=$(ls ./dist)" >> $GITHUB_ENV
+      - name: unzip for artifact
+        run: Expand-Archive ${{ env.FILEPATH }} -DestinationPath ./dist/
+        shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.FILENAME }}
-          path: "./dist/${{ env.FILENAME }}"
+          name: ${{ env.BASENAME }}
+          path: ./dist/sublender
 
 
