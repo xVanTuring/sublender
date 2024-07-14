@@ -70,6 +70,7 @@ class SublenderPreferences(bpy.types.AddonPreferences):
                 "d3d10pc(GPU,2019)",
                 "similar to d3d11pc, but for substance 2019",
             ),
+            ("neon", "neon(GPU,macOS)", "available in macOS"),
             (consts.CUSTOM, "Custom", "Custom"),
         ],
         default="$default$",
