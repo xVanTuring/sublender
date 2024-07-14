@@ -30,13 +30,13 @@ jobs:
         shell: pwsh
 
       - name: unzip for artifact
-        run: Expand-Archive ${{ env.FILEPATH }} -DestinationPath ./dist/
+        run: Expand-Archive ${{ env.FILEPATH }} -DestinationPath ./tmp/
         shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BASENAME }}
-          path: ./dist/sublender
+          path: ./tmp
 
 
