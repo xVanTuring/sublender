@@ -5,6 +5,7 @@ bl_info = {
     "version": (2, 1, 1),
     "location": "View3D > Properties > Sublender",
     "description": "An add-on for sbsar",
+    "tracker_url": "https://github.com/xVanTuring/sublender/issues",
     "category": "Material",
 }
 import logging
@@ -51,7 +52,7 @@ def on_load_pre(_):
 def on_load_post(_):
     from . import operators
     from .props.scene import get_scene_setting
-    operators.sublender_update.auto_check()
+    # operators.sublender_update.auto_check()
     if bpy.data.filepath != "" and get_scene_setting().uuid != "":
         bpy.ops.sublender.init_async(pop_import=False)
 

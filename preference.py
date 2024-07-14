@@ -98,11 +98,11 @@ class SublenderPreferences(bpy.types.AddonPreferences):
         name="Render texture affected by inputs", default=True
     )
 
-    latest_version: StringProperty(default="")
-    latest_changelog: StringProperty(default="")
-    show_changelog: BoolProperty(default=True, name="Show Changelog")
-    auto_check_every_day: BoolProperty(default=False, name="Check update everyday")
-    last_check: IntProperty(default=0)
+    # latest_version: StringProperty(default="")
+    # latest_changelog: StringProperty(default="")
+    # show_changelog: BoolProperty(default=True, name="Show Changelog")
+    # auto_check_every_day: BoolProperty(default=False, name="Check update everyday")
+    # last_check: IntProperty(default=0)
     render_delay: FloatProperty(
         default=0.2, name="Seconds to wait for new render request"
     )
@@ -137,24 +137,26 @@ class SublenderPreferences(bpy.types.AddonPreferences):
         column.prop(self, "old_version_of_template")
         column.operator("sublender.release_lib_template")
 
-        layout.separator()
-        layout.label(text="Update:")
-        row = layout.row()
-        row.operator("sublender.check_version")
-        row.prop(self, "auto_check_every_day")
+        # layout.separator()
+        # layout.label(text="Update:")
+        # row = layout.row()
+        # row.operator("sublender.check_version")
+        # row.prop(self, "auto_check_every_day")
 
-        if self.latest_version != "":
-            layout.label(text="Latest Version: {}".format(self.latest_version))
-        layout.prop(self, "show_changelog", text="Changelog: ")
-        if self.latest_changelog != "" and self.show_changelog:
-            lines = self.latest_changelog.split("\n")
-            box = layout.box()
-            for line in lines:
-                box.label(text=line)
+        # if self.latest_version != "":
+        #     layout.label(text="Latest Version: {}".format(self.latest_version))
+        # layout.prop(self, "show_changelog", text="Changelog: ")
+        # if self.latest_changelog != "" and self.show_changelog:
+        #     lines = self.latest_changelog.split("\n")
+        #     box = layout.box()
+        #     for line in lines:
+        #         box.label(text=line)
 
         layout.separator()
         layout.label(text="Special Thanks to YOU and: ")
         layout.label(text=", ".join(thank_list))
+        layout.separator()
+        layout.label(text="This is a free software at: https://github.com/xVanTuring/sublender")
 
 
 def get_preferences() -> SublenderPreferences:
