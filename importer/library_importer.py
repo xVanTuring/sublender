@@ -1,5 +1,4 @@
 import pathlib
-
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty, CollectionProperty
 from bpy_extras.io_utils import ImportHelper
@@ -64,7 +63,7 @@ class SublenderOTParseSelectedSbsars(
         bpy.ops.sublender.import_graphs_to_library("INVOKE_DEFAULT")
 
 
-class SublenderOTImportGraphesToLibrary(bpy.types.Operator):
+class SublenderOTImportGraphsToLibrary(bpy.types.Operator):
     bl_idname = "sublender.import_graphs_to_library"
     bl_label = "Import Package"
     engine: EnumProperty(
@@ -144,7 +143,7 @@ class SublenderOTImportGraphesToLibrary(bpy.types.Operator):
 
 
 cls_list = [
-    SublenderOTImportGraphesToLibrary,
+    SublenderOTImportGraphsToLibrary,
     SublenderOTParseSelectedSbsars,
     SublenderOTSelectSbsarLibrary,
 ]

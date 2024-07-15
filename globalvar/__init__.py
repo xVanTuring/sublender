@@ -29,7 +29,7 @@ library_category_material_map: typing.Dict[str, typing.List[MaterialTuple]] = {
 }
 
 graph_enum: typing.List = []
-instance_of_graph: list[tuple[str, str, str, str, int] | tuple[str, str, str]] = []
+instance_of_graph: list[tuple[str, str, str, int, int] | tuple[str, str, str]] = []
 
 applying_preset = False
 

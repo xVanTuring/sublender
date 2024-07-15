@@ -20,9 +20,19 @@ class SublenderOTRenderTexture(
     bl_description = "Render Texture"
 
     importing_graph: BoolProperty(default=False)
-    package_path: StringProperty()
+    """
+    render issused by importing graph
+    """
+    package_paths: StringProperty()
+    """
+    required when importing graph
+    """
 
     texture_name: StringProperty(default="")
+    """
+    require when update existing material(after importing)
+    """
+
     input_id: StringProperty(default="")
 
     def clean(self, context):
@@ -30,7 +40,7 @@ class SublenderOTRenderTexture(
 
     def invoke(self, context, event):
         if self.importing_graph:
-            self.task_id = self.package_path
+            self.task_id = self.package_paths
         else:
             material_inst = utils.find_active_material(context)
             if material_inst is None:
@@ -40,7 +50,7 @@ class SublenderOTRenderTexture(
             self.task_id = self.material_name
         return async_loop.AsyncModalOperatorMixin.invoke(self, context, event)
 
-    async def import_graph(self, context):
+    async def _import_graph(self, context):
         preferences = preference.get_preferences()
         importing_graph_items: list[ImportingGraphItem] = get_scene_setting(context).importing_graphs
         start = datetime.datetime.now()
@@ -53,7 +63,7 @@ class SublenderOTRenderTexture(
             "Render Done! Time spent: {0}s.".format((end - start).total_seconds()),
         )
 
-    async def update_texture(self, _):
+    async def _update_texture(self, _):
         preferences = preference.get_preferences()
 
         if self.texture_name == "":
@@ -68,19 +78,22 @@ class SublenderOTRenderTexture(
             "Render Done! Time spent: {0}s.".format((end - start).total_seconds()),
         )
 
-    async def async_execute(self, context):
+    async def render_texture_async(self, context):
         import traceback
 
         log.debug("SublenderOTRenderTexture.async_execute starting")
         try:
             log.debug("self.importing_graph is %s", self.importing_graph)
             if self.importing_graph:
-                await self.import_graph(context)
+                await self._import_graph(context)
             else:
-                await self.update_texture(context)
+                await self._update_texture(context)
         except TypeError as e:
             print(e)
             print(traceback.format_exc())
+
+    async def async_execute(self, context):
+        await self.render_texture_async(context)
 
 
 def register():

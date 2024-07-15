@@ -19,6 +19,10 @@ async def load_sbsar_to_dict_async(
     return sbs_package
 
 
+async def load_sbsar_to_dict_with_path_async(filepath: str, report=None):
+    return filepath, await load_sbsar_to_dict_async(filepath, report)
+
+
 def parse_sbsar_package(filepath: str) -> parser.sbsarlite.SbsarPackageData | None:
     if not os.path.exists(filepath):
         return None

@@ -41,8 +41,8 @@ class SUBLENDER_PT_Library(bpy.types.Panel):
             if has_presets:
                 row.template_icon_view(properties, "material_preset", show_labels=True)
             row = self.layout.row()
-            import_sbsar_operator = row.operator("sublender.import_sbsar")
-            import_sbsar_operator.from_library = True
+            import_sbsar_operator = row.operator("sublender.import_sbsar_from_library")
+            # import_sbsar_operator.from_library = True
             row.operator("sublender.remove_material", icon="PANEL_CLOSE")
             active_mat = utils.find_active_material(context)
             if active_mat is not None:
