@@ -225,11 +225,11 @@ class SublenderOTImportGraph(bpy.types.Operator):
 
     def configure_graph(self, active_material_template, clss_info, clss_name, material):
         graph_setting = getattr(material, clss_name)
-        setattr(graph_setting, consts.SBS_CONFIGURED, True)
         if active_material_template != consts.CUSTOM:
             self.inflate_material_by_template(active_material_template, clss_info, graph_setting, material)
         else:
             self.enable_all_output(clss_info, graph_setting)
+        setattr(graph_setting, consts.SBS_CONFIGURED, True)
 
     def enable_all_output(self, clss_info, graph_setting):
         for output_info in clss_info.output_info.list:
