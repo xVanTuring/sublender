@@ -150,10 +150,15 @@ class SublenderOTRenderPreviewAsync(
             get_sublender_library_render_dir("out#.png"),
             "-E",
         ]
-        if self.engine == "cycles":
-            preview_cmd.append("CYCLES")
+
+        if self.engine == "eevee":
+            # if blender >= 4.2 use BLENDER_EEVEE_NEXT
+            if bpy.app.version >= (4, 2, 0):
+                preview_cmd.append("BLENDER_EEVEE_NEXT")
+            else:
+                preview_cmd.append("BLENDER_EEVEE")
         else:
-            preview_cmd.append("BLENDER_EEVEE")
+            preview_cmd.append("CYCLES")
         preview_cmd.append("-f")
         preview_cmd.append("1")
         await self.run_async(bpy.app.binary_path, preview_cmd)
