@@ -115,9 +115,7 @@ def sbsar_input_updated_uid(input_id: str):
                 props.get_scene_setting(context).live_update
                 and not globalvar.applying_preset
         ):
-            bpy.ops.sublender.render_texture_async(
-                importing_graph=False, texture_name="", input_id=input_id
-            )
+            bpy.ops.sublender.render_texture_async(input_id=input_id)
 
     return fn
 
@@ -126,9 +124,7 @@ def sbsar_output_updated_name(sbs_id: str):
     def sbsar_output_updated(self, _):
         prop_name = formatting.sb_output_to_prop(sbs_id)
         if getattr(self, consts.SBS_CONFIGURED) and getattr(self, prop_name):
-            bpy.ops.sublender.render_texture_async(
-                texture_name=sbs_id, importing_graph=False
-            )
+            bpy.ops.sublender.render_texture_async(texture_name=sbs_id)
 
     return sbsar_output_updated
 
@@ -143,9 +139,7 @@ def output_size_x_updated(self, context):
                     props.get_scene_setting(context).live_update
                     and not globalvar.applying_preset
             ):
-                bpy.ops.sublender.render_texture_async(
-                    importing_graph=False, texture_name=""
-                )
+                bpy.ops.sublender.render_texture_async()
 
 
 def generate_sub_panel(

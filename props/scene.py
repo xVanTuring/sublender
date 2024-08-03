@@ -47,13 +47,14 @@ def init_instance_of_graph(self):
     active_graph = self.active_graph
     for material in bpy.data.materials:
         m_sublender = get_material_sublender(material)
-        if m_sublender is not None and m_sublender.graph_url == active_graph:
-            mat_name = material.name
-            material.preview_ensure()
-            globalvar.instance_of_graph.append(
-                (mat_name, mat_name, mat_name, material.preview.icon_id, i)
-            )
-            i += 1
+        if not (m_sublender is not None and m_sublender.graph_url == active_graph):
+            continue
+        mat_name = material.name
+        material.preview_ensure()
+        globalvar.instance_of_graph.append(
+            (mat_name, mat_name, mat_name, material.preview.icon_id, i)
+        )
+        i += 1
 
 
 def get_instance_of_graph(self, _):

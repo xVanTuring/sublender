@@ -4,15 +4,43 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9cb88d71-f7ef-4c9e-af6f-13c7b69dd906" name="Changes" comment="refactor: replace dict to class &amp; split utils">
+    <list default="true" id="9cb88d71-f7ef-4c9e-af6f-13c7b69dd906" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/library_importer/sublender_ot_parse_selected_sbsars.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library_importer/sublender_ot_select_sbsar_library.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scene_importer/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scene_importer/sublender_ot_import_sbsar.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scene_importer/sublender_ot_import_sbsar_from_library.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scene_importer/sublender_ot_select_sbsar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sublender.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sublender.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Changelogs.md" beforeDir="false" afterPath="$PROJECT_DIR$/Changelogs.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/importer/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/library_importer/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/importer/library_importer.py" beforeDir="false" afterPath="$PROJECT_DIR$/library_importer/sublender_ot_import_graphs_to_library.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/importer/scene_importer.py" beforeDir="false" afterPath="$PROJECT_DIR$/scene_importer/sublender_ot_import_graph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/operators/workflow.py" beforeDir="false" afterPath="$PROJECT_DIR$/operators/workflow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/property_group/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/property_group/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/props/scene.py" beforeDir="false" afterPath="$PROJECT_DIR$/props/scene.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/render/sublender_library.py" beforeDir="false" afterPath="$PROJECT_DIR$/render/sublender_library.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/render/texture_render.py" beforeDir="false" afterPath="$PROJECT_DIR$/render/texture_render.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sbsar_import/to_dict.py" beforeDir="false" afterPath="$PROJECT_DIR$/sbsar_import/to_dict.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/library.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/library.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/mainpanel.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/mainpanel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/output.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/output.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/startup.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/startup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -23,6 +51,20 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;xVanTuring&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="21cae268-148a-4f54-9680-a658f7742c52" />
+        <option name="url" value="https://github.com/xVanTuring/Sublender" />
+      </UrlAndAccount>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -42,44 +84,57 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Shell Script.Launch Blender.executor&quot;: &quot;Run&quot;,
     &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/xvan/Documents/Project/05_Python/Sublender/scene_importer&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.import&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/scene_importer" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/.github/workflows" />
       <recent name="E:\Workspace\blender\addons\sublender\sbsar_import" />
     </key>
   </component>
   <component name="RunManager">
-    <configuration name="Debug" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug">
-      <module name="sublender" />
-      <option name="PORT" value="5678" />
-      <option name="HOST" value="localhost" />
-      <PathMappingSettings>
-        <option name="pathMappings">
-          <list />
-        </option>
-      </PathMappingSettings>
-      <option name="REDIRECT_OUTPUT" value="true" />
-      <option name="SUSPEND_AFTER_CONNECT" value="true" />
+    <configuration name="Launch Blender" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="/Applications/Blender.app/Contents/MacOS/Blender $USER_HOME$/Desktop/untitled.blend" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="/bin/zsh" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="false" />
+      <envs>
+        <env name="LOGLEVEL" value="DEBUG" />
+      </envs>
       <method v="2" />
     </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-50da183f06c8-2887949eec09-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.13135.95" />
+        <option value="bundled-python-sdk-eebebe6c2be4-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.15325.20" />
       </set>
     </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SvnConfiguration">
+    <configuration>$USER_HOME$/.subversion</configuration>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="9cb88d71-f7ef-4c9e-af6f-13c7b69dd906" name="Changes" comment="" />
@@ -89,6 +144,7 @@
       <updated>1705729895642</updated>
       <workItem from="1705729897983" duration="14629000" />
       <workItem from="1705763210676" duration="727000" />
+      <workItem from="1720861267564" duration="85000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: replace dict to class &amp; split utils">
       <option name="closed" value="true" />
@@ -98,7 +154,119 @@
       <option name="project" value="LOCAL" />
       <updated>1705745217410</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="refactor: use pip wheel for dependency management">
+      <option name="closed" value="true" />
+      <created>1720844036970</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1720844036970</updated>
+    </task>
+    <task id="LOCAL-00003" summary="refactor: new build script">
+      <option name="closed" value="true" />
+      <created>1720845121234</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1720845121234</updated>
+    </task>
+    <task id="LOCAL-00004" summary="add github action">
+      <option name="closed" value="true" />
+      <created>1720846433745</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1720846433745</updated>
+    </task>
+    <task id="LOCAL-00005" summary="add Github action">
+      <option name="closed" value="true" />
+      <created>1720846607712</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1720846607712</updated>
+    </task>
+    <task id="LOCAL-00006" summary="fix: bash cwd navigation">
+      <option name="closed" value="true" />
+      <created>1720846838509</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1720846838509</updated>
+    </task>
+    <task id="LOCAL-00007" summary="ci: change `upload-artifact` parameters">
+      <option name="closed" value="true" />
+      <created>1720856105170</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1720856105170</updated>
+    </task>
+    <task id="LOCAL-00008" summary="ci: update for windows platform">
+      <option name="closed" value="true" />
+      <created>1720857338926</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1720857338926</updated>
+    </task>
+    <task id="LOCAL-00009" summary="ci: update for windows platform">
+      <option name="closed" value="true" />
+      <created>1720857834167</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1720857834167</updated>
+    </task>
+    <task id="LOCAL-00010" summary="chore: comment self-update code">
+      <option name="closed" value="true" />
+      <created>1720975801567</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1720975801567</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat: add neon backend for macOS">
+      <option name="closed" value="true" />
+      <created>1720975820256</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1720975820256</updated>
+    </task>
+    <task id="LOCAL-00012" summary="ci: update pack workflow">
+      <option name="closed" value="true" />
+      <created>1720976895941</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1720976895941</updated>
+    </task>
+    <task id="LOCAL-00013" summary="ci: update pack workflow">
+      <option name="closed" value="true" />
+      <created>1720977131544</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1720977131544</updated>
+    </task>
+    <task id="LOCAL-00014" summary="feat: batch import to scene">
+      <option name="closed" value="true" />
+      <created>1721054726975</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1721054726975</updated>
+    </task>
+    <task id="LOCAL-00015" summary="fix: render trigger before first rendering">
+      <option name="closed" value="true" />
+      <created>1721093234822</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1721093234822</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -106,6 +274,18 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="refactor: replace dict to class &amp; split utils" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: replace dict to class &amp; split utils" />
+    <MESSAGE value="refactor: use pip wheel for dependency management" />
+    <MESSAGE value="refactor: new build script" />
+    <MESSAGE value="add github action" />
+    <MESSAGE value="add Github action" />
+    <MESSAGE value="fix: bash cwd navigation" />
+    <MESSAGE value="ci: change `upload-artifact` parameters" />
+    <MESSAGE value="ci: update for windows platform" />
+    <MESSAGE value="chore: comment self-update code" />
+    <MESSAGE value="feat: add neon backend for macOS" />
+    <MESSAGE value="ci: update pack workflow" />
+    <MESSAGE value="feat: batch import to scene" />
+    <MESSAGE value="fix: render trigger before first rendering" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: render trigger before first rendering" />
   </component>
 </project>

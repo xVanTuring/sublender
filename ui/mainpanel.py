@@ -90,9 +90,7 @@ class SUBLENDER_PT_Main(bpy.types.Panel):
 
     def draw_texture_item(self, context, target_mat):
         row = self.layout.row()
-        render_ops = row.operator("sublender.render_texture_async", icon="TEXTURE")
-        render_ops.importing_graph = False
-        render_ops.texture_name = ""
+        row.operator("sublender.render_texture_async", icon="TEXTURE")
         sublender_settings = get_scene_setting(context)
         mat_setting = target_mat.sublender
         row.prop(sublender_settings, "live_update", icon="FILE_REFRESH", icon_only=True)

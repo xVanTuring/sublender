@@ -100,7 +100,8 @@ def register():
 
         workflow = reload_mod("workflow")
         props = reload_mod("props")
-        importer = reload_mod("importer")
+        library_importer = reload_mod("library_importer")
+        scene_importer = reload_mod("scene_importer")
         preference = reload_mod("preference")
         async_loop = reload_mod("async_loop")
         render = reload_mod("render")
@@ -110,7 +111,8 @@ def register():
         from . import (
             workflow,
             props,
-            importer,
+            library_importer,
+            scene_importer,
             preference,
             async_loop,
             render,
@@ -124,7 +126,8 @@ def register():
 
     async_loop.setup_asyncio_executor()
     async_loop.register()
-    importer.register()
+    library_importer.register()
+    scene_importer.register()
     props.register()
     operators.register()
     ui.register()
@@ -138,13 +141,14 @@ def register():
 
 
 def unregister():
-    from . import props, importer, preference, async_loop, render, operators, ui, utils
+    from . import props, library_importer, scene_importer, preference, async_loop, render, operators, ui, utils
 
     ui.unregister()
     preference.unregister()
     async_loop.unregister()
     render.unregister()
-    importer.unregister()
+    scene_importer.unregister()
+    library_importer.unregister()
     props.unregister()
     operators.unregister()
     utils.unregister()

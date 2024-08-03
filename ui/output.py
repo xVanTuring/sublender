@@ -54,7 +54,6 @@ class SUBLENDER_PT_SbsarOutput(bpy.types.Panel):
                     "sublender.render_texture_async", text="", icon="RENDER_STILL"
                 )
                 render_texture.texture_name = output_info.name
-                render_texture.importing_graph = False
             if bpy_image is not None:
                 if len(output_info.usages) > 0:
                     apply_image_node_name = output_info.usages[0]

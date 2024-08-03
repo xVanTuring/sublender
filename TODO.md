@@ -1,10 +1,10 @@
 # Feature
 ## Import
-*  batch import
-* TODO register importer to import menu
-## Preference
-* update_texture wait time
+* batch import
+* register importer to import menu
 ## Misc 
 * migrate release info to sublender repo
-# Error
-* SublenderOTRemoveMaterial: error after removing
+
+# RoadMap
+1. 🔨 Stable release
+2. 🚧 Better documentation

@@ -49,8 +49,7 @@ def sublender_inited(context):
 def on_blender_undo(_):
     sublender_settings = props.get_scene_setting()
     if sublender_settings.live_update and sublender_settings.catch_undo:
-        print("sublender_settings.catch_undo is On,re-render texture now")
-        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name="")
+        bpy.ops.sublender.render_texture_async()
 
 
 def unregister():

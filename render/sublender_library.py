@@ -357,7 +357,7 @@ class SublenderOTApplyPreset(bpy.types.Operator):
             utils.apply_preset(current_material, active_preset_name)
         globalvar.applying_preset = False
         # Manually update
-        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name="")
+        bpy.ops.sublender.render_texture_async()
         return {"FINISHED"}
 
 

@@ -1,3 +1,5 @@
+## 2.1.1
+* packed with dependencies
 ## v1.0.5
 * fix slider step
 * remove packaged py7zr

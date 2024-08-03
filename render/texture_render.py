@@ -19,7 +19,7 @@ class SublenderOTRenderTexture(
     bl_label = "Render Texture"
     bl_description = "Render Texture"
 
-    importing_graph: BoolProperty(default=False)
+    issused_by_importing: BoolProperty(default=False)
     """
     render issused by importing graph
     """
@@ -39,7 +39,7 @@ class SublenderOTRenderTexture(
         self.do_clean()
 
     def invoke(self, context, event):
-        if self.importing_graph:
+        if self.issused_by_importing:
             self.task_id = self.package_paths
         else:
             material_inst = utils.find_active_material(context)
@@ -83,8 +83,8 @@ class SublenderOTRenderTexture(
 
         log.debug("SublenderOTRenderTexture.async_execute starting")
         try:
-            log.debug("self.importing_graph is %s", self.importing_graph)
-            if self.importing_graph:
+            log.debug("self.importing_graph is %s", self.issused_by_importing)
+            if self.issused_by_importing:
                 await self._import_graph(context)
             else:
                 await self._update_texture(context)

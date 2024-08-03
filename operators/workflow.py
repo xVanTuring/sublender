@@ -39,7 +39,7 @@ class SublenderOTApplyWorkflow(SublenderBaseOperator, bpy.types.Operator):
                     True,
                 )
         setattr(graph_setting, consts.SBS_CONFIGURED, True)
-        bpy.ops.sublender.render_texture_async(importing_graph=False, texture_name="")
+        bpy.ops.sublender.render_texture_async(texture_name="")
         return {"FINISHED"}
 
 
