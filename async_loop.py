@@ -19,16 +19,18 @@
 """Manages the asyncio loop."""
 
 import asyncio
-import concurrent.futures
-import gc
-import logging
 import traceback
+import concurrent.futures
+import logging
+import gc
 import typing
 
 import bpy
 
-_loop_kicking_operator_running = False
 log = logging.getLogger(__name__)
+
+# Keeps track of whether a loop-kicking operator is already running.
+_loop_kicking_operator_running = False
 
 
 def setup_asyncio_executor():
@@ -41,16 +43,22 @@ def setup_asyncio_executor():
         # On Windows, the default event loop is SelectorEventLoop, which does
         # not support subprocesses. ProactorEventLoop should be used instead.
         # Source: https://docs.python.org/3/library/asyncio-subprocess.html
+        #
+        # NOTE: this is  actually the default even loop in Python 3.9+.
         loop = asyncio.ProactorEventLoop()
         asyncio.set_event_loop(loop)
     else:
         loop = asyncio.get_event_loop()
 
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
     loop.set_default_executor(executor)
+    # loop.set_debug(True)
+
+    # Python 3.8 deprecated the 'loop' parameter, 3.10 removed it.
+    kwargs = {"loop": loop} if sys.version_info < (3, 8) else {}
 
 
-def kick_async_loop() -> bool:
+def kick_async_loop(*args) -> bool:
     """Performs a single iteration of the asyncio event loop.
 
     :return: whether the asyncio loop should stop after this kick.
@@ -99,6 +107,10 @@ def kick_async_loop() -> bool:
             except Exception:
                 log.warning("{}: resulted in exception".format(task))
                 traceback.print_exc()
+
+            # for ref in gc.get_referrers(task):
+            #     log.debug('      - referred by %s', ref)
+
     loop.stop()
     loop.run_forever()
 
@@ -164,6 +176,7 @@ class AsyncLoopModalOperator(bpy.types.Operator):
         if event.type != "TIMER":
             return {"PASS_THROUGH"}
 
+        # self.log.debug('KICKING LOOP')
         stop_after_this_kick = kick_async_loop()
         if stop_after_this_kick:
             context.window_manager.event_timer_remove(self.timer)
@@ -177,9 +190,7 @@ class AsyncLoopModalOperator(bpy.types.Operator):
 
 # noinspection PyAttributeOutsideInit
 class AsyncModalOperatorMixin:
-    task_id = None
     async_task = None  # asyncio task for fetching thumbnails
-
     signalling_future = (
         None  # asyncio future for signalling that we want to cancel everything.
     )
@@ -205,26 +216,21 @@ class AsyncModalOperatorMixin:
         """
         return
 
-    def clean(self, context):
+    def quit(self):
         """Signals the state machine to stop this operator from running."""
         self._state = "QUIT"
 
     def execute(self, context):
         return self.invoke(context, None)
 
-    def quit(self):
-        """Signals the state machine to stop this operator from running."""
-        self._state = "QUIT"
-
-    def modal(self, context, _):
+    def modal(self, context, event):
         task = self.async_task
 
         if self._state != "EXCEPTION" and task and task.done() and not task.cancelled():
             ex = task.exception()
             if ex is not None:
                 self._state = "EXCEPTION"
-                self.log.exception("Exception while running task: %s", ex)
-                print(task)
+                self.log.error("Exception while running task: %s", ex)
                 if self.stop_upon_exception:
                     self.quit()
                     self._finish(context)
@@ -284,7 +290,7 @@ class AsyncModalOperatorMixin:
 
         # noinspection PyBroadException
         try:
-            self.async_task.result()  # This re-raises any exception to the task.
+            self.async_task.result()  # This re-raises any exception of the task.
         except asyncio.CancelledError:
             self.log.info("Asynchronous task was cancelled")
         except Exception:
