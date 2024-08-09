@@ -2,7 +2,7 @@ bl_info = {
     "name": "Sublender",
     "author": "xVanTuring(@foxmail.com)",
     "blender": (2, 80, 0),
-    "version": (2, 1, 1),
+    "version": (2, 1, 2),
     "location": "View3D > Properties > Sublender",
     "description": "An add-on for sbsar",
     "tracker_url": "https://github.com/xVanTuring/sublender/issues",

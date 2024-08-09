@@ -2,8 +2,7 @@ name: Pack Addon
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ "dev" ]
 
 
 jobs:
@@ -29,7 +28,15 @@ jobs:
           echo "FILEPATH=$(Get-ChildItem ./dist/)" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "BASENAME=$($(Get-ChildItem ./dist/).BaseName)" | Out-File -FilePath $env:GITHUB_ENV -Append
         shell: pwsh
-      - name: Release
-        uses: softprops/action-gh-release@v2
+
+      - name: unzip for artifact
+        run: Expand-Archive ${{ env.FILEPATH }} -DestinationPath ./tmp/
+        shell: pwsh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: ${{ env.FILEPATH }}
+          name: ${{ env.BASENAME }}
+          path: ./tmp
+
+
