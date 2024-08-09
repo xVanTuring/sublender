@@ -18,27 +18,28 @@ class SUBLENDER_PT_Main(bpy.types.Panel):
                 self.layout.box().label(text="Please save your file first.")
             operator = self.layout.operator("sublender.init_async")
             operator.pop_import = True
+            return
+
+        if len(globalvar.graph_enum) <= 0:
+            self.layout.operator("sublender.select_sbsar", icon="IMPORT")
+            return
+        target_mat = utils.find_active_material(context)
+        self.draw_graph_item(context, target_mat)
+        if sublender_settings.follow_selection or target_mat is not None:
+            self.draw_instance_item(context, target_mat)
+        if target_mat is not None:
+            self.draw_workflow_item(context, target_mat)
+            self.draw_texture_item(context, target_mat)
+            mat_setting = target_mat.sublender
+            if mat_setting.package_missing:
+                self.layout.label(
+                    text="Sbsar file is missing, Please reselect it"
+                )
+                self.layout.prop(mat_setting, "package_path")
+            elif not mat_setting.package_loaded:
+                self.layout.label(text="Loading...")
         else:
-            if len(globalvar.graph_enum) > 0:
-                target_mat = utils.find_active_material(context)
-                self.draw_graph_item(context, target_mat)
-                if sublender_settings.follow_selection or target_mat is not None:
-                    self.draw_instance_item(context, target_mat)
-                if target_mat is not None:
-                    self.draw_workflow_item(context, target_mat)
-                    self.draw_texture_item(context, target_mat)
-                    mat_setting = target_mat.sublender
-                    if mat_setting.package_missing:
-                        self.layout.label(
-                            text="Sbsar file is missing, Please reselect it"
-                        )
-                        self.layout.prop(mat_setting, "package_path")
-                    elif not mat_setting.package_loaded:
-                        self.layout.label(text="Loading...")
-                else:
-                    self.layout.label(text="No material is selected")
-            else:
-                self.layout.operator("sublender.select_sbsar", icon="IMPORT")
+            self.layout.label(text="No material is selected")
 
     def draw_instance_item(self, context, target_mat):
         sublender_settings = get_scene_setting(context)
